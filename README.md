@@ -16,7 +16,7 @@ A modern web application that allows users to make and receive phone calls direc
 - **Frontend**: Next.js 15, React 18, Tailwind CSS
 - **Backend**: Next.js API Routes
 - **Voice API**: Twilio Programmable Voice
-- **Cloud Storage**: AWS S3
+- **Cloud Storage**: Firebase Storage
 - **Database**: MongoDB Atlas
 - **Authentication**: Firebase Authentication
 
@@ -25,7 +25,7 @@ A modern web application that allows users to make and receive phone calls direc
 - Node.js 18+
 - yarn (or npm, pnpm, bun)
 - Twilio account
-- AWS account
+- Firebase project (for auth and storage)
 - Firebase project
 
 ## Installation

@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { uploadFile } from "../../../lib/firebaseStorage";
 
 export default async function handler(req, res) {
 	if (req.method !== "POST") {
@@ -6,37 +6,44 @@ export default async function handler(req, res) {
 	}
 
 	try {
-		const { file } = req.body;
+		const { file, fileName, contentType } = req.body;
 
 		if (!file) {
 			return res.status(400).json({ error: "No file provided" });
 		}
 
-		const s3 = new S3Client({
-			region: process.env.AWS_REGION,
-			credentials: {
-				accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-				secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-			},
-		});
+		// Convert base64 file data to buffer
+		const fileBuffer = Buffer.from(file, "base64");
 
-		const key = `recordings/${Date.now()}_${file.name}`;
+		// Generate a unique filename if not provided
+		const finalFileName = fileName || `recording_${Date.now()}.wav`;
+		const finalContentType = contentType || "audio/wav";
 
-		const command = new PutObjectCommand({
-			Bucket: process.env.AWS_S3_BUCKET,
-			Key: key,
-			Body: file,
-			ContentType: file.type,
-		});
-
-		await s3.send(command);
+		// Upload to Firebase Storage
+		const publicUrl = await uploadFile(
+			fileBuffer,
+			finalFileName,
+			finalContentType,
+		);
 
 		res.status(200).json({
 			message: "File uploaded successfully",
-			key: key,
+			url: publicUrl,
+			fileName: finalFileName,
 		});
 	} catch (error) {
 		console.error("Error uploading file:", error);
-		res.status(500).json({ error: "Failed to upload file" });
+		res
+			.status(500)
+			.json({ error: "Failed to upload file", details: error.message });
 	}
 }
+
+// Increase body size limit for file uploads
+export const config = {
+	api: {
+		bodyParser: {
+			sizeLimit: "10mb",
+		},
+	},
+};

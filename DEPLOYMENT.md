@@ -58,10 +58,6 @@ git push -u origin main
    | `FIREBASE_ADMIN_CLIENT_EMAIL`              | firebase-adminsdk@...          |
    | `FIREBASE_ADMIN_PRIVATE_KEY`               | your_private_key               |
    | `MONGODB_URI`                              | your_mongodb_uri               |
-   | `AWS_ACCESS_KEY_ID`                        | your_aws_key                   |
-   | `AWS_SECRET_ACCESS_KEY`                    | your_aws_secret                |
-   | `AWS_REGION`                               | us-east-1                      |
-   | `AWS_S3_BUCKET`                            | your_bucket_name               |
 
 6. Click "Deploy"
 
