@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Next.js 16+ configuration
-  experimental: {
-    // Enable experimental features if needed
-  },
   async headers() {
     return [
       {

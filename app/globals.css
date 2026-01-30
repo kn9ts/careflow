@@ -1,16 +1,6 @@
-@import "tailwindcss";
-
-@theme {
-  --color-primary-red: #ff3366;
-  --color-primary-pink: #ff6b9d;
-  --color-primary-blue: #3366ff;
-  --color-secondary-rose: #ff99aa;
-  --color-secondary-cyan: #66ccff;
-  --color-secondary-purple: #9966ff;
-  --color-background-dark: #0f0f1a;
-  --color-background-card: #1a1a2e;
-  --color-background-input: #252542;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   html {
