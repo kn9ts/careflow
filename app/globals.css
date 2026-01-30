@@ -1,23 +1,33 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary-red: #ff3366;
+  --color-primary-pink: #ff6b9d;
+  --color-primary-blue: #3366ff;
+  --color-secondary-rose: #ff99aa;
+  --color-secondary-cyan: #66ccff;
+  --color-secondary-purple: #9966ff;
+  --color-background-dark: #0f0f1a;
+  --color-background-card: #1a1a2e;
+  --color-background-input: #252542;
+}
 
 @layer base {
-	html {
-		scroll-behavior: smooth;
-	}
+  html {
+    scroll-behavior: smooth;
+  }
 
-	body {
-		@apply antialiased;
-	}
+  body {
+    @apply antialiased;
+  }
 }
 
 @layer utilities {
-	.text-gradient {
-		@apply bg-clip-text text-transparent bg-gradient-to-r from-primary-red via-primary-pink to-primary-blue;
-	}
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-red via-primary-pink to-primary-blue;
+  }
 
-	.bg-gradient-primary {
-		@apply bg-gradient-to-r from-primary-red to-primary-blue;
-	}
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-primary-red to-primary-blue;
+  }
 }
