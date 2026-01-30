@@ -1,8 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Next.js 16+ uses the new App Router by default
-  // Pages Router is still supported via the pages/ directory
+  // Next.js 16+ configuration
+  experimental: {
+    // Enable experimental features if needed
+  },
   async headers() {
     return [
       {
