@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-red via-primary-pink to-primary-blue;
+  }
+
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-primary-red to-primary-blue;
+  }
+}
