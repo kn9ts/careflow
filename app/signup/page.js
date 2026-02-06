@@ -91,8 +91,19 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background-dark via-primary-blue/10 to-background-dark flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-background-card/50 backdrop-blur-lg rounded-2xl border border-white/10 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background-dark via-primary-blue/10 to-background-dark flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Scenery Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
+          alt="Beautiful mountain landscape"
+          className="w-full h-full object-cover"
+        />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background-dark/90 via-background-dark/80 to-background-dark/90"></div>
+      </div>
+
+      <div className="w-full max-w-md bg-background-card/50 backdrop-blur-lg rounded-2xl border border-white/10 p-8 relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-gray-400">Join CareFlow to start making calls</p>
