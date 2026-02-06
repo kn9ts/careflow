@@ -69,7 +69,6 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md bg-background-card/50 backdrop-blur-lg rounded-2xl border border-white/10 p-8 relative z-10">
-      <div className="w-full max-w-md bg-background-card/50 backdrop-blur-lg rounded-2xl border border-white/10 p-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-gray-400">Sign in to access your dashboard</p>

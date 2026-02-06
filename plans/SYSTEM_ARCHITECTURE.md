@@ -1,10 +1,13 @@
 ---
 
-# CareFlow System Architecture (Concise)
+# CareFlow System Architecture
 
 ## Overview
 
-CareFlow is a Next.js application using Twilio Voice for browser calling, Firebase Auth for authentication, and MongoDB for persistence.
+CareFlow is a Next.js application supporting dual calling modes:
+
+- **Twilio Voice**: Traditional PSTN telephony calls (when credentials provided)
+- **WebRTC**: Browser-to-browser peer-to-peer calls (fallback mode)
 
 ## Architecture Diagram
 
@@ -13,35 +16,34 @@ flowchart TB
     subgraph Client
         A[Next.js UI] --> B[AuthContext]
         B --> C[Dashboard]
-        C --> D[Twilio Device SDK]
+        C --> D[Call Manager]
+        D --> E{Twilio Available?}
+        E -->|Yes| F[Twilio Device SDK]
+        E -->|No| G[WebRTC Manager]
     end
 
     subgraph API
-        E[App Router API] --> F[Auth Handlers]
-        E --> G[Call History]
-        E --> H[Analytics]
-        E --> I[Twilio Webhooks]
+        H[App Router API] --> I[Auth Handlers]
+        H --> J[Call History]
+        H --> K[Analytics]
+        H --> L[Twilio Webhooks]
+        H --> M[Signaling Server]
     end
 
     subgraph Services
-        J[Firebase Auth]
-        K[MongoDB]
-        L[Twilio Voice]
-        M[Firebase Storage]
+        N[Firebase Auth]
+        O[MongoDB]
+        P[Twilio Voice]
+        Q[Firebase Storage - Signaling]
     end
 
-    A --> E
-    F --> J
-    G --> K
-    H --> K
-    I --> L
-    D --> L
-    C --> M
+    F --> P
+    G --> Q
 ```
 
 ## Key Data Flows
 
-### Incoming Call Flow
+### Incoming Call Flow (Twilio)
 
 ```mermaid
 sequenceDiagram
@@ -58,7 +60,7 @@ sequenceDiagram
     Twilio->>Caller: Connected
 ```
 
-### Outgoing Call Flow
+### Outgoing Call Flow (Twilio)
 
 ```mermaid
 sequenceDiagram
@@ -75,17 +77,57 @@ sequenceDiagram
     Twilio->>Browser: Connected
 ```
 
+### WebRTC Peer-to-Peer Flow (Fallback)
+
+```mermaid
+sequenceDiagram
+    participant UserA
+    participant Signaling
+    participant UserB
+
+    UserA->>Signaling: Create Room
+    UserA->>Signaling: Offer (SDP)
+    Signaling->>UserB: Forward Offer
+    UserB->>Signaling: Answer (SDP)
+    Signaling->>UserA: Forward Answer
+    UserB->>Signaling: ICE Candidates
+    Signaling->>UserA: ICE Candidates
+    UserA->>UserB: Direct P2P Connection
+```
+
+## Call Modes
+
+### Mode 1: Twilio Voice (Default)
+
+When Twilio credentials are provided, the app uses Twilio Voice SDK for:
+
+- PSTN calls to regular phone numbers
+- Call recording via Twilio
+- Phone number masking
+- Professional telephony features
+
+### Mode 2: WebRTC (Fallback)
+
+When Twilio credentials are missing, the app automatically switches to WebRTC for:
+
+- Free browser-to-browser calls
+- Peer-to-peer encrypted audio
+- No telephony costs
+- Works between CareFlow users
+
 ## Relevant Modules
 
 - API route handlers in [`careflow/app/api`](careflow/app/api)
 - Authentication context in [`careflow/context/AuthContext.js`](careflow/context/AuthContext.js)
-- Twilio integration in [`careflow/lib/twilio.js`](careflow/lib/twilio.js)
+- Twilio integration in [`careflow/lib/twilio.js`](careflow/lib/twilio.js) (if exists)
+- WebRTC manager in [`careflow/lib/webrtc.js`](careflow/lib/webrtc.js) (fallback)
+- Call manager in [`careflow/lib/callManager.js`](careflow/lib/callManager.js)
 - Database layer in [`careflow/lib/db.js`](careflow/lib/db.js)
 
 ## Server vs Client
 
-- **Server**: Route handlers, token generation, database access.
-- **Client**: Dashboard UI, Twilio Device, call controls.
+- **Server**: Route handlers, token generation, database access, signaling.
+- **Client**: Dashboard UI, Twilio Device/WebRTC, call controls.
 
 ## Key Components
 
@@ -98,7 +140,67 @@ sequenceDiagram
 - Server-side credentials only for Twilio and Firebase Admin.
 - Require Firebase ID token validation for protected APIs.
 - Validate webhook signatures for Twilio callbacks.
+- WebRTC uses DTLS-SRTP for encryption.
+- Signaling endpoints require authentication.
 
 ## Environment Variables
 
 See [`careflow/.env.local.example`](careflow/.env.local.example).
+
+### Twilio Configuration (Optional)
+
+```
+TWILIO_ACCOUNT_SID=your-account-sid
+TWILIO_AUTH_TOKEN=your-auth-token
+TWILIO_PHONE_NUMBER=+1234567890
+TWILIO_TWIML_APP_SID=your-twiml-app-sid
+TWILIO_API_KEY=your-api-key
+TWILIO_API_SECRET=your-api-secret
+```
+
+### WebRTC Configuration (Automatic)
+
+```
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Firebase config for signaling (if needed)
+```
+
+## Fallback Behavior
+
+```javascript
+// Automatic mode detection in CallManager
+const twilioConfigured = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN;
+
+if (twilioConfigured) {
+  mode = "twilio";
+  // Use Twilio Voice SDK
+} else {
+  mode = "webrtc";
+  // Use WebRTC for browser-to-browser
+}
+```
+
+## API Endpoints
+
+### Token Endpoint
+
+```javascript
+// GET /api/token
+// Returns: { token: string, mode: 'twilio' | 'webrtc' }
+```
+
+### Signaling Endpoints (WebRTC Mode)
+
+```javascript
+// POST /api/signaling/offer
+// POST /api/signaling/answer
+// POST /api/signaling/ice
+```
+
+### Webhook Endpoints (Twilio Mode)
+
+```javascript
+// POST /api/webhooks/twilio/voice
+// POST /api/webhooks/twilio/status
+// POST /api/webhooks/twilio/voicemail
+```

@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-CareFlow is a browser-based calling application built with Next.js 14, React 18, Firebase Authentication, Twilio Programmable Voice API, and MongoDB. The application enables users to make and receive phone calls directly from their web browser, with features including call recording, call history, analytics, and real-time call controls.
+CareFlow is a customer care platform built with Next.js 14, React 18, Firebase Authentication, Twilio Programmable Voice API, and MongoDB. The application enables businesses to communicate with their customers through web-based phone calls and voicemail, with features including call recording, call history, analytics, and real-time call controls.
 
 This report provides a comprehensive analysis of the application's architecture, functionality, and identifies areas for improvement, missing features, and optimization opportunities.
 
@@ -55,6 +55,7 @@ CareFlow is a web-based telephony application that allows users to:
 ### 1.3 Key Features
 
 - Browser-based calling using Twilio Programmable Voice
+- **WebRTC Fallback**: Browser-to-browser calls when Twilio credentials are missing
 - Firebase Authentication with email/password
 - JWT token management with automatic refresh
 - Call recording and storage
@@ -93,6 +94,8 @@ careflow/
 │   ├── firebase.js              # Firebase client config
 │   ├── firebaseStorage.js       # Firebase Storage utilities
 │   ├── twilio.js               # Twilio service wrapper
+│   ├── webrtc.js               # WebRTC peer connection manager
+│   ├── callManager.js           # Unified call interface (Twilio/WebRTC)
 │   └── env.config.js           # Environment configuration
 └── models/                      # Mongoose models
     ├── User.js                  # User model
@@ -263,7 +266,56 @@ The dashboard ([`app/dashboard/page.js`](careflow/app/dashboard/page.js:1)) is t
 - Event listener management
 - Connection management
 
-### 3.4 Database Models
+### 3.4 WebRTC Fallback Support
+
+CareFlow supports dual calling modes with automatic fallback:
+
+**Mode 1: Twilio Voice (Default)**
+
+- Uses Twilio Programmable Voice SDK
+- PSTN calls to regular phone numbers
+- Call recording via Twilio
+- Professional telephony features
+- Requires: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+
+**Mode 2: WebRTC Peer-to-Peer (Fallback)**
+
+- Browser-to-browser calls when Twilio credentials are missing
+- Free peer-to-peer encrypted audio
+- No telephony costs
+- Works between CareFlow users only
+- Uses Firebase Realtime Database for signaling
+
+**Automatic Detection Logic:**
+
+```javascript
+const twilioConfigured = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN;
+
+if (twilioConfigured) {
+  mode = "twilio";
+  // Use Twilio Voice SDK
+} else {
+  mode = "webrtc";
+  // Use WebRTC for browser-to-browser
+}
+```
+
+**WebRTC Architecture:**
+
+```
+UserA → Signaling Server → UserB
+   │         │
+   └────► Direct WebRTC ◄────┘
+         (P2P Connection)
+```
+
+**Related Files:**
+
+- [`lib/webrtc.js`](careflow/lib/webrtc.js:1) - WebRTC peer connection manager
+- [`lib/callManager.js`](careflow/lib/callManager.js:1) - Unified call interface
+- [`plans/WEBRTC_FALLBACK_ARCHITECTURE.md`](careflow/plans/WEBRTC_FALLBACK_ARCHITECTURE.md) - Detailed architecture
+
+### 3.5 Database Models
 
 **User Model ([`models/User.js`](careflow/models/User.js:1)):**
 
@@ -322,16 +374,19 @@ The dashboard ([`app/dashboard/page.js`](careflow/app/dashboard/page.js:1)) is t
 
 ### 3.5 API Endpoints
 
-| Endpoint                      | Method | Description                  |
-| ----------------------------- | ------ | ---------------------------- |
-| `/api/auth/login`             | POST   | Authenticate user            |
-| `/api/auth/register`          | POST   | Register new user            |
-| `/api/auth/logout`            | POST   | Logout user                  |
-| `/api/token`                  | GET    | Generate Twilio access token |
-| `/api/calls/history`          | GET    | Get call history             |
-| `/api/analytics`              | GET    | Get call analytics           |
-| `/api/webhooks/twilio/voice`  | POST   | Handle incoming calls        |
-| `/api/webhooks/twilio/status` | POST   | Handle call status updates   |
+| Endpoint                      | Method | Description                     |
+| ----------------------------- | ------ | ------------------------------- | -------------------------- |
+| `/api/auth/login`             | POST   | Authenticate user               |
+| `/api/auth/register`          | POST   | Register new user               |
+| `/api/auth/logout`            | POST   | Logout user                     |
+| `/api/token`                  | GET    | Generate Twilio/WebRTC token    |
+| `/api/calls/history`          | GET    | Get call history                |
+| `/api/analytics`              | GET    | Get call analytics              |
+| `/api/webhooks/twilio/voice`  | POST   | Handle incoming calls (Twilio)  |
+| `/api/webhooks/twilio/status` |        | POST                            | Handle call status updates |
+| `/api/signaling/offer`        | POST   | WebRTC offer exchange (WebRTC)  |
+| `/api/signaling/answer`       | POST   | WebRTC answer exchange (WebRTC) |
+| `/api/signaling/ice`          | POST   | WebRTC ICE candidate exchange   |
 
 ---
 
