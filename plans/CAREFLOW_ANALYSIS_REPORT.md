@@ -696,6 +696,9 @@ The application is functional but requires significant improvements to be produc
 | [`careflow/app/api/analytics/route.js`](careflow/app/api/analytics/route.js:1)                                   | Analytics endpoint       |
 | [`careflow/app/api/webhooks/twilio/voice/route.js`](careflow/app/api/webhooks/twilio/voice/route.js:1)           | Voice webhook            |
 | [`careflow/app/api/webhooks/twilio/status/route.js`](careflow/app/api/webhooks/twilio/status/route.js:1)         | Status webhook           |
+| [`careflow/lib/webrtc.js`](careflow/lib/webrtc.js:1)                                                             | WebRTC manager           |
+| [`careflow/lib/callManager.js`](careflow/lib/callManager.js:1)                                                   | Unified call interface   |
+| [`careflow/plans/WEBRTC_FALLBACK_ARCHITECTURE.md`](careflow/plans/WEBRTC_FALLBACK_ARCHITECTURE.md)               | WebRTC architecture docs |
 
 ---
 
