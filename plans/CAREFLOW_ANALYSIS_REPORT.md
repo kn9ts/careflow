@@ -282,9 +282,17 @@ CareFlow supports dual calling modes with automatic fallback:
 
 - Browser-to-browser calls when Twilio credentials are missing
 - Free peer-to-peer encrypted audio
-- No telephony costs
+- Uses **CareFlow User ID** for addressing
 - Works between CareFlow users only
 - Uses Firebase Realtime Database for signaling
+
+**CareFlow User ID (care4wId)**
+
+- **Format**: `care4w-XXXXXXX` (prefix + 7-digit number)
+- **Example**: `care4w-1000001`, `care4w-1000002`
+- **Immutable**: Assigned once during registration, cannot be changed
+- **Unique**: Each user has a unique ID
+- **Purpose**: Used for WebRTC calls when Twilio is unavailable
 
 **Automatic Detection Logic:**
 
@@ -296,17 +304,35 @@ if (twilioConfigured) {
   // Use Twilio Voice SDK
 } else {
   mode = "webrtc";
-  // Use WebRTC for browser-to-browser
+  // Use WebRTC for peer-to-peer calls using care4wId
 }
+```
+
+**WebRTC Call Flow:**
+
+```
+1. Caller enters care4wId (e.g., care4w-1000002)
+2. App validates format: /^care4w-\\d{7}$/
+3. App queries User Lookup API for target care4wId
+4. Signaling server facilitates offer/answer exchange
+5. Direct WebRTC P2P connection established
 ```
 
 **WebRTC Architecture:**
 
 ```
-UserA → Signaling Server → UserB
+UserA (care4w-1000001) → Signaling Server → UserB (care4w-1000002)
    │         │
-   └────► Direct WebRTC ◄────┘
-         (P2P Connection)
+   │         ├── Lookup: care4w-1000002 → Firebase UID
+   │         │
+   │         ├── Offer exchange (SDP)
+   │         │
+   │         ├── Answer exchange (SDP)
+   │         │
+   │         └── ICE candidate exchange
+   │
+   └────► Direct WebRTC P2P Connection ◄────┘
+         (Encrypted, Peer-to-Peer)
 ```
 
 **Related Files:**
@@ -329,6 +355,9 @@ UserA → Signaling Server → UserB
   isActive: Boolean,
   twilioPhoneNumber: String,
   twilioClientIdentity: String (unique, sparse),
+  // CareFlow User ID for WebRTC calls
+  care4wId: String (unique, immutable),  // Example: "care4w-1000001"
+  sequenceNumber: Number (unique, immutable),  // Example: 1000001
   notifications: {
     incomingCalls: Boolean,
     missedCalls: Boolean,

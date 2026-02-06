@@ -69,6 +69,19 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
 
+  // CareFlow User ID for WebRTC calls (care4w-XXXXXXX)
+  care4wId: {
+    type: String,
+    unique: true,
+    immutable: true, // Cannot be changed after creation
+    trim: true,
+  },
+  sequenceNumber: {
+    type: Number,
+    unique: true,
+    immutable: true, // Cannot be changed after creation
+  },
+
   // Notification Preferences
   notifications: {
     incomingCalls: { type: Boolean, default: true },
@@ -131,6 +144,8 @@ userSchema.pre("save", function (next) {
 userSchema.index({ firebaseUid: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ twilioClientIdentity: 1 }, { sparse: true });
+userSchema.index({ care4wId: 1 }, { unique: true });
+userSchema.index({ sequenceNumber: 1 }, { unique: true });
 userSchema.index({ isActive: 1, lastLoginAt: -1 }); // For finding active users sorted by last login
 userSchema.index({ role: 1, isActive: 1 }); // For filtering users by role and status
 userSchema.index({ createdAt: -1 }); // For sorting users by creation date

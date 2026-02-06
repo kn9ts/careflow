@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
+import { generateCare4wId } from "@/lib/careFlowIdGenerator";
 
 export async function POST(request) {
   try {
@@ -19,8 +20,14 @@ export async function POST(request) {
       );
     }
 
-    // Create or get user
-    const user = await getOrCreateUser(firebaseUid, email, displayName);
+    // Generate care4wId for WebRTC calls
+    const { care4wId, sequenceNumber } = await generateCare4wId();
+
+    // Create or get user with care4wId
+    const user = await getOrCreateUser(firebaseUid, email, displayName, {
+      care4wId,
+      sequenceNumber,
+    });
 
     return successResponse({
       message: "User profile created successfully",
@@ -29,6 +36,7 @@ export async function POST(request) {
         email: user.email,
         displayName: user.displayName,
         role: user.role,
+        care4wId: user.care4wId,
         twilioClientIdentity: user.twilioClientIdentity,
         createdAt: user.createdAt,
       },
