@@ -58,10 +58,28 @@ export default function RecordingPlayer({
     setIsLoading(true);
     setError(null);
     try {
-      // The URL would typically come from your API
-      // For now, we'll construct it based on Twilio recording format
-      const recordingUrl = `https://api.twilio.com/2010-04-01/Accounts/${process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID}/Recordings/${recording.sid}.mp3`;
-      setAudioUrl(recordingUrl);
+      // Get signed URL from our API for Backblaze B2 recordings
+      if (recording.accessUrl) {
+        setAudioUrl(recording.accessUrl);
+      } else if (recording.id) {
+        // Fetch signed URL from API
+        const response = await fetch(
+          `/api/recordings/${recording.id}?includeUrl=true`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const data = await response.json();
+        if (data.data?.recording?.downloadUrl) {
+          setAudioUrl(data.data.recording.downloadUrl);
+        } else {
+          throw new Error("No access URL available");
+        }
+      } else {
+        throw new Error("Invalid recording");
+      }
     } catch (err) {
       setError("Failed to load recording");
       console.error("Error fetching recording URL:", err);

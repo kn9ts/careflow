@@ -46,16 +46,24 @@ export function AuthProvider({ children }) {
           });
           setToken(idToken);
 
+          // Store token in localStorage for persistence
+          if (typeof window !== "undefined") {
+            localStorage.setItem("careflow_token", idToken);
+          }
+
           // Set up token refresh every 50 minutes (Firebase tokens expire in 60 minutes)
           const tokenRefresh = setInterval(
             async () => {
               try {
                 const newToken = await getIdToken(user, true);
                 setToken(newToken);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem("careflow_token", newToken);
+                }
               } catch (err) {
                 console.error("Token refresh failed:", err);
                 // If token refresh fails, sign out user
-                await handleLogout();
+                await logout();
               }
             },
             50 * 60 * 1000,
@@ -71,6 +79,10 @@ export function AuthProvider({ children }) {
       } else {
         setCurrentUser(null);
         setToken(null);
+        // Clear localStorage on logout
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("careflow_token");
+        }
       }
 
       setLoading(false);
@@ -125,6 +137,10 @@ export function AuthProvider({ children }) {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
 
+      // Wait for the token to be available before returning
+      // This ensures the token is set in state before redirecting
+      const idToken = await getIdToken(result.user, true);
+
       setCurrentUser({
         uid: result.user.uid,
         email: result.user.email,
@@ -133,6 +149,12 @@ export function AuthProvider({ children }) {
         emailVerified: result.user.emailVerified,
         phoneNumber: result.user.phoneNumber,
       });
+      setToken(idToken);
+
+      // Store token in localStorage for persistence
+      if (typeof window !== "undefined") {
+        localStorage.setItem("careflow_token", idToken);
+      }
 
       return { success: true, user: result.user };
     } catch (error) {
@@ -152,6 +174,11 @@ export function AuthProvider({ children }) {
     try {
       await signOut(auth);
       setCurrentUser(null);
+      setToken(null);
+      // Clear localStorage token
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("careflow_token");
+      }
       return { success: true };
     } catch (error) {
       console.error("Logout error:", error);

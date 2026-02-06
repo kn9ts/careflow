@@ -1,491 +1,815 @@
-# CareFlow User Flows (Concise)
+# CareFlow User Flows Documentation
 
-## Overview
+## Table of Contents
 
-Core user journeys for authentication and calling. Diagrams reflect the target flow (some steps are pending implementation, see analysis report).
-
----
-
-## Authentication
-
-### Login
-
-```mermaid
-graph TD
-    A[Visit app] --> B{Authenticated?}
-    B -->|Yes| C[Dashboard]
-    B -->|No| D[Login form]
-    D --> E[Firebase Auth]
-    E -->|Success| C
-    E -->|Error| D
-```
-
-### Registration
-
-```mermaid
-graph TD
-    A[Sign up] --> B[Firebase Auth create user]
-    B --> C[POST /api/auth/register]
-    C --> D[Dashboard]
-```
-
-### Password Reset
-
-```mermaid
-graph TD
-    A[Forgot password] --> B[Enter email]
-    B --> C[Firebase reset email]
-    C --> D[Back to login]
-```
+1. [Authentication Flow](#authentication-flow)
+2. [Call Management Flow](#call-management-flow)
+3. [WebRTC Call Recording Flow](#webrtc-call-recording-flow)
+4. [Recording Playback Flow](#recording-playback-flow)
+5. [Recording Management Flow](#recording-management-flow)
+6. [Error States and Recovery](#error-states-and-recovery)
+7. [Edge Cases](#edge-cases)
 
 ---
 
-## Calling
+## Authentication Flow
 
-### Outbound Call
+### Happy Path: User Login
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant App
-    participant API
-    participant Twilio
-    participant PSTN
-
-    User->>App: Enter number
-    App->>API: GET /api/token
-    API->>Twilio: Create token
-    App->>Twilio: Device.connect
-    Twilio->>PSTN: Dial
-    PSTN-->>Twilio: Answer
-    Twilio-->>App: Connected
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Authentication - Login                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────┐     ┌──────────────┐     ┌─────────────┐     ┌────────────┐ │
+│  │ User     │     │ Login Page    │     │ Auth API    │     │ Dashboard │ │
+│  │ visits   │────▶│ displays      │────▶│ validates   │────▶│ loads      │ │
+│  │ /login   │     │ login form    │     │ credentials │     │            │ │
+│  └──────────┘     └──────────────┘     └─────────────┘     └────────────┘ │
+│                                                                             │
+│  Steps:                                                                     │
+│  1. User navigates to /login                                                │
+│  2. System displays login form with email/password fields                  │
+│  3. User enters credentials                                                 │
+│  4. System validates input format                                          │
+│  5. System submits to /api/auth/login                                       │
+│  6. System receives JWT token                                              │
+│  7. User redirected to /dashboard                                           │
+│                                                                             │
+│  User Emotional State:                                                     │
+│  - Start: Neutral/期待 (expectant)                                          │
+│  - During: Focused, attentive                                               │
+│  - End: Satisfied, confident                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Inbound Call
+### Alternate Path: Registration
 
-```mermaid
-sequenceDiagram
-    participant Caller
-    participant Twilio
-    participant Webhook
-    participant App
-
-    Caller->>Twilio: Call number
-    Twilio->>Webhook: POST /api/webhooks/twilio/voice
-    Webhook->>Twilio: TwiML Dial Client
-    Twilio->>App: Incoming call
-    App->>Twilio: Accept
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Authentication - Registration                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. User clicks "Sign Up" on login page                                    │
+│  2. Navigate to /signup                                                     │
+│  3. Complete registration form:                                             │
+│     - Email (required, validated format)                                   │
+│     - Password (required, min 8 chars)                                      │
+│     - Care4wID (optional, for existing users)                               │
+│  4. Submit to /api/auth/register                                            │
+│  5. Auto-login and redirect to dashboard                                   │
+│                                                                             │
+│  Design Rationale:                                                          │
+│  - Optional Care4wID allows linking to existing Twilio account             │
+│  - Auto-login improves UX by eliminating redundant login                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Call History
+### Error State: Invalid Credentials
 
-```mermaid
-graph TD
-    A[Open History] --> B[GET /api/calls/history]
-    B --> C[MongoDB query]
-    C --> D[Render list]
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ERROR STATE: Invalid Credentials                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Trigger: Wrong email/password combination                                  │
+│                                                                             │
+│  System Response:                                                           │
+│  - Display error message: "Invalid email or password"                      │
+│  - Highlight password field                                                 │
+│  - Clear password field                                                    │
+│  - Keep user on login page                                                 │
+│                                                                             │
+│  User Action Required:                                                      │
+│  - Re-enter credentials                                                    │
+│                                                                             │
+│  Recovery Mechanism:                                                       │
+│  - Password reset link available                                           │
+│  - No account lockout (per UX best practices)                             │
+│                                                                             │
+│  Friction Points:                                                           │
+│  - None significant - clear error, easy recovery                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Components Involved
+## Call Management Flow
 
-- Login: [`careflow/app/login/page.js`](careflow/app/login/page.js)
-- Signup: [`careflow/app/signup/page.js`](careflow/app/signup/page.js)
-- Dashboard: [`careflow/app/dashboard/page.js`](careflow/app/dashboard/page.js)
-- Auth state: [`careflow/context/AuthContext.js`](careflow/context/AuthContext.js)
-- Webhooks: [`careflow/app/api/webhooks/twilio/voice/route.js`](careflow/app/api/webhooks/twilio/voice/route.js)
+### Happy Path: Outbound Call (WebRTC Mode)
 
-## Application Initialization Flow
-
-```mermaid
-graph TD
-    A[Application Start] --> B[Import initialization modules]
-    B --> C[Auto-initialize on server side]
-    C --> D[Client-side initialization check]
-
-    D --> E[Load environment configuration]
-    E --> F[Validate configuration schema]
-    F --> G{Validation successful?}
-
-    G -->|No| H[Log validation errors]
-    G -->|Yes| I[Set up global application state]
-
-    H --> J{Environment: Development?}
-    J -->|Yes| K[Show detailed errors]
-    J -->|No| L[Continue with warnings]
-
-    K --> M[Fail fast in production]
-    L --> N[Continue initialization]
-    M --> O[Exit application]
-
-    I --> N
-    N --> P[Initialize service configurations]
-    P --> Q[Set up environment-specific features]
-
-    Q --> R{Environment: Development?}
-    R -->|Yes| S[Enable development features]
-    R -->|Production| T[Enable production features]
-    R -->|Test| U[Enable test features]
-
-    S --> V[Set up monitoring]
-    T --> V
-    U --> V
-
-    V --> W[Mark initialization complete]
-    W --> X[Application ready]
-
-    X --> Y[Render application components]
-    Y --> Z[User interaction begins]
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Outbound WebRTC Call                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────┐     ┌─────────────┐     ┌─────────────┐     ┌──────────┐ │
+│  │ Dialer Page  │     │ CallManager │     │ WebRTC      │     │ Remote  │ │
+│  │              │     │ initialize  │────▶│ signaling   │────▶│ peer    │ │
+│  │              │     │             │     │             │     │         │ │
+│  └──────────────┘     └─────────────┘     └─────────────┘     └──────────┘ │
+│         │                   │                   │                   │      │
+│         │ User enters       │ Create Room       │ Exchange SDP     │      │
+│         │ phone number     │                   │ & ICE candidates  │      │
+│         │                   │                   │                   │      │
+│         ▼                   ▼                   ▼                   ▼      │
+│  ┌──────────────┐     ┌─────────────┐     ┌─────────────┐     ┌──────────┐ │
+│  │ User clicks  │     │ ICE         │     │ Call state  │     │ Audio   │ │
+│  │ "Call"       │────▶│ candidates  │────▶│ changes to  │────▶│ stream  │ │
+│  │              │     │ collected   │     │ "connected" │     │ active  │ │
+│  └──────────────┘     └─────────────┘     └─────────────┘     └──────────┘ │
+│                                                                             │
+│  Key Decision Points:                                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ DECISION: Browser supports WebRTC?                                   │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ YES → Proceed with WebRTC call                                      │   │
+│  │ NO  → Fallback to Twilio (if configured) or show error              │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ DECISION: ICE connection successful?                                 │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ YES → Call connects, audio flows                                    │   │
+│  │ NO  → Show "Connection failed" error, offer retry                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  User Emotional State:                                                      │
+│  - Dialing: Anticipation, slight anxiety                                    │
+│  - Ringing: Expectation                                                    │
+│  - Connected: Relief, focus                                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Initialization Phases:**
+### Happy Path: Inbound Call
 
-### Phase 1: Configuration Loading
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Inbound WebRTC Call                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Remote Peer initiates call                                                 │
+│           │                                                                │
+│           ▼                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ DECISION: User available?                                             │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ YES → Notify user via:                                               │   │
+│  │      - In-app toast notification                                     │   │
+│  │      - Audio ringtone (if enabled)                                    │   │
+│  │      - Browser push notification (if permitted)                        │   │
+│  │                                                                       │   │
+│  │ User actions available:                                              │   │
+│  │  ┌──────────┐  ┌──────────┐                                           │   │
+│  │  │ Accept   │  │ Reject   │                                           │   │
+│  │  │ (green)  │  │ (red)    │                                           │   │
+│  │  └──────────┘  └──────────┘                                           │   │
+│  │                                                                       │   │
+│  │ NO → Call routed to voicemail (if configured)                         │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Timeout Behavior:                                                          │
+│  - If no action within 30 seconds → Auto-reject                            │
+│  - Ringback continues until user action                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-1. **Environment Detection**: Determine development/production/test environment
-2. **File Loading**: Load `.env.local` configuration file
-3. **Schema Validation**: Validate all required environment variables
-4. **Type Casting**: Convert configuration values to proper types
+### Call Controls During Active Call
 
-### Phase 2: Service Setup
-
-1. **Global State**: Set up application metadata and service configurations
-2. **Service Validation**: Verify all required services are configured
-3. **Error Handling**: Handle missing or invalid configurations appropriately
-
-### Phase 3: Environment Configuration
-
-1. **Development**: Enable verbose logging, hot reload, development middleware
-2. **Production**: Enable security features, compression, rate limiting
-3. **Test**: Enable mocking, silent logging, fast timeouts
-
-### Phase 4: Monitoring Setup
-
-1. **Status Monitoring**: Initialize initialization status components
-2. **Error Tracking**: Set up error monitoring and reporting
-3. **Performance Monitoring**: Configure performance tracking
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  CALL CONTROLS: During Active Call                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Available Controls:                                                   │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                     │   │
+│  │  [MUTE]     Toggle microphone                                       │   │
+│  │             User Goal: Prevent other party from hearing               │   │
+│  │             System Response: Mute local audio stream                  │   │
+│  │             Visual: Icon changes, muted indicator appears            │   │
+│  │                                                                     │   │
+│  │  [HANG UP]  End call                                                 │   │
+│  │             User Goal: End the conversation                          │   │
+│  │             System Response: Close WebRTC connection, show summary    │   │
+│  │             Visual: Red button, call duration displayed               │   │
+│  │                                                                     │   │
+│  │  [KEYPAD]   Send DTMF tones (if in-call dialing needed)             │   │
+│  │             User Goal: Navigate IVR systems                          │   │
+│  │             System Response: Play DTMF tones over audio              │   │
+│  │                                                                     │   │
+│  │  [RECORD]   Start/stop call recording (if enabled)                   │   │
+│  │             User Goal: Create call recording                          │   │
+│  │             System Response: Start MediaRecorder                     │   │
+│  │             Visual: Recording indicator, timer                       │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Call Duration Display:                                                    │
+│  - Format: MM:SS (minutes:seconds)                                         │
+│  - Updates every second                                                    │
+│  - Visible throughout call                                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Call Management Flows
+## WebRTC Call Recording Flow
 
-### Making a Call
+### Happy Path: Recording Start to Upload
 
-```mermaid
-graph TD
-    A[User on Dashboard] --> B[Enters phone number]
-    B --> C[Clicks 'Call' button]
-    C --> D[Validate phone number]
-    D -->|Invalid| E[Show validation error]
-    D -->|Valid| F[Initiate call request]
-
-    F --> G[Generate Twilio access token]
-    G --> H[Create Twilio Voice connection]
-    H --> I[Establish WebRTC connection]
-
-    I --> J{Connection successful?}
-    J -->|No| K[Show connection error]
-    J -->|Yes| L[Call connected]
-
-    L --> M[Display call interface]
-    M --> N[Show call controls]
-    N --> O[Monitor call status]
-
-    O --> P{Call active?}
-    P -->|Yes| Q[Continue monitoring]
-    P -->|No| R[Handle call end]
-
-    Q --> O
-    R --> S[Log call details]
-    S --> T[Update call history]
-
-    E --> B
-    K --> B
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: WebRTC Call Recording                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────┐     ┌─────────────┐     ┌─────────────┐     ┌──────────┐ │
+│  │ Call         │     │ User clicks │     │ MediaRecorder│    │ Local    │ │
+│  │ connected    │────▶│ "Record"    │────▶│ starts      │────▶│ chunks   │ │
+│  │              │     │             │     │ capturing   │     │ buffered │ │
+│  └──────────────┘     └─────────────┘     └─────────────┘     └──────────┘ │
+│                                                                             │
+│         │                                                                   │
+│         │ Call ends                                                         │
+│         ▼                                                                   │
+│  ┌──────────────┐     ┌─────────────┐     ┌─────────────┐     ┌──────────┐ │
+│  │ User clicks │     │ Recording   │     │ Backblaze   │     │ Database │ │
+│  │ "Stop"      │────▶│ processing  │────▶│ B2 upload   │────▶│ metadata │ │
+│  │             │     │             │     │             │     │ updated  │ │
+│  └──────────────┘     └─────────────┘     └─────────────┘     └──────────┘ │
+│                                                                             │
+│  Processing Steps:                                                          │
+│  1. MediaRecorder stops                                                     │
+│  2. Finalize WebM blob                                                      │
+│  3. Generate unique recording ID                                            │
+│  4. Upload to Backblaze B2 with retry logic (max 3 retries)                │
+│  5. Store metadata in database                                              │
+│  6. Generate signed URL for access                                          │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ DECISION: Upload successful?                                         │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ YES → Recording available in "Recordings" tab                        │   │
+│  │ NO  → Show error, option to retry                                    │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Design Rationale:                                                          │
+│  - Client-side recording reduces server load                               │
+│  - WebM format is browser-native                                           │
+│  - Backblaze B2 provides cost-effective storage                            │
+│  - Signed URLs ensure secure access                                         │
+│                                                                             │
+│  User Emotional State:                                                      │
+│  - Recording: Aware, slightly self-conscious                                 │
+│  - Uploading: Neutral/waiting                                               │
+│  - Complete: Satisfied, confident                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Call Process Details:**
+### Recording File Processing
 
-1. **Number Input**: User enters destination phone number
-2. **Validation**: Client-side and server-side number validation
-3. **Token Generation**: Secure Twilio access token creation
-4. **Connection**: WebRTC connection establishment
-5. **Call Management**: Real-time call status monitoring
-6. **Call Logging**: Automatic call history updates
-
-**Security Measures:**
-
-- Phone number format validation
-- Secure token generation with expiration
-- Connection encryption via WebRTC
-- Call logging for audit trails
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  RECORDING PROCESSING FLOW                                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Stage 1: Raw Capture (WebM)                                          │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ Codec: opus (audio)                                                  │   │
+│  │ Container: WebM                                                      │   │
+│  │ Bitrate: ~128 kbps                                                   │   │
+│  │ Duration: Same as call                                                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Stage 2: Upload to Backblaze B2                                     │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ Bucket: careflow-recordings-[env]                                    │   │
+│  │ File naming: recordings/{year}/{month}/{day}/{id}.webm              │   │
+│  │ Lifecycle: Moved to Glacier after 90 days                            │   │
+│  │ Retention: Permanent unless deleted by user                           │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Stage 3: Metadata Storage                                           │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ Collection: recordings                                               │   │
+│  │ Fields:                                                             │   │
+│  │   - id: Unique identifier                                           │   │
+│  │   - userId: Owner                                                   │   │
+│  │   - callId: Related call                                            │   │
+│  │   - direction: inbound/outbound                                     │   │
+│  │   - from/to: Phone numbers                                          │   │
+│  │   - duration: Call duration in seconds                              │   │
+│  │   - fileSize: Bytes                                                 │   │
+│  │   - format: webm                                                    │   │
+│  │   - status: active/archived/deleted                                 │   │
+│  │   - accessUrl: Signed URL (expires 24h)                             │   │
+│  │   - createdAt: Timestamp                                           │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-### Receiving a Call
+## Recording Playback Flow
 
-```mermaid
-graph TD
-    A[Twilio webhook receives call] --> B[Parse call data]
-    B --> C[Validate call source]
-    C --> D[Check user availability]
+### Happy Path: Play Recording
 
-    D --> E{User available?}
-    E -->|No| F[Send to voicemail]
-    E -->|Yes| G[Generate access token]
-
-    G --> H[Send push notification]
-    H --> I[User receives notification]
-    I --> J[User accepts call]
-
-    J --> K[Establish WebRTC connection]
-    K --> L[Call connected]
-    L --> M[Monitor call status]
-
-    M --> N{Call active?}
-    N -->|Yes| O[Continue monitoring]
-    N -->|No| P[Handle call end]
-
-    P --> Q[Log call details]
-    Q --> R[Update call history]
-
-    F --> S[Store voicemail]
-    S --> T[Notify user of missed call]
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Play Recording                                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────┐     ┌─────────────┐     ┌─────────────┐     ┌──────────┐ │
+│  │ Recordings  │     │ User clicks │     │ API returns │     │ Audio    │ │
+│  │ list        │────▶│ "Play"       │────▶│ signed URL  │────▶│ player   │ │
+│  │ displayed   │     │              │     │             │     │ loads    │ │
+│  └──────────────┘     └─────────────┘     └─────────────┘     └──────────┘ │
+│                                                                             │
+│  User Actions in Player:                                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Control          │ Action                                              │   │
+│  ├──────────────────┼─────────────────────────────────────────────────────┤   │
+│  │ Play/Pause       │ Toggle playback                                     │   │
+│  │ Progress bar     │ Seek to position                                    │   │
+│  │ Volume           │ Adjust volume (0-100%)                              │   │
+│  │ Mute             │ Toggle audio on/off                                │   │
+│  │ Download         │ Download recording file                             │   │
+│  │ Delete           │ Remove recording                                    │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Keyboard Shortcuts:                                                         │
+│  - Space: Play/Pause                                                        │
+│  - Arrow Left: Seek backward 5s                                             │
+│  - Arrow Right: Seek forward 5s                                             │
+│  - M: Mute                                                                  │
+│                                                                             │
+│  Error States:                                                              │
+│  - Expired URL: Re-fetch from API                                           │
+│  - Network error: Retry button                                              │
+│  - Corrupted file: Error message, contact support                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Receiving Process:**
+### Recording List with Filters
 
-1. **Call Detection**: Twilio webhook detects incoming call
-2. **Validation**: Verify call source and user availability
-3. **Notification**: Push notification to user's browser
-4. **Acceptance**: User accepts or declines call
-5. **Connection**: WebRTC connection establishment
-6. **Monitoring**: Real-time call status tracking
-
-**Features:**
-
-- Push notifications for incoming calls
-- User availability checking
-- Voicemail system for unavailable users
-- Call logging and history updates
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  RECORDING LIST: Filters and Navigation                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Available Filters:                                                   │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                     │   │
+│  │  [Type ▼]       Filter by recording type                            │   │
+│  │                 - All Types                                          │   │
+│  │                 - Calls                                              │   │
+│  │                 - Voicemails                                         │   │
+│  │                                                                     │   │
+│  │  [Direction ▼]  Filter by call direction                            │   │
+│  │                 - All Directions                                     │   │
+│  │                 - Inbound                                            │   │
+│  │                 - Outbound                                            │   │
+│  │                                                                     │   │
+│  │  [Status ▼]     Filter by recording status                          │   │
+│  │                 - All Status                                         │   │
+│  │                 - Active                                             │   │
+│  │                 - Archived                                          │   │
+│  │                 - Deleted                                           │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Pagination:                                                                │
+│  - Default: 20 recordings per page                                         │
+│  - Shows: Page X of Y                                                      │
+│  - Previous/Next buttons                                                   │
+│                                                                             │
+│  Recording List Columns:                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Column          │ Description                                        │   │
+│  ├────────────────┼─────────────────────────────────────────────────────┤   │
+│  │ Direction       │ Inbound/Outbound badge                             │   │
+│  │ Date/Time       │ When recording was made                            │   │
+│  │ Phone Numbers   │ From → To                                          │   │
+│  │ Duration        │ Call length                                        │   │
+│  │ Size            │ File size (MB)                                     │   │
+│  │ Format          │ Audio format                                       │   │
+│  │ Status          │ Active/Listened badge                               │   │
+│  └────────────────┴─────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-### Call History Access
+## Recording Management Flow
 
-```mermaid
-graph TD
-    A[User clicks 'History'] --> B[Check authentication]
-    B --> C{User authenticated?}
-    C -->|No| D[Redirect to login]
-    C -->|Yes| E[Fetch call history]
+### Happy Path: Delete Recording
 
-    E --> F[Call API endpoint]
-    F --> G[Validate user permissions]
-    G --> H[Query database]
-
-    H --> I[Format call data]
-    I --> J[Return call history]
-    J --> K[Display call list]
-
-    K --> L[User views call details]
-    L --> M[Optional: Filter calls]
-    M --> N[Optional: Export data]
-
-    D --> O[Login form loads]
-    O --> P[User logs in]
-    P --> Q[Return to history]
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Delete Recording                                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User clicks "Delete" on recording                                          │
+│           │                                                                │
+│           ▼                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ CONFIRMATION REQUIRED                                                │   │
+│  │                                                                     │   │
+│  │ ┌───────────────────────────────────────────────────────────────┐   │   │
+│  │ │  ⚠️  Are you sure?                                             │   │   │
+│  │ │                                                               │   │   │
+│  │ │  This action cannot be undone. This recording will be         │   │   │
+│  │ │  permanently deleted and cannot be recovered.                │   │   │
+│  │ │                                                               │   │   │
+│  │ │  [ Cancel ]                     [ Delete ]                     │   │   │
+│  │ └───────────────────────────────────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│           │                                                                │
+│           ▼                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ DELETE ACTIONS:                                                      │   │
+│  │ 1. API marks recording as 'deleted' in database                     │   │
+│  │ 2. Backblaze B2 file lifecycle policy moves to Glacier             │   │
+│  │ 3. Access URL immediately invalidated                              │   │
+│  │ 4. Recording removed from list view                                │   │
+│  │ 5. Toast notification: "Recording deleted"                         │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Design Rationale:                                                          │
+│  - Soft delete preserves data for compliance                               │
+│  - Glacier storage maintains backup for legal requirements                 │
+│  - Immediate URL invalidation prevents access                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**History Features:**
+### Happy Path: Download Recording
 
-1. **Authentication Required**: Only authenticated users can access history
-2. **Permission Validation**: Verify user can access requested data
-3. **Data Formatting**: Format raw call data for display
-4. **Filtering Options**: Filter by date, call type, duration
-5. **Export Capabilities**: Export call history to various formats
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER FLOW: Download Recording                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User clicks "Download"                                                     │
+│           │                                                                │
+│           ▼                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ API Request:                                                         │   │
+│  │ GET /api/recordings/:id?includeUrl=true                              │   │
+│  │ Authorization: Bearer {token}                                        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│           │                                                                │
+│           ▼                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ API Response:                                                         │   │
+│  │ {                                                                   │   │
+│  │   "success": true,                                                   │   │
+│  │   "data": {                                                          │   │
+│  │     "recording": {                                                   │   │
+│  │       "downloadUrl": "https://.../recording.webm?signature=...",    │   │
+│  │       "expiresAt": "2026-02-07T..."                                  │   │
+│  │     }                                                                │   │
+│  │   }                                                                  │   │
+│  │ }                                                                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│           │                                                                │
+│           ▼                                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Browser Actions:                                                      │   │
+│  │ 1. Create <a> element with downloadUrl                               │   │
+│  │ 2. Set download attribute with filename                              │   │
+│  │ 3. Programmatically click element                                    │   │
+│  │ 4. File downloads to user's default location                          │   │
+│  │                                                                     │   │
+│  │ Filename format: recording-{id}.webm                                 │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## System Architecture Flow
+## Error States and Recovery
 
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        A[Next.js Application] --> B[React Components]
-        B --> C[AuthContext Provider]
-        C --> D[Protected Routes]
-        D --> E[Call Interface]
-    end
+### Network Errors
 
-    subgraph "Authentication Layer"
-        F[Firebase Auth] --> G[User Management]
-        G --> H[Token Validation]
-        H --> I[Session Management]
-    end
-
-    subgraph "API Layer"
-        J[Next.js API Routes] --> K[Auth Endpoints]
-        K --> L[Call Endpoints]
-        L --> M[History Endpoints]
-    end
-
-    subgraph "Service Layer"
-        N[Twilio API] --> O[Voice Services]
-        O --> P[Call Management]
-        P --> Q[Webhook Handling]
-
-        R[Firebase Storage] --> S[Recording Storage]
-        S --> T[File Management]
-
-        U[MongoDB] --> V[User Data]
-        V --> W[Call History]
-        W --> X[Analytics Data]
-    end
-
-    subgraph "Configuration Layer"
-        Y[Environment Config] --> Z[Validation System]
-        Z --> AA[Service Dependencies]
-        AA --> BB[Initialization Monitor]
-    end
-
-    A --> F
-    A --> J
-    C --> F
-    E --> N
-    E --> R
-    K --> U
-    L --> N
-    M --> U
-    Y --> J
-    Y --> K
-    Y --> L
-    Y --> M
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ERROR STATE: Network Failure                                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Scenarios:                                                                 │
+│  1. Call initialization fails                                              │
+│  2. ICE connection timeout                                                  │
+│  3. Recording upload interrupted                                            │
+│  4. API request timeout                                                     │
+│                                                                             │
+│  System Responses:                                                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Scenario                  │ System Response                          │   │
+│  ├───────────────────────────┼───────────────────────────────────────────┤   │
+│  │ Call init fails          │ Show "Connection error", offer retry     │   │
+│  │ ICE timeout              │ Show "Peer unreachable" message         │   │
+│  │ Upload interrupted       │ Auto-retry up to 3 times                │   │
+│  │ API timeout              │ Show "Please try again" toast             │   │
+│  └───────────────────────────┴───────────────────────────────────────────┘   │
+│                                                                             │
+│  Recovery Mechanisms:                                                       │
+│  - Automatic retry with exponential backoff                                │
+│  - Clear error messages with suggested actions                             │
+│  - Connection state indicators                                             │
+│  - Offline mode indicator                                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Architecture Components:**
+### Browser Compatibility Issues
 
-### Client Layer
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ERROR STATE: Browser Not Supported                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Detection Points:                                                          │
+│  1. getUserMedia not available                                             │
+│  2. RTCPeerConnection not available                                         │
+│  3. MediaRecorder not available                                             │
+│                                                                             │
+│  System Response:                                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ ┌─────────────────────────────────────────────────────────────────┐ │   │
+│  │ │  ⚠️  Browser Not Supported                                      │ │   │
+│  │ │                                                                 │ │   │
+│  │ │  Your browser doesn't support WebRTC calls.                    │ │   │
+│  │ │                                                                 │ │   │
+│  │ │  Please use one of these browsers:                              │ │   │
+│  │ │    ✅ Chrome 72+                                                 │ │   │
+│  │ │    ✅ Firefox 68+                                                │ │   │
+│  │ │    ✅ Safari 14.1+                                              │ │   │
+│  │ │    ✅ Edge 79+                                                  │ │   │
+│  │ │                                                                 │ │   │
+│  │ │  [ Go to Chrome Download ]                                      │ │   │
+│  │ └─────────────────────────────────────────────────────────────────┘ │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Fallback Behavior (if Twilio configured):                                 │
+│  - Automatic fallback to Twilio PSTN call                                   │
+│  - User prompted: "Use phone-based calling instead?"                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-- **Next.js Application**: Main application framework
-- **React Components**: User interface components
-- **AuthContext**: Authentication state management
-- **Protected Routes**: Route-level authentication
+### Permission Denied
 
-### Authentication Layer
-
-- **Firebase Auth**: User authentication and authorization
-- **Token Management**: JWT token handling and validation
-- **Session Management**: User session persistence
-
-### API Layer
-
-- **Next.js API Routes**: Server-side API endpoints
-- **Auth Endpoints**: Authentication-related APIs
-- **Call Endpoints**: Voice call management APIs
-- **History Endpoints**: Call history and analytics APIs
-
-### Service Layer
-
-- **Twilio API**: Voice call services and WebRTC
-- **Firebase Storage**: Call recording storage
-- **MongoDB**: Database for user and call data
-
-### Configuration Layer
-
-- **Environment Config**: Dynamic configuration loading
-- **Validation System**: Configuration validation and type casting
-- **Service Dependencies**: Service availability checking
-- **Initialization Monitor**: Application startup monitoring
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ERROR STATE: Permission Denied                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Scenarios:                                                                 │
+│  1. Microphone permission denied                                           │
+│  2. Notification permission denied                                         │
+│                                                                             │
+│  System Response:                                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Microphone:                                                         │   │
+│  │ - Show inline permission request                                     │   │
+│  │ - If denied: Show "Allow microphone access" button                  │   │
+│  │ - Guide user to browser settings                                    │   │
+│  │                                                                     │   │
+│  │ Notifications:                                                      │   │
+│  │ - Hide notification option if permanently denied                   │   │
+│  │ - Show message: "Notifications disabled in browser settings"        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Recovery Steps:                                                            │
+│  1. Click on lock/icon in browser address bar                              │
+│  2. Find microphone/notifications setting                                  │
+│  3. Change to "Allow"                                                       │
+│  4. Refresh page                                                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Error Handling Flow
+## Edge Cases
 
-```mermaid
-graph TD
-    A[Error Occurs] --> B[Error Type Detection]
-    B --> C{Error Category}
+### Edge Case 1: Call Drops During Recording
 
-    C -->|Authentication| D[Auth Error Handler]
-    C -->|Network| E[Network Error Handler]
-    C -->|Validation| F[Validation Error Handler]
-    C -->|System| G[System Error Handler]
-
-    D --> H[Show auth-specific message]
-    E --> I[Show network error message]
-    F --> J[Show validation error message]
-    G --> K[Show system error message]
-
-    H --> L[Log error details]
-    I --> L
-    J --> L
-    K --> L
-
-    L --> M[User feedback displayed]
-    M --> N[Continue or retry]
-
-    N -->|Retry| O[Attempt recovery]
-    N -->|Continue| P[Graceful degradation]
-
-    O --> Q{Recovery successful?}
-    Q -->|Yes| R[Resume normal operation]
-    Q -->|No| S[Escalate error]
-
-    S --> T[Show critical error]
-    T --> U[Application state preserved]
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  EDGE CASE: Network Interrupt During Call                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Scenario: User's network temporarily disconnects                          │
+│                                                                             │
+│  Detection:                                                                 │
+│  - ICE connection state changes to 'failed'                                │
+│  - No ICE candidates received for 10 seconds                                │
+│                                                                             │
+│  System Response:                                                           │
+│  1. Show "Connection lost" message                                         │
+│  2. Attempt ICE restart (WebRTC standard)                                   │
+│  3. If restart succeeds: Resume call                                       │
+│  4. If restart fails after 30s: End call                                   │
+│                                                                             │
+│  Recording Handling:                                                        │
+│  - Recording continues locally during network issues                       │
+│  - Recording uploaded when connection restored                              │
+│  - If call ends during disconnect: Upload partial recording                │
+│                                                                             │
+│  User Notification:                                                         │
+│  "Connection lost. Attempting to reconnect..."                              │
+│  "Connection restored! Call resuming..."                                     │
+│  "Unable to reconnect. Call ended."                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Error Categories:**
+### Edge Case 2: Multiple Call Attempts
 
-1. **Authentication Errors**: Login failures, session timeouts, token issues
-2. **Network Errors**: API failures, connection timeouts, service unavailability
-3. **Validation Errors**: Input validation failures, configuration errors
-4. **System Errors**: Database errors, service failures, critical system issues
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  EDGE CASE: User Attempts Multiple Concurrent Calls                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Constraint: Only one active call per browser tab                           │
+│                                                                             │
+│  Scenario: User clicks "Call" while already on a call                       │
+│                                                                             │
+│  System Response:                                                           │
+│  1. Show modal: "End current call to start new one?"                        │
+│  2. Options:                                                                │
+│    - "End & Call" - Hang up current, start new                             │
+│    - "Cancel" - Stay on current call                                        │
+│                                                                             │
+│  User Emotional State:                                                      │
+│  - Slight frustration (barrier to workflow)                                │
+│  - Appreciates clear choice                                                 │
+│                                                                             │
+│  Design Rationale:                                                          │
+│  - Prevents audio conflicts                                                 │
+│  - Clear rather than silently failing                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-**Error Response Strategy:**
+### Edge Case 3: Recording Storage Full
 
-- User-friendly error messages
-- Detailed logging for debugging
-- Graceful degradation when possible
-- Recovery attempts for transient errors
-- Critical error escalation procedures
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  EDGE CASE: Storage Quota Exceeded                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Detection: Backblaze B2 upload fails with quota error                       │
+│                                                                             │
+│  System Response:                                                           │
+│  1. Show user notification: "Storage limit reached"                        │
+│  2. Offer options:                                                          │
+│    - Delete old recordings                                                  │
+│    - Download recordings to free space                                       │
+│    - Contact admin for storage upgrade                                      │
+│                                                                             │
+│  Recording Preservation:                                                     │
+│  - Partial uploads retained for 24 hours                                    │
+│  - Auto-cleanup of old archived recordings (configurable)                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Edge Case 4: Recording Upload Failure
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  EDGE CASE: Upload Failure After Call Ends                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Scenario: Recording captured but upload fails (network/storage error)      │
+│                                                                             │
+│  Retry Logic:                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Attempt 1: Immediate retry (1s delay)                               │   │
+│  │ Attempt 2: Exponential backoff (2s, 4s, 8s...)                     │   │
+│  │ Attempt 3: Final attempt with extended timeout                      │   │
+│  │                                                                     │   │
+│  │ All attempts fail:                                                   │   │
+│  │ 1. Save recording to IndexedDB (browser storage)                    │   │
+│  │ 2. Show user notification: "Recording saved locally"               │   │
+│  │ 3. Retry upload on next page load                                   │   │
+│  │ 4. Provide manual retry option                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  User Actions:                                                              │
+│  - "Retry Upload" button in recordings tab                                  │
+│  - "Download" to save locally                                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Performance Monitoring Flow
+## Known Usability Concerns
 
-```mermaid
-graph TD
-    A[Application Start] --> B[Initialize Monitoring]
-    B --> C[Track Page Loads]
-    C --> D[Track API Calls]
-    D --> E[Track User Interactions]
+### 1. Permission Fatigue
 
-    E --> F[Monitor Resource Usage]
-    F --> G[Monitor Network Performance]
-    G --> H[Monitor Error Rates]
+- **Issue**: Users may accidentally deny permissions
+- **Mitigation**: Clear explanation of why permissions are needed
+- **UI**: Non-intrusive, contextual permission requests
 
-    H --> I[Collect Metrics]
-    I --> J[Analyze Performance]
-    J --> K[Generate Reports]
+### 2. Recording Awareness
 
-    K --> L[Alert on Issues]
-    L --> M[Optimize Performance]
-    M --> N[Continuous Monitoring]
+- **Issue**: Users may forget they're being recorded
+- **Mitigation**:
+  - Persistent recording indicator
+  - Sound notification when recording starts/stops
+  - Clear UI showing "Recording" status
 
-    N --> O[Performance Dashboard]
-    O --> P[Developer Insights]
-    P --> Q[User Experience Improvements]
-```
+### 3. Audio Quality Feedback
 
-**Monitoring Features:**
+- **Issue**: Users don't know if their audio is being captured clearly
+- **Mitigation**:
+  - Visual audio level meter
+  - Pre-call test option
+  - Post-call quality feedback
 
-1. **Page Load Times**: Track initial load and navigation performance
-2. **API Response Times**: Monitor backend API performance
-3. **User Interaction Latency**: Track UI responsiveness
-4. **Resource Usage**: Monitor memory and CPU usage
-5. **Error Tracking**: Track and categorize application errors
-6. **Performance Analytics**: Generate performance reports and insights
+### 4. Mobile Experience
 
-This comprehensive user flow documentation provides detailed insights into how users interact with CareFlow, the system architecture, and the various flows that ensure a smooth user experience.
+- **Issue**: WebRTC behavior varies on mobile browsers
+- **Mitigation**:
+  - Explicit mobile-optimized UI
+  - Auto-fallback for unsupported devices
+  - Touch-friendly controls
+
+---
+
+## Optimization Opportunities
+
+### 1. Pre-call Setup Wizard
+
+- Add optional pre-call audio test
+- Camera/microphone selection
+- Network speed test
+
+### 2. Smart Recording
+
+- Automatic recording detection (voice activity)
+- Silence removal for smaller files
+- Transcription integration
+
+### 3. Enhanced Notifications
+
+- Desktop notifications for incoming calls
+- Missed call SMS fallback
+- Voicemail transcription
+
+### 4. Analytics Integration
+
+- Call duration trends
+- Recording access patterns
+- Quality metrics dashboard
+
+---
+
+## Implementation Gaps
+
+### Current Gaps:
+
+1. **Call recording toggle in CallControls** - Not yet integrated
+2. **Real-time recording upload** - Only uploads after call ends
+3. **Recording indicators** - Need visual feedback during recording
+4. **Partial recording recovery** - IndexedDB storage not implemented
+5. **Transcription** - Not yet available
+
+### Priority for Implementation:
+
+1. **High**: Recording toggle integration
+2. **High**: Upload retry logic
+3. **Medium**: Visual recording indicators
+4. **Medium**: IndexedDB fallback storage
+5. **Low**: Call recording analytics
+
+---
+
+## Version History
+
+| Version | Date       | Changes               |
+| ------- | ---------- | --------------------- |
+| 1.0.0   | 2026-02-06 | Initial documentation |

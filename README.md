@@ -1,203 +1,291 @@
 # CareFlow
 
-A modern web application that allows users to make and receive phone calls directly in their browser using Twilio's Voice API.
+A modern web application for browser-based voice communications with Twilio Voice and WebRTC P2P calling, featuring call recording, analytics, and cloud storage.
 
 ## Features
 
-- **Browser-based Calling**: Make and receive phone calls without any additional software
-- **Call Recording**: Automatic recording of all calls with cloud storage
-- **Real-time Controls**: Mute, record, and manage calls during the conversation
-- **Call History**: View and manage call recordings
-- **Modern UI**: Beautiful, responsive interface with dark theme
-- **Secure**: JWT-based authentication and secure API endpoints
+### Calling Modes
+
+- **Twilio Voice Mode**: Traditional PSTN telephony calls to any phone number worldwide
+- **WebRTC Mode**: Free peer-to-peer calls between CareFlow users using their unique care4wId
+
+### Core Features
+
+- 🔐 **Secure Authentication**: Firebase Auth with JWT token verification
+- 📞 **Browser-based Calling**: Make and receive calls without additional software
+- 🎙️ **Call Recording**: Automatic WebRTC call recording with Backblaze B2 cloud storage
+- 📊 **Analytics Dashboard**: Call statistics, duration tracking, and usage patterns
+- 📱 **Real-time Controls**: Mute, hold, DTMF, and call management
+- 📝 **Call History**: Searchable call logs with pagination and filtering
+- 🔔 **Push Notifications**: Firebase Cloud Messaging for incoming calls
+- 🌙 **Modern UI**: Beautiful, responsive dark-themed interface
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 18, Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Voice API**: Twilio Programmable Voice
-- **Cloud Storage**: Firebase Storage
-- **Database**: MongoDB Atlas
-- **Authentication**: Firebase Authentication
+| Layer          | Technology                              |
+| -------------- | --------------------------------------- |
+| Framework      | Next.js 15 (App Router)                 |
+| UI Library     | React 18                                |
+| Styling        | Tailwind CSS                            |
+| Authentication | Firebase Auth                           |
+| Voice API      | Twilio Programmable Voice               |
+| Database       | MongoDB Atlas (Mongoose ODM)            |
+| Storage        | Backblaze B2 (S3-compatible)            |
+| Real-time      | Firebase Realtime DB (WebRTC signaling) |
+| Testing        | Jest (253 tests, 14 test suites)        |
+| CI/CD          | GitHub Actions                          |
 
-## Prerequisites
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+| Document                                       | Description                                                     |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| [API Documentation](docs/API_DOCUMENTATION.md) | Complete API reference with endpoints, request/response formats |
+| [Architecture](docs/ARCHITECTURE.md)           | System architecture, data flow, and component diagrams          |
+| [Deployment Guide](docs/DEPLOYMENT.md)         | Step-by-step deployment instructions for all platforms          |
+
+### Additional Documentation
+
+- [Test Documentation](tests/TEST_DOCUMENTATION.md) - Test suite overview and writing guides
+- [Technical Documentation](plans/COMPREHENSIVE_TECHNICAL_DOCUMENTATION.md) - In-depth technical analysis
+
+## Quick Start
+
+### Prerequisites
 
 - Node.js 18+
-- yarn (or npm, pnpm, bun)
+- npm, yarn, pnpm, or bun
 - Twilio account
-- Firebase project (for auth and storage)
 - Firebase project
+- MongoDB Atlas account
+- Backblaze B2 account
 
-## Installation
+### Installation
 
-1. **Clone the repository**
+```bash
+# Clone repository
+git clone https://github.com/your-org/careflow.git
+cd careflow
 
-   ```bash
-   git clone <repository-url>
-   cd careflow
-   ```
+# Install dependencies
+yarn install
 
-2. **Install dependencies**
+# Copy environment template
+cp .env.local.example .env.local
 
-   Using yarn:
+# Configure environment variables (see Environment Variables section)
 
-   ```bash
-   yarn install
-   ```
+# Start development server
+yarn dev
+```
 
-   Or using npm:
+Visit `http://localhost:3000` to access the application.
 
-   ```bash
-   npm install
-   ```
+## Environment Variables
 
-   Or using pnpm:
+### Required Configuration
 
-   ```bash
-   pnpm install
-   ```
+```env
+# Firebase (Client)
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
 
-   Or using bun:
+# Firebase (Admin)
+FIREBASE_ADMIN_PROJECT_ID=your-project-id
+FIREBASE_ADMIN_CLIENT_EMAIL=your-service-account-email
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 
-   ```bash
-   bun install
-   ```
+# MongoDB
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/careflow
 
-3. **Environment Setup**
-   Copy the example environment file and fill in your credentials:
+# Twilio
+TWILIO_ACCOUNT_SID=your-account-sid
+TWILIO_AUTH_TOKEN=your-auth-token
+TWILIO_PHONE_NUMBER=+1234567890
+TWILIO_API_KEY=your-api-key
+TWILIO_API_SECRET=your-api-secret
 
-   ```bash
-   cp .env.local.example .env.local
-   ```
+# Backblaze B2
+BACKBLAZE_KEY_ID=your-key-id
+BACKBLAZE_APPLICATION_KEY=your-application-key
+BACKBLAZE_BUCKET_NAME=your-bucket-name
+BACKBLAZE_BUCKET_ID=your-bucket-id
+```
 
-4. **Configure Environment Variables**
+## Testing
 
-   **Twilio Configuration:**
-   - `TWILIO_ACCOUNT_SID`: Your Twilio Account SID
-   - `TWILIO_AUTH_TOKEN`: Your Twilio Auth Token
-   - `TWILIO_PHONE_NUMBER`: Your Twilio phone number
-   - `TWILIO_TWIML_APP_SID`: Your Twilio TwiML App SID
-   - `TWILIO_API_KEY`: Your Twilio API Key
-   - `TWILIO_API_SECRET`: Your Twilio API Secret
+### Test Suite Overview
 
-   **Firebase Configuration:**
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase API Key
-   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase Auth Domain
-   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase Project ID
-   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase Storage Bucket
-   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Firebase Messaging Sender ID
-   - `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase App ID
-   - `FIREBASE_ADMIN_PROJECT_ID`: Firebase Admin Project ID
-   - `FIREBASE_ADMIN_CLIENT_EMAIL`: Firebase Admin Client Email
-   - `FIREBASE_ADMIN_PRIVATE_KEY`: Firebase Admin Private Key
+The project includes **253 unit and integration tests** across 14 test suites:
 
-   **AWS S3 Configuration:**
-   - `AWS_ACCESS_KEY_ID`: AWS Access Key ID
-   - `AWS_SECRET_ACCESS_KEY`: AWS Secret Access Key
-   - `AWS_REGION`: AWS Region (e.g., us-east-1)
-   - `AWS_S3_BUCKET`: S3 Bucket name for recordings
+| Test Suite              | Tests | Coverage           |
+| ----------------------- | ----- | ------------------ |
+| API Response Utilities  | 7     | Lib modules        |
+| CareFlow ID Generator   | 7     | ID validation      |
+| Webhook Verification    | 11    | Security           |
+| Backblaze Storage       | 10    | File operations    |
+| Audio Processor         | 16    | Recording          |
+| Recording Manager       | 15    | State management   |
+| Call Manager            | 31    | Twilio/WebRTC      |
+| Models (User/Recording) | 37    | Schema validation  |
+| Authentication API      | 10    | Registration/login |
+| Recordings API          | 19    | CRUD operations    |
+| WebRTC Fallback         | 18    | P2P calling        |
+| Components              | 25    | UI logic           |
+| Library Integration     | 20    | Config/auth        |
+| General API Tests       | 27    | Utilities          |
 
-   **Database Configuration:**
-   - `MONGODB_URI`: MongoDB Atlas connection string
+### Running Tests
 
-5. **Twilio Setup**
+```bash
+# Run all tests
+npm test
 
-   **Create a TwiML App:**
-   1. Go to Twilio Console → All Products & Services → TwiML Apps
-   2. Create a new TwiML App
-   3. Set Voice Request URL to: `https://your-domain.com/api/twilio/voice`
-   4. Copy the TwiML App SID to your environment variables
+# Run with coverage report
+npm test -- --coverage
 
-   **Configure Phone Number:**
-   1. Go to Twilio Console → Phone Numbers → Manage → Active Numbers
-   2. Select your phone number
-   3. Under Voice & Fax, set:
-      - Configure with: Webhooks, TwiML Apps
-      - A call comes in: Webhook → `https://your-domain.com/api/twilio/voice`
-      - TwiML App: Select your created TwiML App
+# Run specific test file
+npm test -- tests/lib/callManager.test.js
 
-6. **Start the Development Server**
+# Run in watch mode
+npm run test:watch
 
-   Using yarn:
+# CI mode (no watch)
+npm run test:ci
+```
 
-   ```bash
-   yarn dev
-   ```
+### Coverage Thresholds
 
-   Or using npm:
+| Metric     | Global | Lib Modules | API Endpoints |
+| ---------- | ------ | ----------- | ------------- |
+| Statements | 70%    | 80%         | 75%           |
+| Branches   | 70%    | 80%         | 75%           |
+| Functions  | 70%    | 80%         | 75%           |
+| Lines      | 70%    | 80%         | 75%           |
 
-   ```bash
-   npm run dev
-   ```
+## Project Structure
 
-   Or using pnpm:
+```
+careflow/
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   │   ├── auth/         # Authentication endpoints
+│   │   ├── calls/        # Call management
+│   │   ├── recordings/   # Recording CRUD
+│   │   ├── users/        # User lookup
+│   │   └── webhooks/     # Twilio webhooks
+│   ├── dashboard/       # Protected dashboard
+│   ├── login/            # Authentication pages
+│   └── signup/
+├── components/           # React Components
+│   └── dashboard/       # Dashboard UI components
+├── lib/                  # Core utilities
+│   ├── auth.js          # Authentication helpers
+│   ├── backblaze.js     # B2 storage client
+│   ├── callManager.js    # Unified call handling
+│   ├── db.js            # MongoDB connection
+│   └── webrtc.js        # WebRTC peer connection
+├── models/              # Mongoose models
+│   ├── Recording.js    # Call recording schema
+│   └── User.js         # User schema
+├── tests/              # Jest test suites
+│   ├── api/           # API integration tests
+│   ├── components/    # Component tests
+│   └── lib/          # Unit tests
+├── docs/              # Documentation
+│   ├── API_DOCUMENTATION.md
+│   ├── ARCHITECTURE.md
+│   └── DEPLOYMENT.md
+└── plans/             # Planning documents
+```
 
-   ```bash
-   pnpm dev
-   ```
+## API Overview
 
-   Or using bun:
+### Authentication
 
-   ```bash
-   bun dev
-   ```
+| Endpoint             | Method | Description       |
+| -------------------- | ------ | ----------------- |
+| `/api/auth/register` | POST   | Register new user |
+| `/api/auth/login`    | POST   | Authenticate user |
+| `/api/auth/logout`   | POST   | Sign out user     |
 
-   The application will be available at `http://localhost:3000`
+### Recordings
 
-## Usage
+| Endpoint                 | Method | Description                  |
+| ------------------------ | ------ | ---------------------------- |
+| `/api/recordings`        | GET    | List recordings with filters |
+| `/api/recordings/[id]`   | GET    | Get recording details        |
+| `/api/recordings/upload` | POST   | Upload new recording         |
+| `/api/recordings/[id]`   | DELETE | Delete recording             |
 
-1. **Make a Call**: Enter a phone number and click "Call"
-2. **Call Controls**: Use mute and record buttons during the call
-3. **View Recordings**: Access your call recordings in the sidebar
-4. **Upload Recordings**: Upload external audio files for storage
+### Calls
 
-## API Endpoints
+| Endpoint             | Method | Description      |
+| -------------------- | ------ | ---------------- |
+| `/api/calls/history` | GET    | Get call history |
+| `/api/calls/[id]`    | GET    | Get call details |
 
-- `GET /api/twilio/token` - Generate Twilio access token
-- `POST /api/twilio/voice` - Handle incoming calls (TwiML)
-- `GET /api/calls/recordings` - List call recordings
-- `POST /api/calls/upload` - Upload external recordings
-- `POST /api/calls/webhook` - Handle Twilio webhooks
+### Webhooks
 
-## Security
+| Endpoint                         | Method | Description                  |
+| -------------------------------- | ------ | ---------------------------- |
+| `/api/webhooks/twilio/voice`     | POST   | Handle incoming Twilio calls |
+| `/api/webhooks/twilio/status`    | POST   | Twilio call status updates   |
+| `/api/webhooks/twilio/voicemail` | POST   | Voicemail recording webhook  |
 
-- All API endpoints are protected with proper CORS headers
-- JWT tokens are used for client authentication
-- Environment variables are kept secure on the server side
-- Recording URLs are time-limited and signed
+See [API Documentation](docs/API_DOCUMENTATION.md) for complete reference.
 
 ## Deployment
 
 ### Vercel (Recommended)
 
-1. Push to GitHub
-2. Connect to Vercel
-3. Set environment variables in Vercel dashboard
-4. Deploy
+```bash
+# Connect repository to Vercel
+vercel --prod
 
-### Other Platforms
+# Or deploy via GitHub integration
+# Push to main branch → automatic deployment
+```
 
-The application can be deployed on any platform that supports Node.js applications. Ensure all environment variables are properly configured.
+See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
 
-## Troubleshooting
+### Docker
 
-**Common Issues:**
+```bash
+docker build -t careflow .
+docker run -p 3000:3000 careflow
+```
 
-1. **CORS Errors**: Ensure your domain is properly configured in Twilio settings
-2. **Authentication Errors**: Verify all Twilio credentials are correct
-3. **Recording Issues**: Check AWS S3 bucket permissions and credentials
-4. **Call Quality**: Ensure good internet connection and proper microphone access
+## Security
 
-**Debug Mode:**
-Enable debug logging in Twilio Device by setting `debug: true` in the initialization.
+- ✅ Firebase Auth with JWT token verification
+- ✅ MongoDB injection protection via Mongoose
+- ✅ Request validation on all API endpoints
+- ✅ Twilio webhook signature verification
+- ✅ Environment variables for all secrets
+- ✅ HTTPS/TLS enforced in production
+- ✅ Rate limiting (100 req/min per user)
+- ✅ CORS configuration
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Before Submitting
+
+- Run all tests: `npm test`
+- Ensure coverage thresholds are met
+- Run linting: `npm run lint`
+- Add tests for new functionality
 
 ## License
 
@@ -205,8 +293,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-For support and questions:
+- 📧 Email: support@careflow.app
+- 📖 Documentation: [docs/](docs/)
+- 🐛 Issues: GitHub Issues
+- 💬 Discord: [CareFlow Community](https://discord.gg/careflow)
 
-- Check the [Twilio Documentation](https://www.twilio.com/docs/voice)
-- Review the [Next.js Documentation](https://nextjs.org/docs)
-- Create an issue in this repository
+---
+
+Built with ❤️ using Next.js, Twilio, Firebase, and MongoDB

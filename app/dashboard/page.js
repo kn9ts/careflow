@@ -11,6 +11,7 @@ import DialPad from "@/components/dashboard/DialPad";
 import CallStatus from "@/components/dashboard/CallStatus";
 import CallHistory from "@/components/dashboard/CallHistory";
 import Analytics from "@/components/dashboard/Analytics";
+import RecordingManager from "@/components/dashboard/RecordingManager";
 import ProtectedRoute from "@/components/ProtectedRoute/ProtectedRoute";
 import NotificationPermission from "@/components/NotificationPermission";
 
@@ -19,6 +20,9 @@ import { useNotifications } from "@/hooks/useNotifications";
 
 // Call Manager
 import { callManager } from "@/lib/callManager";
+
+// Audio Processor (SimplePeer-based)
+import { AudioProcessor, RecordingUploader } from "@/lib/audioProcessor";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -62,11 +66,63 @@ export default function Dashboard() {
     },
   });
 
-  // Initialize Call Manager
-  const initializeCallManager = useCallback(async () => {
-    if (!token || !user) return;
+  // Recording state
+  const [recordings, setRecordings] = useState([]);
+  const [currentRecording, setCurrentRecording] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingError, setRecordingError] = useState(null);
+
+  // Fetch recordings on mount
+  useEffect(() => {
+    if (token) {
+      fetchRecordings();
+    }
+  }, [token]);
+
+  const fetchRecordings = async () => {
+    // Get token from state or localStorage as fallback
+    const authToken =
+      token ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("careflow_token")
+        : null);
+
+    if (!authToken) {
+      setRecordingError("Not authenticated");
+      return;
+    }
 
     try {
+      const response = await fetch("/api/recordings", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setRecordings(data.data.recordings);
+      } else {
+        setRecordingError(data.error?.message || "Failed to load recordings");
+      }
+    } catch (error) {
+      console.error("Error fetching recordings:", error);
+      setRecordingError("Failed to load recordings");
+    }
+  };
+
+  // Initialize Call Manager
+  const initializeCallManager = useCallback(async () => {
+    if (!token || !user) {
+      console.log("Waiting for auth - token:", !!token, "user:", !!user);
+      return;
+    }
+
+    try {
+      console.log(
+        "Initializing CallManager with token:",
+        token?.substring(0, 20) + "...",
+      );
+
       // Get care4wId from user profile or token response
       // For now, we'll get it from the token response
       const { mode: callMode, care4wId: cfId } = await callManager.initialize(
@@ -112,7 +168,7 @@ export default function Dashboard() {
       console.log(`CallManager initialized in ${callMode} mode`);
     } catch (error) {
       console.error("Failed to initialize CallManager:", error);
-      setCallError("Failed to initialize call system");
+      setCallError(error.message || "Failed to initialize call system");
     }
   }, [token, user]);
 
@@ -179,6 +235,129 @@ export default function Dashboard() {
 
   const sendDigits = useCallback((digit) => {
     callManager.sendDigits(digit);
+  }, []);
+
+  // Recording state
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [recordingSupported, setRecordingSupported] = useState(false);
+  const recordingTimerInterval = useRef(null);
+  const audioProcessorRef = useRef(null);
+  const recordingUploaderRef = useRef(null);
+
+  // Initialize audio processor for WebRTC calls
+  useEffect(() => {
+    if (mode === "webrtc" && token) {
+      audioProcessorRef.current = new AudioProcessor({
+        token,
+        onCallState: (state) => {
+          console.log("Audio processor call state:", state);
+          if (state.status === "connected") {
+            setCallStatus("connected");
+            startCallTimer();
+          } else if (state.status === "ended") {
+            setCallStatus("idle");
+            stopCallTimer();
+          } else if (state.status === "error") {
+            setCallError(state.error);
+            setCallStatus("idle");
+          }
+        },
+        onRecordingState: async (state) => {
+          console.log("Recording state:", state);
+          setIsRecording(state.isRecording);
+          if (state.isRecording) {
+            // Start recording timer
+            setRecordingDuration(0);
+            recordingTimerInterval.current = setInterval(() => {
+              setRecordingDuration((prev) => prev + 1);
+            }, 1000);
+          } else {
+            // Stop recording timer
+            if (recordingTimerInterval.current) {
+              clearInterval(recordingTimerInterval.current);
+            }
+
+            // Upload recording if available
+            if (state.recording && recordingUploaderRef.current) {
+              try {
+                await recordingUploaderRef.current.uploadWithProgress(
+                  state.recording,
+                  (progress) => {
+                    console.log("Upload progress:", progress);
+                  },
+                );
+                // Refresh recordings list
+                fetchRecordings();
+              } catch (error) {
+                console.error("Upload failed:", error);
+                setRecordingError("Recording upload failed");
+              }
+            }
+          }
+        },
+        onError: (error) => {
+          console.error("Audio processor error:", error);
+          setCallError(error.message);
+        },
+      });
+
+      // Check recording support
+      const checkRecordingSupport = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          stream.getTracks().forEach((track) => track.stop());
+          setRecordingSupported(true);
+        } catch (error) {
+          console.error("Recording not supported:", error);
+          setRecordingSupported(false);
+        }
+      };
+      checkRecordingSupport();
+
+      // Initialize uploader
+      recordingUploaderRef.current = new RecordingUploader({
+        token,
+        onProgress: (progress) => console.log("Upload progress:", progress),
+        onError: (error) => {
+          console.error("Upload error:", error);
+          setRecordingError(error.message);
+        },
+        onSuccess: (data) => {
+          console.log("Upload success:", data);
+        },
+      });
+    }
+
+    return () => {
+      if (audioProcessorRef.current) {
+        audioProcessorRef.current.destroy();
+      }
+      if (recordingTimerInterval.current) {
+        clearInterval(recordingTimerInterval.current);
+      }
+    };
+  }, [mode, token]);
+
+  // Recording handlers
+  const handleStartRecording = useCallback(async () => {
+    if (audioProcessorRef.current) {
+      try {
+        await audioProcessorRef.current.startRecording();
+      } catch (error) {
+        console.error("Failed to start recording:", error);
+        setRecordingError("Failed to start recording: " + error.message);
+      }
+    }
+  }, []);
+
+  const handleStopRecording = useCallback(async () => {
+    if (audioProcessorRef.current) {
+      const recording = await audioProcessorRef.current.stopRecording();
+      return recording;
+    }
+    return null;
   }, []);
 
   // Fetch data
@@ -355,6 +534,11 @@ export default function Dashboard() {
                     onReject={rejectCall}
                     onMute={toggleMute}
                     isMuted={isMuted}
+                    isRecording={isRecording}
+                    isRecordingSupported={recordingSupported}
+                    recordingDuration={recordingDuration}
+                    onStartRecording={handleStartRecording}
+                    onStopRecording={handleStopRecording}
                   />
                 </div>
 
@@ -425,6 +609,20 @@ export default function Dashboard() {
 
             {activeTab === "analytics" && (
               <Analytics data={analytics} onRefresh={fetchAnalytics} />
+            )}
+
+            {activeTab === "recordings" && (
+              <div className="space-y-4">
+                {recordingError && (
+                  <div className="text-red-400 text-sm">{recordingError}</div>
+                )}
+                <RecordingManager
+                  recordings={recordings}
+                  currentRecording={currentRecording}
+                  isRecording={isRecording}
+                  onRefresh={fetchRecordings}
+                />
+              </div>
             )}
           </main>
         </div>

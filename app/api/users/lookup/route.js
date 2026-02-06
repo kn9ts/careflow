@@ -5,7 +5,8 @@
  */
 
 import { connectDB } from "@/lib/db";
-import { lookupCare4wId, isValidCare4wId } from "@/lib/careFlowIdGenerator";
+import { lookupCare4wId } from "@/lib/careFlowIdGenerator";
+import { isValidCare4wId } from "@/lib/careFlowIdValidator";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
 import { requireAuth } from "@/lib/auth";
 

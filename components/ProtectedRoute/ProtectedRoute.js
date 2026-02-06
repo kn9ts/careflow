@@ -4,19 +4,25 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function ProtectedRoute({ children }) {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { currentUser, loading, token } = useAuth();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     if (!loading) {
-      if (!user) {
+      // Check if user is authenticated via Firebase or has token in localStorage
+      const storedToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("careflow_token")
+          : null;
+
+      if (!currentUser && !storedToken) {
         // Redirect to login if not authenticated
         router.push("/login");
       } else {
         setIsCheckingAuth(false);
       }
     }
-  }, [user, loading, router]);
+  }, [currentUser, loading, router]);
 
   if (loading || isCheckingAuth) {
     return (
