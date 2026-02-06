@@ -1,12 +1,21 @@
+"use client";
+
 import React, { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import RecordingPlayer from "./RecordingPlayer";
+import { Play, Trash2, Download } from "lucide-react";
 
 export default function CallHistory({ calls, onRefresh }) {
+  const { token } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState({
     key: "recordedAt",
     direction: "desc",
   });
+  const [selectedRecording, setSelectedRecording] = useState(null);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const itemsPerPage = 10;
   const totalCalls = calls.length;
 
@@ -93,6 +102,11 @@ export default function CallHistory({ calls, onRefresh }) {
     );
   };
 
+  const hasRecording = (call) => {
+    // Check if call has a recording (sid exists and duration > 0)
+    return call.sid && call.duration > 0 && call.status === "completed";
+  };
+
   const handleSort = (key) => {
     setSortConfig((prev) => {
       if (prev.key === key) {
@@ -105,6 +119,76 @@ export default function CallHistory({ calls, onRefresh }) {
   const sortIndicator = (key) => {
     if (sortConfig.key !== key) return "";
     return sortConfig.direction === "asc" ? "▲" : "▼";
+  };
+
+  const openRecording = (call) => {
+    setSelectedRecording(call);
+    setIsPlayerOpen(true);
+  };
+
+  const closeRecording = () => {
+    setIsPlayerOpen(false);
+    setSelectedRecording(null);
+  };
+
+  const handleDeleteRecording = async (recordingId) => {
+    if (!token) return;
+
+    setDeletingId(recordingId);
+    try {
+      const response = await fetch(`/api/calls/${recordingId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete recording");
+      }
+
+      // Refresh call history after deletion
+      onRefresh();
+    } catch (error) {
+      console.error("Error deleting recording:", error);
+      alert("Failed to delete recording. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDownloadRecording = (recording) => {
+    // Construct the download URL
+    const downloadUrl = `https://api.twilio.com/2010-04-01/Accounts/${process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID}/Recordings/${recording.sid}.mp3`;
+
+    // Create a temporary anchor element for download
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `recording-${recording.sid}.mp3`;
+    link.setAttribute("Authorization", `Bearer ${token}`);
+
+    // For authenticated downloads, we need to fetch and blob
+    fetch(downloadUrl, {
+      headers: {
+        Authorization: `Basic ${btoa(`${process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`)}`,
+      },
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `recording-${recording.sid}.mp3`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error) => {
+        console.error("Error downloading recording:", error);
+        alert("Failed to download recording. Please try again.");
+      });
   };
 
   return (
@@ -178,7 +262,7 @@ export default function CallHistory({ calls, onRefresh }) {
                   Duration {sortIndicator("duration")}
                 </button>
               </th>
-              <th className="py-3">
+              <th className="py-3 pr-4">
                 <button
                   className="flex items-center gap-2 hover:text-white"
                   onClick={() => handleSort("status")}
@@ -186,6 +270,7 @@ export default function CallHistory({ calls, onRefresh }) {
                   Status {sortIndicator("status")}
                 </button>
               </th>
+              <th className="py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -214,12 +299,49 @@ export default function CallHistory({ calls, onRefresh }) {
                   <td className="py-4 pr-4 text-white">
                     {formatDuration(call.duration)}
                   </td>
-                  <td className="py-4">{getStatusBadge(call)}</td>
+                  <td className="py-4 pr-4">{getStatusBadge(call)}</td>
+                  <td className="py-4">
+                    <div className="flex items-center gap-2">
+                      {/* Play Button - Only for calls with recordings */}
+                      {hasRecording(call) && (
+                        <button
+                          onClick={() => openRecording(call)}
+                          className="p-2 rounded-lg bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-colors"
+                          title="Play recording"
+                        >
+                          <Play className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      {/* Download Button - Only for calls with recordings */}
+                      {hasRecording(call) && (
+                        <button
+                          onClick={() => handleDownloadRecording(call)}
+                          className="p-2 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-colors"
+                          title="Download recording"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() =>
+                          handleDeleteRecording(call._id || call.sid)
+                        }
+                        disabled={deletingId === (call._id || call.sid)}
+                        className="p-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors disabled:opacity-50"
+                        title="Delete recording"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td className="py-10 text-center text-gray-400" colSpan={4}>
+                <td className="py-10 text-center text-gray-400" colSpan={5}>
                   No calls found for this filter.
                 </td>
               </tr>
@@ -254,6 +376,15 @@ export default function CallHistory({ calls, onRefresh }) {
           </button>
         </div>
       )}
+
+      {/* Recording Player Modal */}
+      <RecordingPlayer
+        recording={selectedRecording}
+        isOpen={isPlayerOpen}
+        onClose={closeRecording}
+        onDelete={handleDeleteRecording}
+        onDownload={handleDownloadRecording}
+      />
     </div>
   );
 }
