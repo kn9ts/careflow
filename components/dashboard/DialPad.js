@@ -20,6 +20,8 @@ export default function DialPad({
   setPhoneNumber,
   onDigitPress,
   disabled,
+  placeholder,
+  helpText,
 }) {
   const sanitizedNumber = phoneNumber.replace(/\s+/g, "");
   const handleDigitPress = (digit) => {
@@ -54,14 +56,14 @@ export default function DialPad({
             type="tel"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Enter phone number"
+            placeholder={placeholder || "Enter phone number or CareFlow ID"}
             className="w-full bg-transparent text-white text-lg font-mono outline-none"
             disabled={disabled}
           />
         </div>
         <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
           <span>{sanitizedNumber.length} digits</span>
-          <span>Tip: include country code</span>
+          <span>{helpText || "Tip: include country code"}</span>
         </div>
         <div className="flex gap-2">
           <button

@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function CallStatus({ status, duration, phoneNumber }) {
+export default function CallStatus({ status, duration, phoneNumber, error }) {
   const formatDuration = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -70,6 +70,12 @@ export default function CallStatus({ status, duration, phoneNumber }) {
             <span className="font-medium text-white">
               {formatDuration(duration)}
             </span>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-4 p-3 bg-red-600/20 border border-red-400/40 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
           </div>
         )}
       </div>

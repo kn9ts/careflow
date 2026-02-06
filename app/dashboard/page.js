@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Device } from "@twilio/voice-sdk";
 import Head from "next/head";
 
 // Components
@@ -18,18 +17,23 @@ import NotificationPermission from "@/components/NotificationPermission";
 // Hooks
 import { useNotifications } from "@/hooks/useNotifications";
 
+// Call Manager
+import { callManager } from "@/lib/callManager";
+
 export default function Dashboard() {
   const router = useRouter();
   const { user, token, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("dialer");
 
   // Call state
-  const [device, setDevice] = useState(null);
-  const [connection, setConnection] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [callStatus, setCallStatus] = useState("idle"); // idle, connecting, ringing, connected, disconnected
+  const [callStatus, setCallStatus] = useState("idle"); // idle, connecting, ringing, connected, disconnected, incoming
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [mode, setMode] = useState(null); // 'twilio' | 'webrtc'
+  const [care4wId, setCare4wId] = useState(null);
+  const [modeInfo, setModeInfo] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [callError, setCallError] = useState(null);
 
   // Data
   const [callHistory, setCallHistory] = useState([]);
@@ -39,6 +43,9 @@ export default function Dashboard() {
 
   // Timer ref to avoid memory leaks
   const timerInterval = useRef(null);
+
+  // Pending WebRTC call data
+  const [pendingWebRTCCall, setPendingWebRTCCall] = useState(null);
 
   // Notifications
   const {
@@ -50,64 +57,64 @@ export default function Dashboard() {
     token,
     onIncomingCall: (callData) => {
       console.log("Incoming call notification received:", callData);
-      // Handle incoming call from notification
       setPhoneNumber(callData.from);
       setCallStatus("incoming");
     },
   });
 
-  // Initialize Twilio Device
-  const initializeTwilioDevice = async () => {
-    if (!token) return;
+  // Initialize Call Manager
+  const initializeCallManager = useCallback(async () => {
+    if (!token || !user) return;
 
     try {
-      const tokenRes = await fetch("/api/token", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const { token: twilioToken } = await tokenRes.json();
+      // Get care4wId from user profile or token response
+      // For now, we'll get it from the token response
+      const { mode: callMode, care4wId: cfId } = await callManager.initialize(
+        token,
+        user.care4wId || null,
+      );
 
-      const twilioDevice = new Device(twilioToken, {
-        codecPreferences: ["opus", "pcmu"],
-        fakeLocalDTMF: true,
-        enableRingingState: true,
-      });
+      setMode(callMode);
+      setCare4wId(cfId);
+      setModeInfo(callManager.getModeInfo());
 
-      twilioDevice.on("ready", () => {
-        console.log("Twilio device ready");
-        setCallStatus("ready");
-      });
-
-      twilioDevice.on("error", (error) => {
-        console.error("Twilio device error:", error);
-        setCallStatus("error");
+      // Set up event listeners
+      callManager.on("onCallStateChange", (status) => {
+        console.log("Call state changed:", status);
+        setCallStatus(status);
       });
 
-      twilioDevice.on("connect", (conn) => {
-        setConnection(conn);
-        setCallStatus("connected");
-        startCallTimer();
-      });
+      callManager.on("onIncomingCall", async (callData) => {
+        console.log("Incoming call:", callData);
+        setPhoneNumber(callData.from || callData.targetCare4wId);
 
-      twilioDevice.on("disconnect", () => {
-        setConnection(null);
-        setCallStatus("disconnected");
-        stopCallTimer();
-        fetchCallHistory();
-      });
+        if (callData.mode === "webrtc") {
+          // Store pending WebRTC call data
+          setPendingWebRTCCall({
+            roomId: callData.roomId,
+            offer: callData.offer,
+            from: callData.from,
+          });
+        }
 
-      twilioDevice.on("incoming", (conn) => {
-        setConnection(conn);
         setCallStatus("incoming");
-        setPhoneNumber(conn.parameters.From);
       });
 
-      setDevice(twilioDevice);
+      callManager.on("onError", (error) => {
+        console.error("Call manager error:", error);
+        setCallError(error.message || "An error occurred");
+      });
+
+      callManager.on("onCallEnded", () => {
+        setPendingWebRTCCall(null);
+      });
+
+      console.log(`CallManager initialized in ${callMode} mode`);
     } catch (error) {
-      console.error("Failed to initialize Twilio device:", error);
+      console.error("Failed to initialize CallManager:", error);
+      setCallError("Failed to initialize call system");
     }
-  };
+  }, [token, user]);
 
   // Call timer
   const startCallTimer = () => {
@@ -123,58 +130,56 @@ export default function Dashboard() {
   };
 
   // Call actions
-  const makeCall = useCallback(() => {
-    if (!device || !phoneNumber) return;
+  const makeCall = useCallback(async () => {
+    if (!phoneNumber) return;
 
-    const params = {
-      To: phoneNumber,
-    };
+    setCallError(null);
 
-    const conn = device.connect(params);
-    setConnection(conn);
-    setCallStatus("connecting");
-  }, [device, phoneNumber]);
-
-  const hangupCall = useCallback(() => {
-    if (connection) {
-      connection.disconnect();
+    try {
+      await callManager.makeCall(phoneNumber);
+    } catch (error) {
+      console.error("Call failed:", error);
+      setCallError(error.message);
+      setCallStatus("idle");
     }
-    if (device) {
-      device.disconnectAll();
-    }
-    setCallStatus("disconnected");
-  }, [connection, device]);
+  }, [phoneNumber]);
 
-  const acceptCall = useCallback(() => {
-    if (connection) {
-      connection.accept();
-      setCallStatus("connected");
-      startCallTimer();
-    }
-  }, [connection]);
-
-  const rejectCall = useCallback(() => {
-    if (connection) {
-      connection.reject();
-    }
+  const hangupCall = useCallback(async () => {
+    await callManager.endCall();
     setCallStatus("idle");
-  }, [connection]);
+  }, []);
+
+  const acceptCall = useCallback(async () => {
+    if (mode === "twilio") {
+      await callManager.acceptCall();
+    } else if (mode === "webrtc" && pendingWebRTCCall) {
+      try {
+        await callManager.acceptWebRTCCall(
+          pendingWebRTCCall.roomId,
+          pendingWebRTCCall.offer,
+        );
+        setPendingWebRTCCall(null);
+      } catch (error) {
+        console.error("Failed to accept WebRTC call:", error);
+        setCallError(error.message);
+      }
+    }
+  }, [mode, pendingWebRTCCall]);
+
+  const rejectCall = useCallback(async () => {
+    await callManager.rejectCall();
+    setPendingWebRTCCall(null);
+    setCallStatus("idle");
+  }, []);
 
   const toggleMute = useCallback(() => {
-    if (connection) {
-      connection.mute(!isMuted);
-      setIsMuted(!isMuted);
-    }
-  }, [connection, isMuted]);
+    const muted = callManager.toggleMute();
+    setIsMuted(muted);
+  }, []);
 
-  const sendDigits = useCallback(
-    (digit) => {
-      if (connection) {
-        connection.sendDigits(digit);
-      }
-    },
-    [connection],
-  );
+  const sendDigits = useCallback((digit) => {
+    callManager.sendDigits(digit);
+  }, []);
 
   // Fetch data
   const fetchCallHistory = async () => {
@@ -227,11 +232,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user && token) {
-      initializeTwilioDevice();
+      initializeCallManager();
       fetchCallHistory();
       fetchAnalytics();
     }
-  }, [user, token]);
+  }, [user, token, initializeCallManager]);
 
   // Cleanup timer on component unmount
   useEffect(() => {
@@ -239,18 +244,13 @@ export default function Dashboard() {
       if (timerInterval.current) {
         clearInterval(timerInterval.current);
       }
+      callManager.destroy();
     };
   }, []);
 
   // Logout
   const handleLogout = async () => {
-    if (connection) {
-      connection.disconnect();
-    }
-    if (device) {
-      device.disconnectAll();
-    }
-    // Unregister notification token on logout
+    await callManager.endCall();
     await unregisterToken();
     router.push("/login");
   };
@@ -281,6 +281,20 @@ export default function Dashboard() {
             <div className="flex items-center justify-between max-w-7xl mx-auto">
               <h1 className="text-2xl font-bold text-white">CareFlow</h1>
               <div className="flex items-center gap-4">
+                {mode && (
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full border ${
+                      mode === "twilio"
+                        ? "border-blue-400/40 text-blue-300"
+                        : "border-green-400/40 text-green-300"
+                    }`}
+                  >
+                    {mode === "twilio" ? "Twilio" : "WebRTC"}
+                  </span>
+                )}
+                {care4wId && (
+                  <span className="text-xs text-gray-400">ID: {care4wId}</span>
+                )}
                 <span className="text-gray-400">{user?.email}</span>
                 <button
                   onClick={handleLogout}
@@ -321,6 +335,7 @@ export default function Dashboard() {
                     status={callStatus}
                     duration={callDuration}
                     phoneNumber={phoneNumber}
+                    error={callError}
                   />
 
                   <DialPad
@@ -328,6 +343,8 @@ export default function Dashboard() {
                     setPhoneNumber={setPhoneNumber}
                     onDigitPress={sendDigits}
                     disabled={callStatus === "connected"}
+                    placeholder={modeInfo?.placeholder}
+                    helpText={modeInfo?.helpText}
                   />
 
                   <CallControls
@@ -377,6 +394,21 @@ export default function Dashboard() {
                     <div className="text-red-400 text-sm">{analyticsError}</div>
                   ) : (
                     <div className="text-gray-400">Loading stats...</div>
+                  )}
+
+                  {/* Mode Info */}
+                  {modeInfo && (
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                      <h3 className="text-sm font-medium text-gray-400 mb-2">
+                        Current Mode
+                      </h3>
+                      <p className="text-white font-medium">
+                        {modeInfo.description}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {modeInfo.helpText}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>

@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    index: true,
   },
 
   // Profile Information
@@ -64,7 +63,6 @@ const userSchema = new mongoose.Schema({
   },
   twilioClientIdentity: {
     type: String,
-    unique: true,
     sparse: true,
     trim: true,
   },
@@ -140,12 +138,9 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-// Compound indexes
-userSchema.index({ firebaseUid: 1 }, { unique: true });
-userSchema.index({ email: 1 }, { unique: true });
+// Compound indexes (only non-duplicate ones)
+// Note: firebaseUid, email, care4wId, sequenceNumber already have unique indexes from schema
 userSchema.index({ twilioClientIdentity: 1 }, { sparse: true });
-userSchema.index({ care4wId: 1 }, { unique: true });
-userSchema.index({ sequenceNumber: 1 }, { unique: true });
 userSchema.index({ isActive: 1, lastLoginAt: -1 }); // For finding active users sorted by last login
 userSchema.index({ role: 1, isActive: 1 }); // For filtering users by role and status
 userSchema.index({ createdAt: -1 }); // For sorting users by creation date

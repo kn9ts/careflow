@@ -13,7 +13,7 @@ graph TB
     subgraph Client
         A[Next.js App] --> B[AuthContext]
         B --> C[Dashboard UI]
-        C --> D[Twilio Device]
+        C --> D[Twilio Device / WebRTC]
     end
 
     subgraph API
@@ -21,25 +21,29 @@ graph TB
         G[/api/calls/*] --> H[Call History]
         I[/api/analytics] --> J[Analytics]
         K[/api/webhooks/twilio/*] --> L[Twilio Webhooks]
+        M[/api/users/*] --> N[User Lookup]
+        O[/api/storage/*] --> P[Backblaze B2]
     end
 
     subgraph Services
-        M[Firebase Auth]
-        N[MongoDB]
-        O[Twilio Voice]
-        P[Firebase Storage]
+        Q[Firebase Auth]
+        R[MongoDB]
+        S[Twilio Voice]
+        T[Backblaze B2]
+        U[Firebase Realtime DB - WebRTC Signaling]
     end
 
     A --> E
     A --> G
     A --> I
     A --> K
-    F --> M
-    H --> N
-    J --> N
-    L --> O
-    D --> O
-    C --> P
+    A --> M
+    F --> Q
+    H --> R
+    J --> R
+    L --> S
+    D --> S
+    O --> T
 ```
 
 ---
@@ -80,7 +84,7 @@ sequenceDiagram
 
 **User**
 
-- `firebaseUid`, `email`, `displayName`, `twilioClientIdentity`, `role`, `isActive`
+- `firebaseUid`, `email`, `displayName`, `care4wId` (CareFlow User ID), `sequenceNumber`, `twilioClientIdentity`, `role`, `isActive`
 
 **Recording**
 
@@ -248,9 +252,9 @@ graph TD
 
 ```json
 {
-	"displayName": "string",
-	"email": "string",
-	"firebaseUid": "string"
+  "displayName": "string",
+  "email": "string",
+  "firebaseUid": "string"
 }
 ```
 
@@ -258,16 +262,16 @@ graph TD
 
 ```json
 {
-	"success": true,
-	"message": "User profile created successfully",
-	"user": {
-		"id": "string",
-		"email": "string",
-		"displayName": "string",
-		"role": "string",
-		"twilioClientIdentity": "string",
-		"createdAt": "string"
-	}
+  "success": true,
+  "message": "User profile created successfully",
+  "user": {
+    "id": "string",
+    "email": "string",
+    "displayName": "string",
+    "role": "string",
+    "twilioClientIdentity": "string",
+    "createdAt": "string"
+  }
 }
 ```
 
@@ -287,29 +291,29 @@ graph TD
 
 ```json
 {
-	"success": true,
-	"calls": [
-		{
-			"_id": "string",
-			"firebaseUid": "string",
-			"callSid": "string",
-			"from": "string",
-			"to": "string",
-			"status": "string",
-			"duration": "number",
-			"recordingUrl": "string",
-			"recordedAt": "string",
-			"type": "string"
-		}
-	],
-	"pagination": {
-		"page": "number",
-		"limit": "number",
-		"total": "number",
-		"totalPages": "number",
-		"hasNextPage": "boolean",
-		"hasPrevPage": "boolean"
-	}
+  "success": true,
+  "calls": [
+    {
+      "_id": "string",
+      "firebaseUid": "string",
+      "callSid": "string",
+      "from": "string",
+      "to": "string",
+      "status": "string",
+      "duration": "number",
+      "recordingUrl": "string",
+      "recordedAt": "string",
+      "type": "string"
+    }
+  ],
+  "pagination": {
+    "page": "number",
+    "limit": "number",
+    "total": "number",
+    "totalPages": "number",
+    "hasNextPage": "boolean",
+    "hasPrevPage": "boolean"
+  }
 }
 ```
 
@@ -321,8 +325,8 @@ graph TD
 
 ```json
 {
-	"token": "string",
-	"identity": "string"
+  "token": "string",
+  "identity": "string"
 }
 ```
 
@@ -340,9 +344,9 @@ graph TD
 
 ```json
 {
-	"CallSid": "string",
-	"RecordingUrl": "string",
-	"RecordingDuration": "string"
+  "CallSid": "string",
+  "RecordingUrl": "string",
+  "RecordingDuration": "string"
 }
 ```
 
@@ -360,7 +364,7 @@ graph TD
 
 ```json
 {
-	"downloadUrl": "string"
+  "downloadUrl": "string"
 }
 ```
 
@@ -371,9 +375,9 @@ graph TD
 
 ```json
 {
-	"file": "base64",
-	"fileName": "string",
-	"contentType": "string"
+  "file": "base64",
+  "fileName": "string",
+  "contentType": "string"
 }
 ```
 
@@ -403,15 +407,21 @@ graph TD
 ```javascript
 {
   _id: ObjectId,
-  firebaseUid: String,        // User who owns the recording
-  callSid: String,            // Twilio call SID
-  from: String,               // Caller number
-  to: String,                 // Callee number
-  status: String,             // Call status
-  duration: Number,           // Call duration in seconds
-  recordingUrl: String,       // URL to recording file
-  recordedAt: Date,           // When recording was created
-  type: String,               // 'call' or 'voicemail'
+  firebaseUid: String,       // User who owns the recording
+  userId: ObjectId,        // Reference to User model
+  type: String,            // 'call' or 'voicemail'
+  sid: String,            // Twilio call SID (unique)
+  callSid: String,        // Reference to call
+  from: String,           // Caller number or CareFlow ID
+  to: String,             // Callee number or CareFlow ID
+  direction: String,      // 'inbound' or 'outbound'
+  storageKey: String,    // Backblaze B2 object key
+  storageBucket: String, // Backblaze B2 bucket name
+  duration: Number,       // Call duration in seconds
+  recordedAt: Date,      // When recording was created
+  status: String,        // 'active', 'archived', 'deleted'
+  isListened: Boolean,   // Whether user has listened
+  transcription: String, // Optional transcription
   createdAt: Date,
   updatedAt: Date
 }
@@ -431,17 +441,17 @@ CareFlow uses a sophisticated configuration management system with the following
 
 ```javascript
 const CONFIG_SCHEMA = {
-	NODE_ENV: {
-		type: "string",
-		enum: ["development", "production", "test"],
-		default: "development",
-	},
-	NEXT_PUBLIC_FIREBASE_API_KEY: {
-		type: "string",
-		required: true,
-		pattern: /^[A-Za-z0-9_-]{10,}$/,
-	},
-	// ... other configurations
+  NODE_ENV: {
+    type: "string",
+    enum: ["development", "production", "test"],
+    default: "development",
+  },
+  NEXT_PUBLIC_FIREBASE_API_KEY: {
+    type: "string",
+    required: true,
+    pattern: /^[A-Za-z0-9_-]{10,}$/,
+  },
+  // ... other configurations
 };
 ```
 
@@ -458,7 +468,7 @@ const CONFIG_SCHEMA = {
 - **Firebase**: Authentication and storage configuration
 - **Twilio**: Voice API and webhook configuration
 - **MongoDB**: Database connection configuration
-- **AWS S3**: Cloud storage configuration
+- **Backblaze B2**: S3-compatible cloud storage configuration
 
 ---
 
@@ -597,13 +607,13 @@ CareFlow uses Firebase Authentication with the following components:
 ```javascript
 // In env.config.js - validation errors don't prevent app startup
 if (!validation.valid) {
-	console.error("Configuration validation failed:");
-	validation.errors.forEach((error) => console.error(`  - ${error}`));
+  console.error("Configuration validation failed:");
+  validation.errors.forEach((error) => console.error(`  - ${error}`));
 
-	if (process.env.NODE_ENV === "production") {
-		throw new Error("Invalid configuration in production environment");
-	}
-	// In development, app continues with warnings
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Invalid configuration in production environment");
+  }
+  // In development, app continues with warnings
 }
 ```
 
@@ -626,17 +636,17 @@ if (!validation.valid) {
 ```javascript
 // In AuthContext.js - token refresh interval
 const tokenRefresh = setInterval(
-	async () => {
-		try {
-			const newToken = await getIdToken(user, true);
-			setToken(newToken);
-		} catch (err) {
-			console.error("Token refresh failed:", err);
-			// If token refresh fails, sign out user
-			await handleLogout();
-		}
-	},
-	50 * 60 * 1000,
+  async () => {
+    try {
+      const newToken = await getIdToken(user, true);
+      setToken(newToken);
+    } catch (err) {
+      console.error("Token refresh failed:", err);
+      // If token refresh fails, sign out user
+      await handleLogout();
+    }
+  },
+  50 * 60 * 1000,
 ); // 50 minutes
 ```
 
@@ -685,9 +695,9 @@ const apiSecret = process.env.TWILIO_API_SECRET;
 const twimlAppSid = process.env.TWILIO_TWIML_APP_SID;
 
 if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
-	return res.status(500).json({
-		error: "Missing Twilio environment variables",
-	});
+  return res.status(500).json({
+    error: "Missing Twilio environment variables",
+  });
 }
 ```
 
@@ -730,7 +740,7 @@ export default function handler(req, res) {
 ```javascript
 // In dashboard components - event listeners may not be cleaned up
 useEffect(() => {
-	// Event listeners set up but cleanup may be incomplete
+  // Event listeners set up but cleanup may be incomplete
 }, []);
 ```
 
@@ -753,10 +763,10 @@ useEffect(() => {
 const { displayName, email, firebaseUid } = body;
 
 if (!displayName || !email || !firebaseUid) {
-	return NextResponse.json(
-		{ error: "Missing required fields: displayName, email, firebaseUid" },
-		{ status: 400 },
-	);
+  return NextResponse.json(
+    { error: "Missing required fields: displayName, email, firebaseUid" },
+    { status: 400 },
+  );
 }
 ```
 
@@ -853,14 +863,14 @@ if (!displayName || !email || !firebaseUid) {
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-	firebaseUid: { type: String, required: true, unique: true },
-	email: { type: String, required: true, unique: true },
-	displayName: { type: String, required: true },
-	twilioClientIdentity: { type: String, required: true },
-	role: { type: String, enum: ["user", "admin"], default: "user" },
-	isActive: { type: Boolean, default: true },
-	createdAt: { type: Date, default: Date.now },
-	lastLoginAt: { type: Date },
+  firebaseUid: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  displayName: { type: String, required: true },
+  twilioClientIdentity: { type: String, required: true },
+  role: { type: String, enum: ["user", "admin"], default: "user" },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  lastLoginAt: { type: Date },
 });
 
 module.exports = mongoose.model("User", userSchema);
@@ -875,21 +885,21 @@ const mongoose = require("mongoose");
 let isConnected = false;
 
 export async function connectDB() {
-	if (isConnected) {
-		return;
-	}
+  if (isConnected) {
+    return;
+  }
 
-	try {
-		await mongoose.connect(process.env.MONGODB_URI, {
-			useNewUrlParser: true,
-			useUnifiedTopology: true,
-		});
-		isConnected = true;
-		console.log("Connected to MongoDB");
-	} catch (error) {
-		console.error("Database connection error:", error);
-		throw new Error("Database connection failed");
-	}
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    isConnected = true;
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.error("Database connection error:", error);
+    throw new Error("Database connection failed");
+  }
 }
 ```
 
@@ -898,29 +908,29 @@ export async function connectDB() {
 ```javascript
 // Create error handling middleware
 export function errorHandler(err, req, res, next) {
-	console.error(err.stack);
+  console.error(err.stack);
 
-	if (err.name === "ValidationError") {
-		return res.status(400).json({
-			error: "Validation Error",
-			details: err.message,
-		});
-	}
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      error: "Validation Error",
+      details: err.message,
+    });
+  }
 
-	if (err.name === "UnauthorizedError") {
-		return res.status(401).json({
-			error: "Unauthorized",
-			message: "Invalid or expired token",
-		});
-	}
+  if (err.name === "UnauthorizedError") {
+    return res.status(401).json({
+      error: "Unauthorized",
+      message: "Invalid or expired token",
+    });
+  }
 
-	res.status(500).json({
-		error: "Internal Server Error",
-		message:
-			process.env.NODE_ENV === "production"
-				? "Something went wrong"
-				: err.message,
-	});
+  res.status(500).json({
+    error: "Internal Server Error",
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Something went wrong"
+        : err.message,
+  });
 }
 ```
 
@@ -929,16 +939,16 @@ export function errorHandler(err, req, res, next) {
 ```javascript
 // Create validation middleware
 export function validateInput(schema) {
-	return (req, res, next) => {
-		const { error } = schema.validate(req.body);
-		if (error) {
-			return res.status(400).json({
-				error: "Validation Error",
-				details: error.details[0].message,
-			});
-		}
-		next();
-	};
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        error: "Validation Error",
+        details: error.details[0].message,
+      });
+    }
+    next();
+  };
 }
 ```
 
@@ -949,19 +959,19 @@ export function validateInput(schema) {
 import rateLimit from "express-rate-limit";
 
 export const apiLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 100, // limit each IP to 100 requests per windowMs
-	message: {
-		error: "Too many requests from this IP, please try again later.",
-	},
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+  },
 });
 
 export const authLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 5, // limit each IP to 5 login requests per windowMs
-	message: {
-		error: "Too many login attempts, please try again later.",
-	},
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 login requests per windowMs
+  message: {
+    error: "Too many login attempts, please try again later.",
+  },
 });
 ```
 
@@ -970,26 +980,26 @@ export const authLimiter = rateLimit({
 ```javascript
 // Add to next.config.js
 const securityHeaders = [
-	{
-		key: "X-DNS-Prefetch-Control",
-		value: "on",
-	},
-	{
-		key: "X-XSS-Protection",
-		value: "1; mode=block",
-	},
-	{
-		key: "X-Frame-Options",
-		value: "SAMEORIGIN",
-	},
-	{
-		key: "X-Content-Type-Options",
-		value: "nosniff",
-	},
-	{
-		key: "Referrer-Policy",
-		value: "origin-when-cross-origin",
-	},
+  {
+    key: "X-DNS-Prefetch-Control",
+    value: "on",
+  },
+  {
+    key: "X-XSS-Protection",
+    value: "1; mode=block",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "SAMEORIGIN",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "origin-when-cross-origin",
+  },
 ];
 ```
 
@@ -998,22 +1008,22 @@ const securityHeaders = [
 ```javascript
 // Create monitoring system
 export class ApplicationMonitor {
-	static logError(error, context = {}) {
-		console.error("Application Error:", {
-			message: error.message,
-			stack: error.stack,
-			context,
-			timestamp: new Date().toISOString(),
-		});
-	}
+  static logError(error, context = {}) {
+    console.error("Application Error:", {
+      message: error.message,
+      stack: error.stack,
+      context,
+      timestamp: new Date().toISOString(),
+    });
+  }
 
-	static logPerformance(metric, value) {
-		console.log("Performance Metric:", {
-			metric,
-			value,
-			timestamp: new Date().toISOString(),
-		});
-	}
+  static logPerformance(metric, value) {
+    console.log("Performance Metric:", {
+      metric,
+      value,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
 ```
 
@@ -1024,13 +1034,13 @@ export class ApplicationMonitor {
 import { describe, it, expect } from "@jest/globals";
 
 describe("Authentication", () => {
-	it("should login with valid credentials", async () => {
-		// Test login functionality
-	});
+  it("should login with valid credentials", async () => {
+    // Test login functionality
+  });
 
-	it("should reject invalid credentials", async () => {
-		// Test invalid login
-	});
+  it("should reject invalid credentials", async () => {
+    // Test invalid login
+  });
 });
 ```
 

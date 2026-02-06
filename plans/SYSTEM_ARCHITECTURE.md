@@ -4,10 +4,11 @@
 
 ## Overview
 
-CareFlow is a Next.js application supporting dual calling modes:
+CareFlow is a Next.js application supporting dual calling modes and cloud storage:
 
 - **Twilio Voice**: Traditional PSTN telephony calls (when credentials provided)
 - **WebRTC**: Browser-to-browser peer-to-peer calls (fallback mode)
+- **Backblaze B2**: S3-compatible cloud storage for recordings (cost-effective alternative to AWS S3)
 
 ## Architecture Diagram
 
@@ -28,17 +29,36 @@ flowchart TB
         H --> K[Analytics]
         H --> L[Twilio Webhooks]
         H --> M[Signaling Server]
+        H --> N[Storage API]
     end
 
     subgraph Services
-        N[Firebase Auth]
-        O[MongoDB]
-        P[Twilio Voice]
-        Q[Firebase Storage - Signaling]
+        O[Firebase Auth]
+        P[MongoDB]
+        Q[Twilio Voice]
+        R[Firebase Realtime DB - Signaling]
+        S[Backblaze B2 - Storage]
     end
 
-    F --> P
-    G --> Q
+    F --> Q
+    G --> R
+    N --> S
+```
+
+## Storage Architecture
+
+```mermaid
+flowchart LR
+    subgraph Recording Flow
+        A[Twilio/WebRTC] --> B[Recording Created]
+        B --> C[Backblaze B2 Upload]
+        C --> D[MongoDB Index]
+    end
+
+    subgraph Storage Options
+        E[Backblaze B2] --> F[Primary Storage]
+        G[AWS S3] --> H[Fallback Option]
+    end
 ```
 
 ## Key Data Flows
@@ -95,6 +115,22 @@ sequenceDiagram
     UserA->>UserB: Direct P2P Connection
 ```
 
+### Recording Upload Flow (Backblaze B2)
+
+```mermaid
+sequenceDiagram
+    participant Twilio
+    participant API
+    participant BackblazeB2
+    participant MongoDB
+
+    Twilio->>API: Recording complete webhook
+    API->>BackblazeB2: Upload recording file
+    BackblazeB2-->>API: Upload confirmation + URL
+    API->>MongoDB: Index recording metadata
+    API->>Twilio: Confirm storage
+```
+
 ## Call Modes
 
 ### Mode 1: Twilio Voice (Default)
@@ -115,37 +151,68 @@ When Twilio credentials are missing, the app automatically switches to WebRTC fo
 - No telephony costs
 - Works between CareFlow users
 
+### Mode 3: CareFlow User IDs
+
+WebRTC mode uses CareFlow User IDs for direct calling:
+
+- **Format**: `care4w-XXXXXXX` (e.g., `care4w-1000001`)
+- Users enter CareFlow IDs instead of phone numbers
+- Free calls between CareFlow users
+
+## Storage Options
+
+### Primary: Backblaze B2
+
+CareFlow uses Backblaze B2 S3-compatible storage as the primary storage option:
+
+- **Cost-effective**: Up to 75% cheaper than AWS S3
+- **S3-compatible**: Uses AWS SDK v3
+- **Reliable**: 99.9% uptime SLA
+- **Simple**: No complex bucket policies
+
+### Configuration
+
+```bash
+BACKBLAZE_KEY_ID=your-key-id
+BACKBLAZE_APPLICATION_KEY=your-app-key
+BACKBLAZE_BUCKET_NAME=your-bucket
+BACKBLAZE_ENDPOINT=https://s3.us-east-1.backblazeb2.com
+BACKBLAZE_REGION=us-east-1
+```
+
 ## Relevant Modules
 
-- API route handlers in [`careflow/app/api`](careflow/app/api)
-- Authentication context in [`careflow/context/AuthContext.js`](careflow/context/AuthContext.js)
-- Twilio integration in [`careflow/lib/twilio.js`](careflow/lib/twilio.js) (if exists)
-- WebRTC manager in [`careflow/lib/webrtc.js`](careflow/lib/webrtc.js) (fallback)
-- Call manager in [`careflow/lib/callManager.js`](careflow/lib/callManager.js)
-- Database layer in [`careflow/lib/db.js`](careflow/lib/db.js)
+- API route handlers in [`app/api`](app/api)
+- Authentication context in [`context/AuthContext.js`](context/AuthContext.js)
+- WebRTC manager in [`lib/webrtc.js`](lib/webrtc.js)
+- Call manager in [`lib/callManager.js`](lib/callManager.js)
+- Backblaze B2 storage in [`lib/backblaze.js`](lib/backblaze.js)
+- Database layer in [`lib/db.js`](lib/db.js)
 
 ## Server vs Client
 
-- **Server**: Route handlers, token generation, database access, signaling.
+- **Server**: Route handlers, token generation, database access, storage operations.
 - **Client**: Dashboard UI, Twilio Device/WebRTC, call controls.
 
 ## Key Components
 
-- Dashboard page in [`careflow/app/dashboard/page.js`](careflow/app/dashboard/page.js)
-- Protected routes in [`careflow/components/ProtectedRoute/ProtectedRoute.js`](careflow/components/ProtectedRoute/ProtectedRoute.js)
-- Call status UI in [`careflow/components/dashboard/CallStatus.js`](careflow/components/dashboard/CallStatus.js)
+- Dashboard page in [`app/dashboard/page.js`](app/dashboard/page.js)
+- Protected routes in [`components/ProtectedRoute/ProtectedRoute.js`](components/ProtectedRoute/ProtectedRoute.js)
+- Call status UI in [`components/dashboard/CallStatus.js`](components/dashboard/CallStatus.js)
+- DialPad in [`components/dashboard/DialPad.js`](components/dashboard/DialPad.js)
 
 ## Security Notes
 
-- Server-side credentials only for Twilio and Firebase Admin.
+- Server-side credentials only for Twilio, Firebase Admin, and Backblaze B2.
 - Require Firebase ID token validation for protected APIs.
 - Validate webhook signatures for Twilio callbacks.
 - WebRTC uses DTLS-SRTP for encryption.
 - Signaling endpoints require authentication.
+- Backblaze B2 uses presigned URLs for secure file access.
 
 ## Environment Variables
 
-See [`careflow/.env.local.example`](careflow/.env.local.example).
+See [`.env.local.example`](.env.local.example).
 
 ### Twilio Configuration (Optional)
 
@@ -162,7 +229,17 @@ TWILIO_API_SECRET=your-api-secret
 
 ```
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-# Firebase config for signaling (if needed)
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your-project-rtdb.firebaseio.com
+```
+
+### Backblaze B2 Configuration
+
+```
+BACKBLAZE_KEY_ID=your-key-id
+BACKBLAZE_APPLICATION_KEY=your-app-key
+BACKBLAZE_BUCKET_NAME=your-bucket
+BACKBLAZE_ENDPOINT=https://s3.us-east-1.backblazeb2.com
+BACKBLAZE_REGION=us-east-1
 ```
 
 ## Fallback Behavior
@@ -186,16 +263,12 @@ if (twilioConfigured) {
 
 ```javascript
 // GET /api/token
-// Returns: { token: string, mode: 'twilio' | 'webrtc' }
+// Returns: { token: string, mode: 'twilio' | 'webrtc', care4wId: string }
 ```
 
-### Signaling Endpoints (WebRTC Mode)
+### Signaling Endpoints (WebRTC Mode via Firebase)
 
-```javascript
-// POST /api/signaling/offer
-// POST /api/signaling/answer
-// POST /api/signaling/ice
-```
+- Real-time signaling via Firebase Realtime Database
 
 ### Webhook Endpoints (Twilio Mode)
 
@@ -204,3 +277,74 @@ if (twilioConfigured) {
 // POST /api/webhooks/twilio/status
 // POST /api/webhooks/twilio/voicemail
 ```
+
+### User Lookup (WebRTC Mode)
+
+```javascript
+// GET /api/users/lookup?care4wId=care4w-XXXXXXX
+// Returns: { exists: boolean, displayName: string }
+```
+
+## Data Models
+
+### User
+
+```javascript
+{
+  firebaseUid: String,        // Firebase user ID
+  email: String,             // User email
+  displayName: String,       // User display name
+  care4wId: String,         // CareFlow User ID (care4w-XXXXXXX)
+  sequenceNumber: Number,     // Unique sequence number
+  twilioClientIdentity: String, // Twilio client identity
+  role: String,              // User role ('user' or 'admin')
+  isActive: Boolean,         // Account status
+  createdAt: Date,
+  updatedAt: Date,
+  lastLoginAt: Date
+}
+```
+
+### Recording
+
+```javascript
+{
+  firebaseUid: String,       // User who owns the recording
+  userId: ObjectId,         // Reference to User
+  type: String,             // 'call' or 'voicemail'
+  sid: String,             // Twilio call SID (unique)
+  from: String,            // Caller number/ID
+  to: String,              // Callee number/ID
+  direction: String,       // 'inbound' or 'outbound'
+  storageKey: String,     // Backblaze B2 object key
+  storageBucket: String,  // Backblaze B2 bucket name
+  duration: Number,       // Call duration in seconds
+  recordedAt: Date,      // When recording was created
+  status: String,        // 'active', 'archived', 'deleted'
+  isListened: Boolean,   // Whether user has listened
+  transcription: String  // Optional transcription
+}
+```
+
+## Performance Considerations
+
+- **Token Refresh**: Firebase tokens refresh every 50 minutes
+- **MongoDB Connection**: Cached connection for hot reloads
+- **Backblaze B2**: Presigned URLs for efficient file access
+- **WebRTC**: Direct P2P connection minimizes server load
+
+## Scalability
+
+- **Stateless API**: All state in MongoDB and services
+- **Connection Pooling**: MongoDB connection pooling (max 10 connections)
+- **Serverless Ready**: Compatible with Vercel and similar platforms
+- **WebRTC Scaling**: Firebase Realtime Database handles signaling
+
+---
+
+Related Documents:
+
+- [Deployment Guide](DEPLOYMENT.md)
+- [User Flows](USER_FLOWS.md)
+- [WebRTC Fallback Architecture](WEBRTC_FALLBACK_ARCHITECTURE.md)
+- [Backblaze B2 Guide](BACKBLAZE_B2_GUIDE.md)

@@ -44,12 +44,12 @@ const recordingSchema = new mongoose.Schema({
     required: true,
   },
 
-  // Storage
-  s3Key: {
+  // Storage (Backblaze B2)
+  storageKey: {
     type: String,
     required: true,
   },
-  s3Bucket: {
+  storageBucket: {
     type: String,
     required: true,
   },
@@ -109,10 +109,10 @@ const recordingSchema = new mongoose.Schema({
 });
 
 // Compound indexes
+// Note: sid already has unique index from schema
 recordingSchema.index({ userId: 1, recordedAt: -1 });
 recordingSchema.index({ firebaseUid: 1, type: 1 });
 recordingSchema.index({ userId: 1, isListened: 1 });
-recordingSchema.index({ sid: 1 });
 
 // Update listenedAt when isListened is set to true
 recordingSchema.pre("save", function (next) {

@@ -45,7 +45,7 @@ export default function HomePage() {
           CareFlow
         </h1>
         <p className="text-xl md:text-2xl text-gray-300 mb-8">
-          Your complete healthcare communication platform
+          Browser-based calling powered by Twilio Voice
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -64,7 +64,7 @@ export default function HomePage() {
         </div>
 
         <p className="mt-8 text-gray-400 text-sm">
-          Secure. Reliable. Healthcare-focused.
+          Secure. Reliable. Browser-based calling.
         </p>
       </div>
     </div>
