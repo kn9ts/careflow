@@ -24,7 +24,7 @@ A modern web application for browser-based voice communications with Twilio Voic
 
 | Layer          | Technology                              |
 | -------------- | --------------------------------------- |
-| Framework      | Next.js 15 (App Router)                 |
+| Framework      | Next.js 14 (App Router)                 |
 | UI Library     | React 18                                |
 | Styling        | Tailwind CSS                            |
 | Authentication | Firebase Auth                           |

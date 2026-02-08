@@ -14,7 +14,8 @@
 5. [Webhook Endpoints](#webhook-endpoints)
 6. [Analytics Endpoints](#analytics-endpoints)
 7. [Token Endpoints](#token-endpoints)
-8. [Error Codes](#error-codes)
+8. [Notification Endpoints](#notification-endpoints)
+9. [Error Codes](#error-codes)
 
 ---
 
@@ -505,6 +506,87 @@ Get Twilio capability token.
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "identity": "careflow-user-123",
     "expiresIn": 3600
+  }
+}
+```
+
+---
+
+## Notification Endpoints
+
+### POST /api/notifications/register
+
+Register a Firebase Cloud Messaging token for push notifications.
+
+**Request Headers:**
+| Header | Value |
+|--------|-------|
+| Authorization | Bearer {firebaseIdToken} |
+| Content-Type | application/json |
+
+**Request Body:**
+
+```json
+{
+  "fcmToken": "fcm-token-123",
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0",
+    "platform": "iOS",
+    "language": "en"
+  }
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Notification token registered successfully",
+  "data": {
+    "tokenCount": 2
+  }
+}
+```
+
+**Error Response (400 Bad Request):**
+
+```json
+{
+  "success": false,
+  "error": "FCM token is required",
+  "code": "MISSING_FCM_TOKEN"
+}
+```
+
+---
+
+### DELETE /api/notifications/unregister
+
+Unregister a Firebase Cloud Messaging token.
+
+**Request Headers:**
+| Header | Value |
+|--------|-------|
+| Authorization | Bearer {firebaseIdToken} |
+| Content-Type | application/json |
+
+**Request Body:**
+
+```json
+{
+  "fcmToken": "fcm-token-123"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Notification token unregistered successfully",
+  "data": {
+    "tokenCount": 1
   }
 }
 ```

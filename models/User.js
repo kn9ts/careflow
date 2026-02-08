@@ -140,7 +140,7 @@ userSchema.pre("save", function (next) {
 
 // Compound indexes (only non-duplicate ones)
 // Note: firebaseUid, email, care4wId, sequenceNumber already have unique indexes from schema
-userSchema.index({ twilioClientIdentity: 1 }, { sparse: true });
+// twilioClientIdentity already has sparse index from schema definition
 userSchema.index({ isActive: 1, lastLoginAt: -1 }); // For finding active users sorted by last login
 userSchema.index({ role: 1, isActive: 1 }); // For filtering users by role and status
 userSchema.index({ createdAt: -1 }); // For sorting users by creation date
