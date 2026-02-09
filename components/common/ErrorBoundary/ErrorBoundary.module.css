@@ -1,0 +1,63 @@
+/* ErrorBoundary.module.css */
+
+/* Component-specific styles that extend Tailwind */
+
+.errorContainer {
+  @apply flex flex-col items-center justify-center min-h-[400px] px-8;
+}
+
+.errorContent {
+  @apply text-center max-w-[400px];
+}
+
+.errorIconWrapper {
+  @apply mb-4;
+}
+
+.errorTitle {
+  @apply text-xl font-semibold text-white mb-2;
+}
+
+.errorMessage {
+  @apply text-gray-400 mb-6;
+}
+
+.errorDetails {
+  @apply text-left p-4 bg-gray-800 rounded-lg mb-6 text-sm cursor-pointer;
+}
+
+.errorSummary {
+  @apply text-gray-400 font-medium;
+}
+
+.errorStack {
+  @apply text-red-400 mt-2 text-xs overflow-x-auto whitespace-pre-wrap;
+}
+
+.errorActions {
+  @apply flex gap-4 justify-center;
+}
+
+.errorRetryBtn {
+  @apply inline-flex items-center gap-2 px-6 py-3 bg-primary-blue text-white rounded-lg font-medium transition-colors hover:bg-blue-700;
+}
+
+.errorHomeBtn {
+  @apply inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-white rounded-lg font-medium transition-colors hover:bg-gray-600 no-underline;
+}
+
+.errorDisplay {
+  @apply flex flex-col items-center justify-center p-8 text-center;
+}
+
+.errorDisplayIcon {
+  @apply text-red-500 mb-4;
+}
+
+.errorDisplayMessage {
+  @apply text-gray-400 mb-4;
+}
+
+.errorDisplayRetry {
+  @apply inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white rounded border-0 cursor-pointer transition-colors hover:bg-blue-700;
+}

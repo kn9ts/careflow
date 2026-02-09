@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import {
   Disc,
   Square,
@@ -9,7 +9,38 @@ import {
   CircleDot,
 } from "lucide-react";
 
-export default function CallControls({
+// Memoized formatDuration utility - defined outside component
+const formatDuration = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
+// Memoized status text function
+const getStatusText = (isCallActive, isIncomingCall, isCalling, isReady) => {
+  if (isCallActive) return "Live";
+  if (isIncomingCall) return "Incoming";
+  if (isCalling) return "Connecting";
+  if (isReady) return "Ready";
+  return "Idle";
+};
+
+// Memoized status color class
+const getStatusColor = (isCallActive, isIncomingCall, isCalling) => {
+  if (isCallActive) return "border-green-400/40 text-green-300";
+  if (isIncomingCall) return "border-yellow-400/40 text-yellow-300";
+  if (isCalling) return "border-blue-400/40 text-blue-300";
+  return "border-white/10 text-gray-400";
+};
+
+// Memoized help text
+const getHelpText = (isIncomingCall, isCallActive) => {
+  if (isIncomingCall) return "Incoming call detected. Accept or reject.";
+  if (isCallActive) return "Use controls to manage your live call.";
+  return "Enter a number to start a call.";
+};
+
+function CallControls({
   callStatus,
   onCall,
   onHangup,
@@ -23,52 +54,74 @@ export default function CallControls({
   isRecordingSupported,
   recordingDuration = 0,
 }) {
-  const isCallActive = callStatus === "connected";
-  const isIncomingCall = callStatus === "incoming";
-  const isCalling = callStatus === "connecting" || callStatus === "ringing";
-  const isReady = callStatus === "ready" || callStatus === "idle";
+  // Memoize computed values to avoid recalculation on every render
+  const isCallActive = useMemo(() => callStatus === "connected", [callStatus]);
 
-  // Format recording duration
-  const formatDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  const isIncomingCall = useMemo(() => callStatus === "incoming", [callStatus]);
+
+  const isCalling = useMemo(
+    () => callStatus === "connecting" || callStatus === "ringing",
+    [callStatus],
+  );
+
+  const isReady = useMemo(
+    () => callStatus === "ready" || callStatus === "idle",
+    [callStatus],
+  );
+
+  // Memoize formatted duration
+  const formattedDuration = useMemo(
+    () => formatDuration(recordingDuration),
+    [recordingDuration],
+  );
+
+  // Memoize status text
+  const statusText = useMemo(
+    () => getStatusText(isCallActive, isIncomingCall, isCalling, isReady),
+    [isCallActive, isIncomingCall, isCalling, isReady],
+  );
+
+  // Memoize status color
+  const statusColor = useMemo(
+    () => getStatusColor(isCallActive, isIncomingCall, isCalling),
+    [isCallActive, isIncomingCall, isCalling],
+  );
+
+  // Memoize help text
+  const helpText = useMemo(
+    () => getHelpText(isIncomingCall, isCallActive),
+    [isIncomingCall, isCallActive],
+  );
+
+  // Memoize button handlers to stable references
+  const handleAccept = useCallback(onAccept, [onAccept]);
+  const handleReject = useCallback(onReject, [onReject]);
+  const handleHangup = useCallback(onHangup, [onHangup]);
+  const handleCall = useCallback(onCall, [onCall]);
+  const handleMute = useCallback(onMute, [onMute]);
+  const handleStartRecording = useCallback(onStartRecording, [
+    onStartRecording,
+  ]);
+  const handleStopRecording = useCallback(onStopRecording, [onStopRecording]);
 
   return (
     <div className="bg-background-card rounded-xl border border-white/10 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-white">Call Controls</h2>
+        <h2 className="text-xl font-semibold text-white">Quick Stats</h2>
         <div className="flex items-center gap-2">
           {/* Recording Status Indicator */}
           {isRecording && (
             <div className="flex items-center gap-2 px-3 py-1 bg-red-500/20 border border-red-500/40 rounded-full animate-pulse">
               <CircleDot className="w-4 h-4 text-red-500" />
               <span className="text-sm text-red-400 font-medium">
-                REC {formatDuration(recordingDuration)}
+                REC {formattedDuration}
               </span>
             </div>
           )}
           <span
-            className={`text-xs px-2 py-1 rounded-full border ${
-              isCallActive
-                ? "border-green-400/40 text-green-300"
-                : isIncomingCall
-                  ? "border-yellow-400/40 text-yellow-300"
-                  : isCalling
-                    ? "border-blue-400/40 text-blue-300"
-                    : "border-white/10 text-gray-400"
-            }`}
+            className={`text-xs px-2 py-1 rounded-full border ${statusColor}`}
           >
-            {isCallActive
-              ? "Live"
-              : isIncomingCall
-                ? "Incoming"
-                : isCalling
-                  ? "Connecting"
-                  : isReady
-                    ? "Ready"
-                    : "Idle"}
+            {statusText}
           </span>
         </div>
       </div>
@@ -83,14 +136,14 @@ export default function CallControls({
           {isIncomingCall ? (
             <div className="space-y-2">
               <button
-                onClick={onAccept}
+                onClick={handleAccept}
                 className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2"
               >
                 <Phone className="w-5 h-5" />
                 Accept Call
               </button>
               <button
-                onClick={onReject}
+                onClick={handleReject}
                 className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center justify-center gap-2"
               >
                 <PhoneOff className="w-5 h-5" />
@@ -99,7 +152,7 @@ export default function CallControls({
             </div>
           ) : isCallActive ? (
             <button
-              onClick={onHangup}
+              onClick={handleHangup}
               className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center justify-center gap-2"
             >
               <PhoneOff className="w-5 h-5" />
@@ -107,7 +160,7 @@ export default function CallControls({
             </button>
           ) : (
             <button
-              onClick={onCall}
+              onClick={handleCall}
               className="w-full px-6 py-3 bg-primary-red text-white rounded-lg hover:bg-red-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={isCalling}
             >
@@ -115,13 +168,7 @@ export default function CallControls({
               {isCalling ? "Calling..." : "Make Call"}
             </button>
           )}
-          <p className="text-xs text-gray-400">
-            {isIncomingCall
-              ? "Incoming call detected. Accept or reject."
-              : isCallActive
-                ? "Use controls to manage your live call."
-                : "Enter a number to start a call."}
-          </p>
+          <p className="text-xs text-gray-400">{helpText}</p>
         </div>
 
         {/* Call Features */}
@@ -132,7 +179,7 @@ export default function CallControls({
 
           <div className="space-y-2">
             <button
-              onClick={onMute}
+              onClick={handleMute}
               className={`w-full px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                 isMuted
                   ? "bg-yellow-600 text-white hover:bg-yellow-700"
@@ -158,7 +205,7 @@ export default function CallControls({
                 {isCallActive ? (
                   isRecording ? (
                     <button
-                      onClick={onStopRecording}
+                      onClick={handleStopRecording}
                       className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
                     >
                       <Square className="w-4 h-4" />
@@ -166,7 +213,7 @@ export default function CallControls({
                     </button>
                   ) : (
                     <button
-                      onClick={onStartRecording}
+                      onClick={handleStartRecording}
                       className="w-full px-4 py-2 bg-purple-600/80 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
                     >
                       <Disc className="w-4 h-4" />
@@ -265,3 +312,5 @@ export default function CallControls({
     </div>
   );
 }
+
+export default React.memo(CallControls);

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 
+// Move dialPadKeys outside component to avoid recreation on every render
 const dialPadKeys = [
   ["1", "", ""],
   ["2", "ABC", "abc"],
@@ -15,7 +16,21 @@ const dialPadKeys = [
   ["#", "", ""],
 ];
 
-export default function DialPad({
+// Memoized formatDuration utility
+export const formatPhoneNumber = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
+// Memoized formatDuration for recording
+export const formatDuration = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
+function DialPad({
   phoneNumber,
   setPhoneNumber,
   onDigitPress,
@@ -23,23 +38,52 @@ export default function DialPad({
   placeholder,
   helpText,
 }) {
-  const sanitizedNumber = phoneNumber.replace(/\s+/g, "");
-  const handleDigitPress = (digit) => {
-    if (disabled) return;
+  // Safety check for setPhoneNumber - use useCallback for stability
+  const safeSetPhoneNumber = useCallback(
+    (value) => {
+      try {
+        // Handle both callback function and direct value
+        if (typeof value === "function") {
+          setPhoneNumber?.(value);
+        } else {
+          setPhoneNumber?.(value);
+        }
+      } catch (error) {
+        console.warn("DialPad: Error calling setPhoneNumber:", error);
+      }
+    },
+    [setPhoneNumber],
+  );
 
-    setPhoneNumber((prev) => prev + digit);
-    if (onDigitPress) {
-      onDigitPress(digit);
-    }
-  };
+  // Memoize sanitized number calculation
+  const sanitizedNumber = useMemo(
+    () => (phoneNumber || "").replace(/\s+/g, ""),
+    [phoneNumber],
+  );
 
-  const handleClear = () => {
-    setPhoneNumber("");
-  };
+  // Memoize digit count to avoid recalculation
+  const digitCount = useMemo(() => sanitizedNumber.length, [sanitizedNumber]);
 
-  const handleBackspace = () => {
-    setPhoneNumber((prev) => prev.slice(0, -1));
-  };
+  // Stable callback for digit press
+  const handleDigitPress = useCallback(
+    (digit) => {
+      if (disabled) return;
+
+      safeSetPhoneNumber((prev) => (prev || "") + digit);
+      if (onDigitPress) {
+        onDigitPress(digit);
+      }
+    },
+    [disabled, safeSetPhoneNumber, onDigitPress],
+  );
+
+  const handleClear = useCallback(() => {
+    safeSetPhoneNumber("");
+  }, [safeSetPhoneNumber]);
+
+  const handleBackspace = useCallback(() => {
+    safeSetPhoneNumber((prev) => (prev || "").slice(0, -1));
+  }, [safeSetPhoneNumber]);
 
   return (
     <div className="bg-background-card rounded-xl border border-white/10 p-6">
@@ -55,14 +99,14 @@ export default function DialPad({
           <input
             type="tel"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={(e) => safeSetPhoneNumber(e.target.value)}
             placeholder={placeholder || "Enter phone number or CareFlow ID"}
             className="w-full bg-transparent text-white text-lg font-mono outline-none"
             disabled={disabled}
           />
         </div>
         <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-          <span>{sanitizedNumber.length} digits</span>
+          <span>{digitCount} digits</span>
           <span>{helpText || "Tip: include country code"}</span>
         </div>
         <div className="flex gap-2">
@@ -75,7 +119,7 @@ export default function DialPad({
           </button>
           <button
             onClick={handleBackspace}
-            disabled={disabled || !phoneNumber}
+            disabled={disabled || !(phoneNumber || "").length}
             className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Backspace
@@ -104,3 +148,5 @@ export default function DialPad({
     </div>
   );
 }
+
+export default React.memo(DialPad);

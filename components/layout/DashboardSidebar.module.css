@@ -1,0 +1,63 @@
+/* DashboardSidebar.module.css */
+
+/* Component-specific styles that extend Tailwind */
+
+.sidebarCollapsed {
+  @apply w-[72px];
+}
+
+.sidebar {
+  @apply h-full;
+}
+
+.sidebarNav {
+  @apply flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto;
+}
+
+.sidebarItem {
+  @apply flex items-center gap-3 px-4 py-3 bg-transparent border-0 rounded-lg text-gray-400 text-sm font-medium cursor-pointer transition-all duration-200 w-full text-left;
+}
+
+.sidebarItem:hover {
+  @apply bg-gray-700 text-white;
+}
+
+.sidebarItemActive {
+  @apply bg-primary-blue text-white;
+}
+
+.sidebarItemActive:hover {
+  @apply bg-blue-700;
+}
+
+.sidebarIcon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.sidebarLabel {
+  @apply overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.sidebarCollapsed .sidebarItem {
+  @apply justify-center px-3;
+}
+
+.sidebarFooter {
+  @apply px-3 py-2 border-t border-white/10;
+}
+
+.sidebarToggleBtn {
+  @apply flex items-center justify-center gap-2 w-full px-2 py-2 bg-transparent border border-white/10 rounded-lg text-gray-500 text-xs cursor-pointer transition-colors hover:bg-gray-700 hover:text-white;
+}
+
+.sidebarToggleLabel {
+  @apply overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.sidebarCollapsed .sidebarFooter {
+  @apply px-2 py-2;
+}
+
+.sidebarCollapsed .sidebarToggleLabel {
+  @apply hidden;
+}

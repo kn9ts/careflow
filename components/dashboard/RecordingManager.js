@@ -21,6 +21,7 @@ export default function RecordingManager({
   currentRecording,
   isRecording,
   onRefresh,
+  recordingsLoading: propLoading,
 }) {
   const router = useRouter();
   const { token, currentUser } = useAuth();
@@ -43,19 +44,27 @@ export default function RecordingManager({
     hasPrevPage: false,
   });
 
-  // Use prop recordings if provided, otherwise fetch
+  // Use prop recordings if provided, otherwise use internal state
+  const effectiveRecordings =
+    propRecordings !== undefined ? propRecordings : recordings;
+  const effectiveLoading = propLoading !== undefined ? propLoading : loading;
+
+  // Update internal state from props
   useEffect(() => {
-    if (propRecordings && propRecordings.length > 0) {
+    if (propRecordings !== undefined) {
       setRecordings(propRecordings);
-      setLoading(false);
-    } else if (!token) {
-      setLoading(false);
     }
-  }, [propRecordings, token]);
+  }, [propRecordings]);
 
   // Fetch recordings if no prop recordings
   const fetchRecordings = useCallback(async () => {
-    if (!token || propRecordings) return;
+    // Don't fetch if we have prop recordings or loading is controlled by parent
+    if (propRecordings !== undefined || propLoading !== undefined) return;
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -85,15 +94,22 @@ export default function RecordingManager({
         throw new Error(data.error || "Failed to fetch recordings");
       }
 
-      setRecordings(data.data.recordings);
-      setPagination(data.data.pagination);
+      setRecordings(data.data.recordings || []);
+      setPagination(
+        data.data.pagination || {
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      );
     } catch (err) {
       console.error("Error fetching recordings:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [token, filters, propRecordings, router]);
+  }, [token, filters, propRecordings, propLoading, router]);
 
   useEffect(() => {
     fetchRecordings();
@@ -237,16 +253,16 @@ export default function RecordingManager({
 
       {/* Recordings List */}
       <div className="space-y-4">
-        {loading ? (
+        {effectiveLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-red"></div>
           </div>
-        ) : recordings.length === 0 ? (
+        ) : effectiveRecordings.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             No recordings found
           </div>
         ) : (
-          recordings.map((recording) => (
+          effectiveRecordings.map((recording) => (
             <div
               key={recording.id}
               className="flex items-center justify-between bg-background-input/50 rounded-lg p-4 border border-white/5"

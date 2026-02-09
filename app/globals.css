@@ -8,7 +8,11 @@
   }
 
   body {
-    @apply antialiased;
+    @apply antialiased h-full overflow-hidden;
+  }
+
+  #__next {
+    @apply h-full overflow-hidden;
   }
 }
 
@@ -20,4 +24,407 @@
   .bg-gradient-primary {
     @apply bg-gradient-to-r from-primary-red to-primary-blue;
   }
+
+  /* Full viewport height utilities */
+  .h-screen-dvh {
+    height: 100dvh;
+  }
+
+  .min-h-screen-dvh {
+    min-height: 100dvh;
+  }
+
+  /* Responsive full height for dashboard */
+  .dashboard-full-height {
+    @apply h-full overflow-hidden;
+  }
+
+  @media (max-height: 700px) {
+    .dashboard-layout {
+      @apply h-[700px];
+    }
+  }
+}
+
+/* Dashboard Layout - Shared Layout Styles */
+.dashboard-layout {
+  @apply flex flex-col h-screen max-h-screen overflow-hidden;
+}
+
+.dashboard-body {
+  @apply flex flex-1 h-full overflow-hidden;
+}
+
+.dashboard-main {
+  @apply flex-1 flex flex-col h-full overflow-hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    @apply h-[100dvh];
+  }
+
+  .sidebar {
+    @apply w-[72px];
+  }
+}
+
+/* Error Boundary Styles */
+.error-page {
+  @apply flex items-center justify-center min-h-screen bg-background-dark;
+}
+
+.error-container {
+  @apply flex flex-col items-center justify-center min-h-[400px] px-8;
+}
+
+.error-content {
+  @apply text-center max-w-[400px];
+}
+
+.error-icon-wrapper {
+  @apply mb-4;
+}
+
+.error-title {
+  @apply text-xl font-semibold text-white mb-2;
+}
+
+.error-message {
+  @apply text-gray-400 mb-6;
+}
+
+.error-details {
+  @apply text-left p-4 bg-gray-800 rounded-lg mb-6 text-sm cursor-pointer;
+}
+
+.error-summary {
+  @apply text-gray-400 font-medium;
+}
+
+.error-stack {
+  @apply text-red-400 mt-2 text-xs overflow-x-auto whitespace-pre-wrap;
+}
+
+.error-actions {
+  @apply flex gap-4 justify-center;
+}
+
+.error-retry-btn {
+  @apply inline-flex items-center gap-2 px-6 py-3 bg-primary-blue text-white rounded-lg font-medium transition-colors hover:bg-blue-700;
+}
+
+.error-home-btn {
+  @apply inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-white rounded-lg font-medium transition-colors hover:bg-gray-600 no-underline;
+}
+
+/* Simple Error Display */
+.error-display {
+  @apply flex flex-col items-center justify-center p-8 text-center;
+}
+
+.error-display-icon {
+  @apply text-red-500 mb-4;
+}
+
+.error-display-message {
+  @apply text-gray-400 mb-4;
+}
+
+.error-display-retry {
+  @apply inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white rounded border-0 cursor-pointer transition-colors hover:bg-blue-700;
+}
+
+/* Loading States */
+.page-loader {
+  @apply flex items-center justify-center min-h-screen bg-background-dark;
+}
+
+.page-loader-content {
+  @apply text-center;
+}
+
+.page-spinner {
+  @apply inline-block animate-spin;
+}
+
+.page-loader-text {
+  @apply text-gray-400 mt-4;
+}
+
+/* Spinner */
+.spinner-container {
+  @apply flex flex-col items-center justify-center gap-2;
+}
+
+.spinner {
+  @apply inline-block animate-spin text-primary-blue;
+}
+
+.spinner-text {
+  @apply text-gray-400 text-sm;
+}
+
+/* Skeleton Loading */
+.skeleton-wrapper {
+  @apply flex flex-col gap-3;
+}
+
+.skeleton-line {
+  @apply rounded;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Card Skeleton */
+.card-skeleton {
+  @apply bg-background-card border border-white/10 rounded-xl p-6;
+}
+
+.card-skeleton-header {
+  @apply mb-4;
+}
+
+.card-skeleton-body {
+  @apply flex flex-col gap-3;
+}
+
+.card-skeleton-row {
+  @apply flex justify-between;
+}
+
+/* Table Skeleton */
+.table-skeleton {
+  @apply flex flex-col gap-2;
+}
+
+.table-skeleton-header {
+  @apply grid grid-cols-4 gap-4 p-4 bg-background-card rounded-lg;
+}
+
+.table-skeleton-row {
+  @apply grid grid-cols-4 gap-4 px-4 py-3 bg-background-dark rounded-lg;
+}
+
+/* Loading Bar */
+.loading-bar {
+  @apply w-full h-1 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.loading-bar-fill {
+  @apply h-full bg-primary-blue transition-all duration-300;
+}
+
+/* Dots Loader */
+.dots-loader {
+  @apply flex gap-1 items-center justify-center;
+}
+
+.dots-loader .dot {
+  @apply w-2 h-2 rounded-full;
+  animation: dots-bounce 1.4s ease-in-out infinite both;
+}
+
+.dots-loader .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dots-loader .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes dots-bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Header Styles */
+.header {
+  @apply flex items-center justify-between px-6 py-4 bg-background-card border-b border-white/10 flex-shrink-0;
+}
+
+.header-left {
+  @apply flex items-center;
+}
+
+.header-center {
+  @apply flex-1 flex justify-center;
+}
+
+.header-right {
+  @apply flex items-center gap-3;
+}
+
+.brand-name {
+  @apply text-2xl font-bold text-white;
+}
+
+.header-action-btn {
+  @apply flex items-center justify-center w-10 h-10 bg-gray-700 border-0 rounded-lg text-gray-400 cursor-pointer transition-colors hover:bg-gray-600 hover:text-white relative;
+}
+
+.notification-badge {
+  @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full text-[0.7rem] font-semibold text-white flex items-center justify-center;
+}
+
+/* User Menu */
+.user-menu-btn {
+  @apply flex items-center gap-3 px-2 py-1 bg-transparent border border-white/10 rounded-lg text-white cursor-pointer transition-colors hover:bg-gray-700;
+}
+
+.user-avatar {
+  @apply w-8 h-8 rounded-full object-cover;
+}
+
+.user-avatar-placeholder {
+  @apply w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-gray-400;
+}
+
+.user-name {
+  @apply text-sm font-medium max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+/* Dropdowns */
+.dropdown-wrapper {
+  @apply relative;
+}
+
+.dropdown-backdrop {
+  @apply fixed inset-0 z-40;
+}
+
+.dropdown-menu {
+  @apply absolute right-0 min-w-[240px] bg-background-card border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden;
+}
+
+.dropdown-header {
+  @apply p-4 border-b border-white/10;
+}
+
+.dropdown-header h3 {
+  @apply text-sm font-semibold text-white;
+}
+
+.dropdown-body {
+  @apply p-2;
+}
+
+.dropdown-body button {
+  @apply flex items-center gap-3 w-full px-4 py-3 bg-transparent border-0 rounded-lg text-gray-400 text-sm cursor-pointer transition-colors hover:bg-gray-700 hover:text-white text-left;
+}
+
+.dropdown-footer {
+  @apply p-2 border-t border-white/10;
+}
+
+.dropdown-footer button {
+  @apply flex items-center justify-center w-full px-4 py-3 bg-transparent text-primary-blue text-sm cursor-pointer transition-colors hover:bg-gray-700 rounded-lg;
+}
+
+.logout-btn {
+  @apply text-red-500 hover:text-red-400;
+}
+
+/* Notification Item */
+.notification-item {
+  @apply flex flex-col gap-1 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-700;
+}
+
+.notification-content {
+  @apply flex flex-col gap-1;
+}
+
+.notification-title {
+  @apply text-sm font-medium text-white;
+}
+
+.notification-message {
+  @apply text-xs text-gray-400;
+}
+
+.notification-time {
+  @apply text-[0.65rem] text-gray-500;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  @apply flex flex-col w-[240px] h-full bg-background-card border-r border-white/10 transition-all duration-200 overflow-hidden flex-shrink-0;
+}
+
+.sidebar.collapsed {
+  @apply w-[72px];
+}
+
+.sidebar-nav {
+  @apply flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto;
+}
+
+.sidebar-item {
+  @apply flex items-center gap-3 px-4 py-3 bg-transparent border-0 rounded-lg text-gray-400 text-sm font-medium cursor-pointer transition-all duration-200 w-full text-left;
+}
+
+.sidebar-item:hover {
+  @apply bg-gray-700 text-white;
+}
+
+.sidebar-item.active {
+  @apply bg-primary-blue text-white;
+}
+
+.sidebar-item.active:hover {
+  @apply bg-blue-700;
+}
+
+.sidebar-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.sidebar-label {
+  @apply overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.sidebar.collapsed .sidebar-item {
+  @apply justify-center px-3;
+}
+
+.sidebar-footer {
+  @apply px-3 py-2 border-t border-white/10;
+}
+
+.sidebar-toggle-btn {
+  @apply flex items-center justify-center gap-2 w-full px-2 py-2 bg-transparent border border-white/10 rounded-lg text-gray-500 text-xs cursor-pointer transition-colors hover:bg-gray-700 hover:text-white;
+}
+
+.sidebar-toggle-label {
+  @apply overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  @apply px-2 py-2;
+}
+
+.sidebar-toggle-label {
+  @apply hidden;
+}
+
+/* Tab Content */
+.tab-content {
+  @apply flex-1 p-6 overflow-y-auto h-full bg-background-dark;
 }

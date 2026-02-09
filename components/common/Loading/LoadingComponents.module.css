@@ -1,0 +1,75 @@
+/* LoadingComponents.module.css */
+
+/* Component-specific styles that extend Tailwind */
+
+/* Skeleton animation */
+@keyframes skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeletonLine {
+  @apply rounded;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s ease-in-out infinite;
+}
+
+/* Card Skeleton */
+.cardSkeleton {
+  @apply bg-background-card border border-white/10 rounded-xl p-6;
+}
+
+.cardSkeletonHeader {
+  @apply mb-4;
+}
+
+.cardSkeletonBody {
+  @apply flex flex-col gap-3;
+}
+
+.cardSkeletonRow {
+  @apply flex justify-between;
+}
+
+/* Table Skeleton */
+.tableSkeleton {
+  @apply flex flex-col gap-2;
+}
+
+.tableSkeletonHeader {
+  @apply grid grid-cols-4 gap-4 p-4 bg-background-card rounded-lg;
+}
+
+.tableSkeletonRow {
+  @apply grid grid-cols-4 gap-4 px-4 py-3 bg-background-dark rounded-lg;
+}
+
+/* Loading Bar */
+.loadingBar {
+  @apply w-full h-1 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.loadingBarFill {
+  @apply h-full bg-primary-blue transition-all duration-300;
+}
+
+/* Dots animation */
+@keyframes dotsBounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.dotsLoader .dot {
+  animation: dotsBounce 1.4s ease-in-out infinite both;
+}
