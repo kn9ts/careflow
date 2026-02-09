@@ -11,10 +11,13 @@ import {
   useCallback,
   useMemo,
 } from "react";
+import { logger } from "@/lib/logger";
 
 const CallStateContext = createContext(null);
 
 export function CallStateProvider({ children }) {
+  logger.init("useCallState");
+
   // Core call state
   const [callStatus, setCallStatus] = useState("idle"); // idle, connecting, ringing, connected, disconnected, incoming, ready
   const [callDuration, setCallDuration] = useState(0);
@@ -30,6 +33,7 @@ export function CallStateProvider({ children }) {
 
   // Memoized callbacks to prevent unnecessary re-renders
   const resetCallState = useCallback(() => {
+    logger.debug("useCallState", "Resetting call state");
     setCallStatus("idle");
     setCallDuration(0);
     setIsMuted(false);
@@ -39,33 +43,40 @@ export function CallStateProvider({ children }) {
   }, []);
 
   const setConnected = useCallback(() => {
+    logger.success("useCallState", "Status: connected");
     setCallStatus("connected");
     setCallError(null);
   }, []);
 
   const setDisconnected = useCallback(() => {
+    logger.debug("useCallState", "Status: disconnected");
     setCallStatus("disconnected");
   }, []);
 
   const setConnecting = useCallback(() => {
+    logger.loading("useCallState", "Status: connecting...");
     setCallStatus("connecting");
     setCallError(null);
   }, []);
 
   const setRinging = useCallback(() => {
+    logger.debug("useCallState", "Status: ringing");
     setCallStatus("ringing");
   }, []);
 
   const setIncoming = useCallback((fromNumber) => {
+    logger.incomingCall("useCallState", fromNumber);
     setCallStatus("incoming");
     setPhoneNumber(fromNumber);
   }, []);
 
   const setReady = useCallback(() => {
+    logger.success("useCallState", "Status: ready");
     setCallStatus("ready");
   }, []);
 
   const setIdle = useCallback(() => {
+    logger.debug("useCallState", "Status: idle");
     setCallStatus("idle");
   }, []);
 

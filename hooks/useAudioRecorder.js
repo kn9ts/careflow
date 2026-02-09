@@ -6,8 +6,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AudioProcessor, RecordingUploader } from "@/lib/audioProcessor";
+import { logger } from "@/lib/logger";
 
 export function useAudioRecorder(authToken, options = {}) {
+  logger.init("useAudioRecorder");
+
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [recordingSupported, setRecordingSupported] = useState(false);
@@ -21,27 +24,37 @@ export function useAudioRecorder(authToken, options = {}) {
 
   // Initialize audio processor
   useEffect(() => {
-    if (!authToken) return;
+    if (!authToken) {
+      logger.warn(
+        "useAudioRecorder",
+        "No auth token - skipping initialization",
+      );
+      return;
+    }
+
+    logger.loading("useAudioRecorder", "Initializing audio processor...");
 
     audioProcessorRef.current = new AudioProcessor({
       token: authToken,
       onCallState: (state) => {
-        console.log("Audio processor call state:", state);
+        logger.trace("useAudioRecorder", `Call state: ${state.status}`);
         if (state.status === "connected") {
           setIsRecording(false);
         } else if (state.status === "ended") {
           stopRecordingTimer();
           setIsRecording(false);
         } else if (state.status === "error") {
+          logger.error("useAudioRecorder", `Error: ${state.error}`);
           setRecordingError(state.error);
           setIsRecording(false);
         }
       },
       onRecordingState: async (state) => {
-        console.log("Recording state:", state);
+        logger.trace("useAudioRecorder", `Recording state: ${state.status}`);
         setIsRecording(state.isRecording);
 
         if (state.isRecording) {
+          logger.recordingStart("useAudioRecorder");
           startRecordingTimer();
         } else {
           stopRecordingTimer();
@@ -53,7 +66,7 @@ export function useAudioRecorder(authToken, options = {}) {
         }
       },
       onError: (error) => {
-        console.error("Audio processor error:", error);
+        logger.error("useAudioRecorder", `Processor error: ${error.message}`);
         setRecordingError(error.message);
         setIsRecording(false);
       },
@@ -62,16 +75,16 @@ export function useAudioRecorder(authToken, options = {}) {
     recordingUploaderRef.current = new RecordingUploader({
       token: authToken,
       onProgress: (progress) => {
-        console.log("Upload progress:", progress);
+        logger.trace("useAudioRecorder", `Upload progress: ${progress}%`);
         setUploadProgress(progress);
       },
       onError: (error) => {
-        console.error("Upload error:", error);
+        logger.error("useAudioRecorder", `Upload error: ${error.message}`);
         setRecordingError(error.message);
         setIsUploading(false);
       },
       onSuccess: (data) => {
-        console.log("Upload success:", data);
+        logger.success("useAudioRecorder", "Upload successful!");
         setIsUploading(false);
         setUploadProgress(100);
       },
@@ -82,9 +95,11 @@ export function useAudioRecorder(authToken, options = {}) {
 
     return () => {
       if (audioProcessorRef.current) {
+        logger.loading("useAudioRecorder", "Cleaning up...");
         audioProcessorRef.current.destroy();
       }
       stopRecordingTimer();
+      logger.complete("useAudioRecorder");
     };
   }, [authToken]);
 
@@ -92,14 +107,16 @@ export function useAudioRecorder(authToken, options = {}) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((track) => track.stop());
+      logger.success("useAudioRecorder", "Recording is supported");
       setRecordingSupported(true);
     } catch (error) {
-      console.error("Recording not supported:", error);
+      logger.warn("useAudioRecorder", "Recording not supported");
       setRecordingSupported(false);
     }
   }, []);
 
   const startRecordingTimer = useCallback(() => {
+    logger.debug("useAudioRecorder", "Starting timer");
     setRecordingDuration(0);
     recordingTimerRef.current = setInterval(() => {
       setRecordingDuration((prev) => prev + 1);
@@ -117,6 +134,7 @@ export function useAudioRecorder(authToken, options = {}) {
   const uploadRecording = useCallback(async (recording) => {
     if (!recordingUploaderRef.current) return;
 
+    logger.loading("useAudioRecorder", "Uploading recording...");
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -129,7 +147,7 @@ export function useAudioRecorder(authToken, options = {}) {
       );
       return true;
     } catch (error) {
-      console.error("Upload failed:", error);
+      logger.error("useAudioRecorder", `Upload failed: ${error.message}`);
       setRecordingError("Recording upload failed");
       return false;
     } finally {
@@ -139,15 +157,17 @@ export function useAudioRecorder(authToken, options = {}) {
 
   const startRecording = useCallback(async () => {
     if (!audioProcessorRef.current) {
+      logger.error("useAudioRecorder", "Audio processor not initialized");
       setRecordingError("Audio processor not initialized");
       return false;
     }
 
     try {
+      logger.loading("useAudioRecorder", "Starting recording...");
       await audioProcessorRef.current.startRecording();
       return true;
     } catch (error) {
-      console.error("Failed to start recording:", error);
+      logger.error("useAudioRecorder", `Failed to start: ${error.message}`);
       setRecordingError("Failed to start recording: " + error.message);
       return false;
     }
@@ -159,16 +179,19 @@ export function useAudioRecorder(authToken, options = {}) {
     }
 
     try {
+      logger.loading("useAudioRecorder", "Stopping recording...");
       const recording = await audioProcessorRef.current.stopRecording();
+      logger.success("useAudioRecorder", "Recording stopped");
       return recording;
     } catch (error) {
-      console.error("Failed to stop recording:", error);
+      logger.error("useAudioRecorder", `Failed to stop: ${error.message}`);
       setRecordingError("Failed to stop recording");
       return null;
     }
   }, []);
 
   const resetRecording = useCallback(() => {
+    logger.debug("useAudioRecorder", "Resetting");
     setIsRecording(false);
     setRecordingDuration(0);
     setRecordingError(null);
@@ -202,6 +225,9 @@ export function useAudioRecorder(authToken, options = {}) {
 
     // Utilities
     formatDuration,
-    clearError: () => setRecordingError(null),
+    clearError: () => {
+      logger.debug("useAudioRecorder", "Clearing error");
+      setRecordingError(null);
+    },
   };
 }
