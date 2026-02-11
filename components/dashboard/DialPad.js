@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 
 // Move dialPadKeys outside component to avoid recreation on every render
 const dialPadKeys = [
@@ -38,27 +38,24 @@ function DialPad({
   placeholder,
   helpText,
 }) {
-  // Safety check for setPhoneNumber - use useCallback for stability
-  const safeSetPhoneNumber = useCallback(
-    (value) => {
-      try {
-        // Handle both callback function and direct value
-        if (typeof value === "function") {
-          setPhoneNumber?.(value);
-        } else {
-          setPhoneNumber?.(value);
-        }
-      } catch (error) {
-        console.warn("DialPad: Error calling setPhoneNumber:", error);
-      }
-    },
-    [setPhoneNumber],
-  );
+  // Use local state as fallback if setPhoneNumber is not provided
+  const [localPhoneNumber, setLocalPhoneNumber] = useState(phoneNumber || "");
+
+  // Use the provided setPhoneNumber or fall back to local state
+  const activeSetPhoneNumber = setPhoneNumber || setLocalPhoneNumber;
+  const activePhoneNumber = setPhoneNumber ? phoneNumber : localPhoneNumber;
+
+  // Update local state when prop phoneNumber changes (only if using local state)
+  useEffect(() => {
+    if (!setPhoneNumber && phoneNumber !== localPhoneNumber) {
+      setLocalPhoneNumber(phoneNumber);
+    }
+  }, [phoneNumber, setPhoneNumber, localPhoneNumber]);
 
   // Memoize sanitized number calculation
   const sanitizedNumber = useMemo(
-    () => (phoneNumber || "").replace(/\s+/g, ""),
-    [phoneNumber],
+    () => (activePhoneNumber || "").replace(/\s+/g, ""),
+    [activePhoneNumber],
   );
 
   // Memoize digit count to avoid recalculation
@@ -69,21 +66,28 @@ function DialPad({
     (digit) => {
       if (disabled) return;
 
-      safeSetPhoneNumber((prev) => (prev || "") + digit);
+      activeSetPhoneNumber((prev) => (prev || "") + digit);
       if (onDigitPress) {
         onDigitPress(digit);
       }
     },
-    [disabled, safeSetPhoneNumber, onDigitPress],
+    [disabled, activeSetPhoneNumber, onDigitPress],
   );
 
   const handleClear = useCallback(() => {
-    safeSetPhoneNumber("");
-  }, [safeSetPhoneNumber]);
+    activeSetPhoneNumber("");
+  }, [activeSetPhoneNumber]);
 
   const handleBackspace = useCallback(() => {
-    safeSetPhoneNumber((prev) => (prev || "").slice(0, -1));
-  }, [safeSetPhoneNumber]);
+    activeSetPhoneNumber((prev) => (prev || "").slice(0, -1));
+  }, [activeSetPhoneNumber]);
+
+  const handleInputChange = useCallback(
+    (e) => {
+      activeSetPhoneNumber(e.target.value);
+    },
+    [activeSetPhoneNumber],
+  );
 
   return (
     <div className="bg-background-card rounded-xl border border-white/10 p-6">
@@ -98,8 +102,8 @@ function DialPad({
         <div className="bg-background-input rounded-lg p-4 mb-2 border border-white/5">
           <input
             type="tel"
-            value={phoneNumber}
-            onChange={(e) => safeSetPhoneNumber(e.target.value)}
+            value={activePhoneNumber}
+            onChange={handleInputChange}
             placeholder={placeholder || "Enter phone number or CareFlow ID"}
             className="w-full bg-transparent text-white text-lg font-mono outline-none"
             disabled={disabled}
@@ -119,7 +123,7 @@ function DialPad({
           </button>
           <button
             onClick={handleBackspace}
-            disabled={disabled || !(phoneNumber || "").length}
+            disabled={disabled || !(activePhoneNumber || "").length}
             className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Backspace

@@ -7,6 +7,9 @@ import {
   handleAuthResult,
 } from "@/lib/apiResponse";
 
+// Force dynamic rendering - this route uses request.headers for auth
+export const dynamic = "force-dynamic";
+
 // POST /api/notifications/register - Register FCM token for push notifications
 export async function POST(request) {
   try {

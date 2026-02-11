@@ -14,6 +14,9 @@ import backblazeStorage from "@/lib/backblaze";
 import { requireAuth } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
 
+// Force dynamic rendering - this route uses request.headers for auth
+export const dynamic = "force-dynamic";
+
 export async function GET(request, { params }) {
   try {
     const { id } = params;

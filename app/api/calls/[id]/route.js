@@ -7,6 +7,9 @@ import {
   handleAuthResult,
 } from "@/lib/apiResponse";
 
+// Force dynamic rendering - this route uses request.headers for auth
+export const dynamic = "force-dynamic";
+
 /**
  * DELETE /api/calls/[id]
  * Delete a recording by ID

@@ -10,6 +10,9 @@ import { isValidCare4wId } from "@/lib/careFlowIdValidator";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
 import { requireAuth } from "@/lib/auth";
 
+// Force dynamic rendering - this route uses request.headers for auth
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   try {
     const auth = await requireAuth(request);

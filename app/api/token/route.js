@@ -9,6 +9,9 @@ import { lookupCare4wId } from "@/lib/careFlowIdGenerator";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 
+// Force dynamic rendering - this route uses request.headers for auth
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   try {
     const auth = await requireAuth(request);
