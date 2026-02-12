@@ -83,7 +83,7 @@ module.exports = {
   testTimeout: 10000,
   maxWorkers: "50%",
   transform: {
-    "^.+\\.js$": "babel-jest",
+    "^.+\\.js$": ["babel-jest", { configFile: "./babel.jest.config.js" }],
   },
   // Tests are pure JavaScript, no JSX transformation needed
   testMatch: ["**/tests/**/*.test.js"],
