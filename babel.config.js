@@ -1,6 +1,6 @@
 /**
  * Babel Configuration for Jest
- * Required for transforming ESM modules in tests
+ * Required for transforming ESM modules and JSX in tests
  */
 
 module.exports = {
@@ -13,6 +13,7 @@ module.exports = {
         },
       },
     ],
+    ["@babel/preset-react", { runtime: "automatic" }],
   ],
   plugins: [],
   env: {
