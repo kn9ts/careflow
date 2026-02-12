@@ -1,7 +1,7 @@
 # CareFlow Architecture Documentation
 
-**Last Updated:** 2026-02-06
-**Version:** 1.0.0
+**Last Updated:** 2026-02-12
+**Version:** 1.1.0
 
 ---
 

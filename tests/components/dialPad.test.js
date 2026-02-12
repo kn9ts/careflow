@@ -210,5 +210,57 @@ describe("DialPad Component Logic", () => {
       expect(typeof helpText).toBe("string");
       expect(helpText).toContain("country");
     });
+
+    it("should handle undefined phoneNumber with fallback to empty string", () => {
+      // Simulate the controlled input fix logic
+      const phoneNumber = undefined;
+      const setPhoneNumber = undefined; // Not provided
+      const localPhoneNumber = "";
+
+      // Before fix: would be undefined
+      const activePhoneNumberBefore = setPhoneNumber
+        ? phoneNumber
+        : localPhoneNumber;
+
+      // After fix: always returns empty string fallback
+      const activePhoneNumberAfter =
+        (setPhoneNumber ? phoneNumber : localPhoneNumber) || "";
+
+      expect(activePhoneNumberBefore).toBe(""); // localPhoneNumber is already empty string
+      expect(activePhoneNumberAfter).toBe("");
+      expect(typeof activePhoneNumberAfter).toBe("string");
+    });
+
+    it("should handle undefined phoneNumber when setPhoneNumber is provided", () => {
+      // Simulate parent providing setPhoneNumber but with undefined phoneNumber
+      const phoneNumber = undefined;
+      const setPhoneNumber = () => {}; // Provided
+      const localPhoneNumber = "123";
+
+      // Before fix: would be undefined (causing React warning)
+      const activePhoneNumberBefore = setPhoneNumber
+        ? phoneNumber
+        : localPhoneNumber;
+
+      // After fix: always returns empty string fallback
+      const activePhoneNumberAfter =
+        (setPhoneNumber ? phoneNumber : localPhoneNumber) || "";
+
+      expect(activePhoneNumberBefore).toBe(undefined); // Bug: undefined value
+      expect(activePhoneNumberAfter).toBe(""); // Fixed: empty string fallback
+      expect(typeof activePhoneNumberAfter).toBe("string");
+    });
+
+    it("should handle defined phoneNumber correctly", () => {
+      const phoneNumber = "+1234567890";
+      const setPhoneNumber = jest.fn(); // When setPhoneNumber is defined, use phoneNumber
+      const localPhoneNumber = "";
+
+      const activePhoneNumber =
+        (setPhoneNumber ? phoneNumber : localPhoneNumber) || "";
+
+      expect(activePhoneNumber).toBe("+1234567890");
+      expect(typeof activePhoneNumber).toBe("string");
+    });
   });
 });

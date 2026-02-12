@@ -1,7 +1,7 @@
 # CareFlow API Documentation
 
-**Last Updated:** 2026-02-06
-**Version:** 1.0.0
+**Last Updated:** 2026-02-12
+**Version:** 1.1.0
 
 ---
 
@@ -72,7 +72,7 @@ Register a new user or return existing user profile.
 
 ### POST /api/auth/login
 
-Authenticate user with Firebase token.
+Authenticate user with email and password using Firebase Auth.
 
 **Request Headers:**
 | Header | Value |
@@ -83,7 +83,8 @@ Authenticate user with Firebase token.
 
 ```json
 {
-  "idToken": "firebase-id-token-123"
+  "email": "john@example.com",
+  "password": "password123"
 }
 ```
 
@@ -95,10 +96,12 @@ Authenticate user with Firebase token.
   "message": "Login successful",
   "data": {
     "user": {
-      "id": "user-id-123",
+      "uid": "user-id-123",
       "email": "john@example.com",
       "displayName": "John Doe",
-      "care4wId": "care4w-1000001"
+      "photoURL": "https://example.com/photo.jpg",
+      "role": "user",
+      "twilioClientIdentity": "careflow-user-123"
     }
   }
 }
@@ -347,15 +350,29 @@ Look up user by care4wId.
 |-----------|------|-------------|
 | care4wId | string | The CareFlow ID to look up |
 
-**Response (200 OK):**
+**Response (User Found - 200 OK):**
 
 ```json
 {
   "success": true,
   "data": {
+    "exists": true,
     "care4wId": "care4w-1000001",
     "displayName": "John Doe",
-    "isOnline": true
+    "message": "User found"
+  }
+}
+```
+
+**Response (User Not Found - 200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "exists": false,
+    "care4wId": "care4w-9999999",
+    "message": "User not found"
   }
 }
 ```
@@ -449,41 +466,30 @@ RecordingUrl=https://api.twilio.com/recordings/RE123...
 
 Get call analytics for the authenticated user.
 
-**Query Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| startDate | string | Start date (ISO 8601) |
-| endDate | string | End date (ISO 8601) |
-| groupBy | string | Group by (`day`, `week`, `month`) |
-
 **Response (200 OK):**
 
 ```json
 {
   "success": true,
   "data": {
-    "totalCalls": 150,
-    "totalDuration": 18000,
-    "averageDuration": 120,
-    "inboundCalls": 80,
-    "outboundCalls": 70,
-    "voicemailCount": 10,
-    "byDay": [
-      {
-        "date": "2026-02-06",
-        "calls": 15,
-        "duration": 1800
-      }
-    ],
-    "byDirection": {
-      "inbound": {
-        "count": 80,
-        "totalDuration": 9600
-      },
-      "outbound": {
-        "count": 70,
-        "totalDuration": 8400
-      }
+    "analytics": {
+      "totalCalls": 150,
+      "totalVoicemails": 10,
+      "totalDuration": 18000,
+      "averageCallDuration": 120,
+      "todayCalls": 5,
+      "successRate": 85,
+      "recentCalls": [
+        {
+          "id": "recording-id-123",
+          "from": "+1234567890",
+          "to": "+0987654321",
+          "direction": "outbound",
+          "duration": 120,
+          "recordedAt": "2026-02-06T12:00:00.000Z",
+          "callStatus": "completed"
+        }
+      ]
     }
   }
 }
@@ -495,7 +501,7 @@ Get call analytics for the authenticated user.
 
 ### GET /api/token
 
-Get Twilio capability token.
+Get capability token for Twilio or return mode information for WebRTC.
 
 **Response (200 OK):**
 
@@ -505,7 +511,23 @@ Get Twilio capability token.
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "identity": "careflow-user-123",
-    "expiresIn": 3600
+    "mode": "twilio",
+    "care4wId": "care4w-1000001"
+  }
+}
+```
+
+**Response (WebRTC Mode - when Twilio not configured):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "token": null,
+    "identity": null,
+    "mode": "webrtc",
+    "care4wId": "care4w-1000001",
+    "message": "WebRTC mode active - use care4w- IDs for calls"
   }
 }
 ```

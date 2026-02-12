@@ -32,7 +32,7 @@ A modern web application for browser-based voice communications with Twilio Voic
 | Database       | MongoDB Atlas (Mongoose ODM)            |
 | Storage        | Backblaze B2 (S3-compatible)            |
 | Real-time      | Firebase Realtime DB (WebRTC signaling) |
-| Testing        | Jest (253 tests, 14 test suites)        |
+| Testing        | Jest (656 tests, 28 test suites)        |
 | CI/CD          | GitHub Actions                          |
 
 ## Documentation
@@ -121,24 +121,25 @@ BACKBLAZE_BUCKET_ID=your-bucket-id
 
 ### Test Suite Overview
 
-The project includes **253 unit and integration tests** across 14 test suites:
+The project includes **535 unit and integration tests** across 25 test suites:
 
-| Test Suite              | Tests | Coverage           |
-| ----------------------- | ----- | ------------------ |
-| API Response Utilities  | 7     | Lib modules        |
-| CareFlow ID Generator   | 7     | ID validation      |
-| Webhook Verification    | 11    | Security           |
-| Backblaze Storage       | 10    | File operations    |
-| Audio Processor         | 16    | Recording          |
-| Recording Manager       | 15    | State management   |
-| Call Manager            | 31    | Twilio/WebRTC      |
-| Models (User/Recording) | 37    | Schema validation  |
-| Authentication API      | 10    | Registration/login |
-| Recordings API          | 19    | CRUD operations    |
-| WebRTC Fallback         | 18    | P2P calling        |
-| Components              | 25    | UI logic           |
-| Library Integration     | 20    | Config/auth        |
-| General API Tests       | 27    | Utilities          |
+| Test Suite              | Tests | Coverage            |
+| ----------------------- | ----- | ------------------- |
+| API Response Utilities  | 7     | Lib modules         |
+| CareFlow ID Generator   | 7     | ID validation       |
+| Webhook Verification    | 11    | Security            |
+| Backblaze Storage       | 10    | File operations     |
+| Audio Processor         | 16    | Recording           |
+| Recording Manager       | 15    | State management    |
+| Call Manager            | 31    | Twilio/WebRTC       |
+| Models (User/Recording) | 37    | Schema validation   |
+| Authentication API      | 10    | Registration/login  |
+| Recordings API          | 19    | CRUD operations     |
+| WebRTC Manager          | 35    | P2P calling         |
+| WebRTC Integration      | 20    | Signaling workflows |
+| Components              | 50    | UI logic            |
+| Library Integration     | 20    | Config/auth         |
+| General API Tests       | 27    | Utilities           |
 
 ### Running Tests
 

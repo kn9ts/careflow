@@ -3,7 +3,7 @@
  * Pure presentation component for the dialer functionality
  */
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import CallStatus from "@/components/dashboard/CallStatus";
 import CallControls from "@/components/dashboard/CallControls";
 import DialPad from "@/components/dashboard/DialPad";
@@ -19,15 +19,19 @@ export default function DialerTab({
   const { callStatus, callDuration, phoneNumber, callError, isMuted } =
     callManager;
 
+  // Local state for dialed number - controls the DialPad input
+  const [dialedNumber, setDialedNumber] = useState("");
+
   const handleMakeCall = useCallback(
     (number) => {
-      callManager.makeCall(number);
+      callManager.makeCall(number || dialedNumber);
     },
-    [callManager],
+    [callManager, dialedNumber],
   );
 
   const handleHangup = useCallback(() => {
     callManager.hangupCall();
+    setDialedNumber("");
   }, [callManager]);
 
   const handleAccept = useCallback(() => {
@@ -92,10 +96,8 @@ export default function DialerTab({
 
           {/* Dial Pad */}
           <DialPad
-            phoneNumber={phoneNumber}
-            onDigitPress={(digit) => {
-              // Handle digit press through call manager
-            }}
+            phoneNumber={dialedNumber}
+            setPhoneNumber={setDialedNumber}
             disabled={callStatus === "connected"}
           />
 

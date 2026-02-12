@@ -43,12 +43,14 @@ function DialPad({
 
   // Use the provided setPhoneNumber or fall back to local state
   const activeSetPhoneNumber = setPhoneNumber || setLocalPhoneNumber;
-  const activePhoneNumber = setPhoneNumber ? phoneNumber : localPhoneNumber;
+  const activePhoneNumber =
+    (setPhoneNumber ? phoneNumber : localPhoneNumber) || "";
 
   // Update local state when prop phoneNumber changes (only if using local state)
+  // Also sync when phoneNumber prop changes from undefined to defined value
   useEffect(() => {
     if (!setPhoneNumber && phoneNumber !== localPhoneNumber) {
-      setLocalPhoneNumber(phoneNumber);
+      setLocalPhoneNumber(phoneNumber || "");
     }
   }, [phoneNumber, setPhoneNumber, localPhoneNumber]);
 
@@ -62,16 +64,18 @@ function DialPad({
   const digitCount = useMemo(() => sanitizedNumber.length, [sanitizedNumber]);
 
   // Stable callback for digit press
+  // Only call onDigitPress if setPhoneNumber is NOT provided (to avoid double updates)
   const handleDigitPress = useCallback(
     (digit) => {
       if (disabled) return;
 
       activeSetPhoneNumber((prev) => (prev || "") + digit);
-      if (onDigitPress) {
+      // Only call external onDigitPress when using local state (not controlled)
+      if (!setPhoneNumber && onDigitPress) {
         onDigitPress(digit);
       }
     },
-    [disabled, activeSetPhoneNumber, onDigitPress],
+    [disabled, activeSetPhoneNumber, setPhoneNumber, onDigitPress],
   );
 
   const handleClear = useCallback(() => {

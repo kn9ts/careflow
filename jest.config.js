@@ -2,8 +2,7 @@
  * Jest Configuration for CareFlow
  * Comprehensive test setup for all modules with coverage tracking
  *
- * Note: Full coverage requires ESM support. Current tests use inline implementations
- * to validate logic correctness. E2E tests with Playwright provide browser coverage.
+ * Updated to support ESM modules for WebRTC testing
  */
 
 module.exports = {
@@ -26,6 +25,8 @@ module.exports = {
     "^@/context/(.*)$": "<rootDir>/context/$1",
     "^@/hooks/(.*)$": "<rootDir>/hooks/$1",
   },
+  // Transform ESM modules including @jest/globals
+  transformIgnorePatterns: ["node_modules/(?!(@jest|jest-.*|firebase)/)"],
   // Only collect coverage from pure JS files, exclude JSX files
   collectCoverageFrom: [
     "lib/**/*.js",
@@ -45,7 +46,6 @@ module.exports = {
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html", "json-summary"],
   // Coverage thresholds - will fail if coverage drops below these values
-  // Updated with 3-Phase Test Coverage Improvement Plan
   coverageThreshold: {
     global: {
       statements: 55,
@@ -82,7 +82,9 @@ module.exports = {
   verbose: true,
   testTimeout: 10000,
   maxWorkers: "50%",
-  transform: {},
+  transform: {
+    "^.+\\.js$": "babel-jest",
+  },
   // Tests are pure JavaScript, no JSX transformation needed
   testMatch: ["**/tests/**/*.test.js"],
   moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json"],
