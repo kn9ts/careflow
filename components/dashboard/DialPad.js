@@ -94,7 +94,10 @@ function DialPad({
   );
 
   return (
-    <div className="bg-background-card rounded-xl border border-white/10 p-6">
+    <div
+      className="bg-background-card rounded-xl border border-white/10 p-6"
+      data-testid="dial-pad"
+    >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-white">Dial Pad</h2>
         <span className="text-xs text-gray-400">
@@ -108,6 +111,7 @@ function DialPad({
             type="tel"
             value={activePhoneNumber}
             onChange={handleInputChange}
+            data-testid="phone-input"
             placeholder={placeholder || "Enter phone number or CareFlow ID"}
             className="w-full bg-transparent text-white text-lg font-mono outline-none"
             disabled={disabled}
@@ -121,6 +125,7 @@ function DialPad({
           <button
             onClick={handleClear}
             disabled={disabled}
+            data-testid="clear-button"
             className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Clear
@@ -128,6 +133,7 @@ function DialPad({
           <button
             onClick={handleBackspace}
             disabled={disabled || !(activePhoneNumber || "").length}
+            data-testid="backspace-button"
             className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Backspace
@@ -141,6 +147,7 @@ function DialPad({
             key={index}
             onClick={() => handleDigitPress(digit)}
             disabled={disabled}
+            data-testid={`dial-button-${digit}`}
             className="aspect-square bg-background-input rounded-lg flex flex-col items-center justify-center hover:bg-background-input/80 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-transform"
           >
             <span className="text-white text-2xl font-bold">{digit}</span>
