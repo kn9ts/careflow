@@ -25,15 +25,21 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   // Initialize authentication state
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+  useEffect(function () {
+    // Skip if auth is not available (SSR case)
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
+    var unsubscribe = onAuthStateChanged(auth, async function (user) {
       setLoading(true);
       setError(null);
 
       if (user) {
         try {
           // Get fresh token
-          const idToken = await getIdToken(user, true);
+          var idToken = await getIdToken(user, true);
 
           // Fetch additional user data if needed
           setCurrentUser({
@@ -51,25 +57,26 @@ export function AuthProvider({ children }) {
             localStorage.setItem("careflow_token", idToken);
           }
 
-          // Set up token refresh every 50 minutes (Firebase tokens expire in 60 minutes)
-          const tokenRefresh = setInterval(
-            async () => {
+          // Set up token refresh every 50 minutes
+          var tokenRefresh = setInterval(
+            async function () {
               try {
-                const newToken = await getIdToken(user, true);
+                var newToken = await getIdToken(user, true);
                 setToken(newToken);
                 if (typeof window !== "undefined") {
                   localStorage.setItem("careflow_token", newToken);
                 }
               } catch (err) {
                 console.error("Token refresh failed:", err);
-                // If token refresh fails, sign out user
                 await logout();
               }
             },
             50 * 60 * 1000,
-          ); // 50 minutes
+          );
 
-          return () => clearInterval(tokenRefresh);
+          return function () {
+            clearInterval(tokenRefresh);
+          };
         } catch (error) {
           console.error("Error fetching user data:", error);
           setError("Failed to load user data");
@@ -79,200 +86,107 @@ export function AuthProvider({ children }) {
       } else {
         setCurrentUser(null);
         setToken(null);
-        // Clear localStorage on logout
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("careflow_token");
-        }
       }
 
       setLoading(false);
     });
 
-    return unsubscribe;
+    return function () {
+      if (unsubscribe && typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
   }, []);
 
-  // Sign up function
-  const signup = async (email, password, displayName) => {
-    setLoading(true);
-    setError(null);
-
+  async function login(email, password) {
     try {
-      const result = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      setError(null);
+      var result = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true, user: result.user };
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message);
+      return { success: false, error: error.message };
+    }
+  }
 
-      // Update profile with display name
+  async function signup(email, password, displayName) {
+    try {
+      setError(null);
+      var result = await createUserWithEmailAndPassword(auth, email, password);
+
       if (displayName) {
-        await updateProfile(result.user, {
-          displayName: displayName,
-        });
+        await updateProfile(result.user, { displayName: displayName });
       }
-
-      setCurrentUser({
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-        photoURL: result.user.photoURL,
-        emailVerified: result.user.emailVerified,
-        phoneNumber: result.user.phoneNumber,
-      });
 
       return { success: true, user: result.user };
     } catch (error) {
       console.error("Signup error:", error);
-      setError(getErrorMessage(error.code));
-      return { success: false, error: getErrorMessage(error.code) };
-    } finally {
-      setLoading(false);
+      setError(error.message);
+      return { success: false, error: error.message };
     }
-  };
+  }
 
-  // Login function
-  const login = async (email, password) => {
-    setLoading(true);
-    setError(null);
-
+  async function logout() {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-
-      // Wait for the token to be available before returning
-      // This ensures the token is set in state before redirecting
-      const idToken = await getIdToken(result.user, true);
-
-      setCurrentUser({
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-        photoURL: result.user.photoURL,
-        emailVerified: result.user.emailVerified,
-        phoneNumber: result.user.phoneNumber,
-      });
-      setToken(idToken);
-
-      // Store token in localStorage for persistence
-      if (typeof window !== "undefined") {
-        localStorage.setItem("careflow_token", idToken);
-      }
-
-      return { success: true, user: result.user };
-    } catch (error) {
-      console.error("Login error:", error);
-      setError(getErrorMessage(error.code));
-      return { success: false, error: getErrorMessage(error.code) };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Logout function
-  const logout = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
+      setError(null);
       await signOut(auth);
       setCurrentUser(null);
       setToken(null);
-      // Clear localStorage token
+
       if (typeof window !== "undefined") {
         localStorage.removeItem("careflow_token");
       }
+
       return { success: true };
     } catch (error) {
       console.error("Logout error:", error);
-      setError("Failed to logout");
-      return { success: false, error: "Failed to logout" };
-    } finally {
-      setLoading(false);
+      setError(error.message);
+      return { success: false, error: error.message };
     }
-  };
+  }
 
-  // Password reset function
-  const resetPassword = async (email) => {
-    setLoading(true);
-    setError(null);
-
+  async function resetPassword(email) {
     try {
+      setError(null);
       await sendPasswordResetEmail(auth, email);
-      return { success: true, message: "Password reset email sent" };
-    } catch (error) {
-      console.error("Password reset error:", error);
-      setError(getErrorMessage(error.code));
-      return { success: false, error: getErrorMessage(error.code) };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update user profile
-  const updateProfileData = async (displayName, photoURL) => {
-    if (!currentUser) return { success: false, error: "No user logged in" };
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      await updateProfile(auth.currentUser, {
-        displayName,
-        photoURL,
-      });
-
-      setCurrentUser({
-        ...currentUser,
-        displayName,
-        photoURL,
-      });
-
       return { success: true };
     } catch (error) {
+      console.error("Password reset error:", error);
+      setError(error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async function updateUserProfile(data) {
+    try {
+      setError(null);
+      if (currentUser && auth.currentUser) {
+        await updateProfile(auth.currentUser, data);
+
+        setCurrentUser(Object.assign({}, currentUser, data));
+        return { success: true };
+      }
+      return { success: false, error: "No user logged in" };
+    } catch (error) {
       console.error("Profile update error:", error);
-      setError(getErrorMessage(error.code));
-      return { success: false, error: getErrorMessage(error.code) };
-    } finally {
-      setLoading(false);
+      setError(error.message);
+      return { success: false, error: error.message };
     }
+  }
+
+  var value = {
+    currentUser: currentUser,
+    token: token,
+    loading: loading,
+    error: error,
+    login: login,
+    signup: signup,
+    logout: logout,
+    resetPassword: resetPassword,
+    updateUserProfile: updateUserProfile,
+    setError: setError,
   };
 
-  // Get error message helper
-  const getErrorMessage = (errorCode) => {
-    switch (errorCode) {
-      case "auth/email-already-in-use":
-        return "An account with this email already exists";
-      case "auth/invalid-email":
-        return "Invalid email address";
-      case "auth/weak-password":
-        return "Password is too weak. Please use at least 6 characters";
-      case "auth/user-not-found":
-        return "No account found with this email address";
-      case "auth/wrong-password":
-        return "Incorrect password";
-      case "auth/user-disabled":
-        return "This account has been disabled";
-      case "auth/operation-not-allowed":
-        return "Email/password accounts are not enabled";
-      case "auth/too-many-requests":
-        return "Too many login attempts. Please try again later";
-      case "auth/network-request-failed":
-        return "Network error. Please check your connection";
-      default:
-        return "An error occurred. Please try again.";
-    }
-  };
-
-  const value = {
-    currentUser,
-    token,
-    loading,
-    error,
-    setError,
-    login,
-    signup,
-    logout,
-    resetPassword,
-    updateProfileData,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return React.createElement(AuthContext.Provider, { value: value }, children);
 }

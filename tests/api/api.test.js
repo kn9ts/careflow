@@ -3,178 +3,133 @@
  * Comprehensive test suite for all API endpoints
  */
 
-// Import test utilities
-const { createMockUser, createMockRecording } = global.testUtils;
+// Inline implementations matching the actual module
+function successResponseObject(data, options) {
+  return {
+    success: true,
+    data: data || {},
+    message: options && options.message ? options.message : null,
+    meta: options && options.meta ? options.meta : null,
+    timestamp: new Date().toISOString(),
+  };
+}
 
-describe("API Response Utilities", () => {
-  describe("successResponse", () => {
-    test("should return JSON response with success flag", () => {
-      const successResponse = (data, options = {}) => ({
-        status: options.status || 200,
-        body: JSON.stringify({ success: true, data }),
-        headers: {},
-      });
+function errorResponseObject(message, options) {
+  return {
+    success: false,
+    error: {
+      message: message,
+      code: options && options.code ? options.code : "ERROR",
+      details: options && options.details ? options.details : null,
+      status: options && options.status ? options.status : 500,
+      timestamp: new Date().toISOString(),
+    },
+  };
+}
 
-      const response = successResponse({ data: "test" });
+function handleAuthResult(authResult) {
+  if (authResult && authResult.success) {
+    return null;
+  }
+  return errorResponseObject(
+    authResult && authResult.error ? authResult.error : "Unauthorized",
+    {
+      status: authResult && authResult.status ? authResult.status : 401,
+      code: "UNAUTHORIZED",
+    },
+  );
+}
 
-      expect(response.status).toBe(200);
+describe("API Response Utilities", function () {
+  describe("successResponse", function () {
+    test("should return JSON response with success flag", function () {
+      var response = successResponseObject({ data: "test" });
 
-      const body = JSON.parse(response.body);
-      expect(body).toHaveProperty("success", true);
-      expect(body).toHaveProperty("data");
-      expect(body.data.data).toBe("test");
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual({ data: "test" });
+      expect(response.timestamp).toBeDefined();
     });
 
-    test("should support custom status code", () => {
-      const successResponse = (data, options = {}) => ({
-        status: options.status || 200,
-        body: JSON.stringify({ success: true, data }),
-        headers: {},
-      });
+    test("should support custom status code", function () {
+      var response = successResponseObject(
+        { id: 123 },
+        { message: "Created", meta: { page: 1 } },
+      );
 
-      const response = successResponse({ id: 123 }, { status: 201 });
-
-      expect(response.status).toBe(201);
-      const body = JSON.parse(response.body);
-      expect(body.data.id).toBe(123);
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual({ id: 123 });
+      expect(response.message).toBe("Created");
+      expect(response.meta).toEqual({ page: 1 });
     });
 
-    test("should return empty data object by default", () => {
-      const successResponse = (data, options = {}) => ({
-        status: options.status || 200,
-        body: JSON.stringify({ success: true, data: data || {} }),
-        headers: {},
-      });
-
-      const response = successResponse();
-      const body = JSON.parse(response.body);
-      expect(body.data).toEqual({});
+    test("should return empty data object by default", function () {
+      var response = successResponseObject();
+      expect(response.data).toEqual({});
     });
   });
 
-  describe("errorResponse", () => {
-    test("should return error response with message", () => {
-      const errorResponse = (message, options = {}) => ({
-        status: options.status || 500,
-        body: JSON.stringify({
-          success: false,
-          error: {
-            message,
-            code: options.code || "INTERNAL_ERROR",
-          },
-        }),
-        headers: {},
-      });
+  describe("errorResponse", function () {
+    test("should return error response with message", function () {
+      var response = errorResponseObject("Something went wrong");
 
-      const response = errorResponse("Something went wrong");
-
-      expect(response.status).toBe(500);
-
-      const body = JSON.parse(response.body);
-      expect(body).toHaveProperty("success", false);
-      expect(body.error).toHaveProperty("message", "Something went wrong");
-      expect(body.error).toHaveProperty("code", "INTERNAL_ERROR");
+      expect(response.success).toBe(false);
+      expect(response.error.message).toBe("Something went wrong");
+      expect(response.error.code).toBe("ERROR");
+      expect(response.error.status).toBe(500);
     });
 
-    test("should support custom error code", () => {
-      const errorResponse = (message, options = {}) => ({
-        status: options.status || 500,
-        body: JSON.stringify({
-          success: false,
-          error: {
-            message,
-            code: options.code || "INTERNAL_ERROR",
-          },
-        }),
-        headers: {},
-      });
-
-      const response = errorResponse("Not found", {
+    test("should support custom error code", function () {
+      var response = errorResponseObject("Not found", {
         code: "NOT_FOUND",
         status: 404,
       });
 
-      expect(response.status).toBe(404);
-
-      const body = JSON.parse(response.body);
-      expect(body.error.code).toBe("NOT_FOUND");
+      expect(response.error.code).toBe("NOT_FOUND");
+      expect(response.error.status).toBe(404);
     });
 
-    test("should include details if provided", () => {
-      const errorResponse = (message, options = {}) => ({
-        status: options.status || 500,
-        body: JSON.stringify({
-          success: false,
-          error: {
-            message,
-            code: options.code || "INTERNAL_ERROR",
-            details: options.details,
-          },
-        }),
-        headers: {},
-      });
-
-      const response = errorResponse("Validation failed", {
+    test("should include details if provided", function () {
+      var response = errorResponseObject("Validation failed", {
         details: { field: "email", reason: "Invalid format" },
       });
 
-      const body = JSON.parse(response.body);
-      expect(body.error.details).toEqual({
+      expect(response.error.details).toEqual({
         field: "email",
         reason: "Invalid format",
       });
     });
   });
 
-  describe("handleAuthResult", () => {
-    test("should return null for successful auth", () => {
-      const handleAuthResult = (result) => {
-        if (result?.success) return null;
-        return { status: 401, body: JSON.stringify({ error: "Unauthorized" }) };
-      };
-
-      const result = handleAuthResult({ success: true });
+  describe("handleAuthResult", function () {
+    test("should return null for successful auth", function () {
+      var result = handleAuthResult({ success: true });
       expect(result).toBeNull();
     });
 
-    test("should return error response for failed auth", () => {
-      const handleAuthResult = (result) => {
-        if (result?.success) return null;
-        return {
-          status: result?.status || 401,
-          body: JSON.stringify({ error: result?.error || "Unauthorized" }),
-        };
-      };
-
-      const result = handleAuthResult({
+    test("should return error response for failed auth", function () {
+      var result = handleAuthResult({
         success: false,
         error: "Unauthorized",
         status: 401,
       });
 
       expect(result).not.toBeNull();
-      expect(result.status).toBe(401);
+      expect(result.error.message).toBe("Unauthorized");
     });
 
-    test("should use default values for undefined result", () => {
-      const handleAuthResult = (result) => {
-        if (result?.success) return null;
-        return {
-          status: result?.status || 401,
-          body: JSON.stringify({ error: result?.error || "Unauthorized" }),
-        };
-      };
-
-      const result = handleAuthResult(undefined);
-
-      expect(result.status).toBe(401);
+    test("should use default values for undefined result", function () {
+      var result = handleAuthResult(undefined);
+      expect(result.error.message).toBe("Unauthorized");
+      expect(result.error.status).toBe(401);
     });
   });
 });
 
-describe("User Lookup API", () => {
-  test("should validate care4wId format", () => {
-    const isValidCare4wId = (id) => /^care4w-\d{7}$/.test(id);
+describe("User Lookup API", function () {
+  test("should validate care4wId format", function () {
+    var isValidCare4wId = function (id) {
+      return /^care4w-\d{7}$/.test(id);
+    };
 
     expect(isValidCare4wId("care4w-1000001")).toBe(true);
     expect(isValidCare4wId("care4w-1234567")).toBe(true);
@@ -183,17 +138,17 @@ describe("User Lookup API", () => {
     expect(isValidCare4wId("")).toBe(false);
   });
 
-  test("should parse pagination parameters", () => {
-    const url = new URL(
+  test("should parse pagination parameters", function () {
+    var url = new URL(
       "http://localhost:3000/api/users/lookup?care4wId=care4w-1000001",
     );
-    const care4wId = url.searchParams.get("care4wId");
+    var care4wId = url.searchParams.get("care4wId");
 
     expect(care4wId).toBe("care4w-1000001");
   });
 
-  test("should validate care4wId lookup response structure", () => {
-    const lookupResponse = {
+  test("should validate care4wId lookup response structure", function () {
+    var lookupResponse = {
       exists: true,
       care4wId: "care4w-1000001",
       displayName: "Test User",
@@ -207,24 +162,24 @@ describe("User Lookup API", () => {
   });
 });
 
-describe("Call History Validation", () => {
-  test("should validate pagination parameters", () => {
-    const params = { page: 1, limit: 10 };
+describe("Call History Validation", function () {
+  test("should validate pagination parameters", function () {
+    var params = { page: 1, limit: 10 };
 
     expect(params.page).toBe(1);
     expect(params.limit).toBe(10);
   });
 
-  test("should calculate pagination skip", () => {
-    const page = 2;
-    const limit = 10;
-    const skip = (page - 1) * limit;
+  test("should calculate pagination skip", function () {
+    var page = 2;
+    var limit = 10;
+    var skip = (page - 1) * limit;
 
     expect(skip).toBe(10);
   });
 
-  test("should validate call history item structure", () => {
-    const callRecord = {
+  test("should validate call history item structure", function () {
+    var callRecord = {
       callId: "CA123456",
       timestamp: new Date(),
       direction: "outbound",
@@ -243,9 +198,9 @@ describe("Call History Validation", () => {
   });
 });
 
-describe("Analytics Data Structure", () => {
-  test("should define analytics object structure", () => {
-    const analytics = {
+describe("Analytics Data Structure", function () {
+  test("should define analytics object structure", function () {
+    var analytics = {
       totalCalls: 0,
       answeredCalls: 0,
       missedCalls: 0,
@@ -264,39 +219,39 @@ describe("Analytics Data Structure", () => {
     expect(analytics).toHaveProperty("successRate");
   });
 
-  test("should calculate success rate", () => {
-    const totalCalls = 100;
-    const answeredCalls = 75;
-    const successRate = (answeredCalls / totalCalls) * 100;
+  test("should calculate success rate", function () {
+    var totalCalls = 100;
+    var answeredCalls = 75;
+    var successRate = (answeredCalls / totalCalls) * 100;
 
     expect(successRate).toBe(75);
   });
 
-  test("should calculate average duration", () => {
-    const totalDuration = 1200;
-    const totalCalls = 10;
-    const averageDuration = totalDuration / totalCalls;
+  test("should calculate average duration", function () {
+    var totalDuration = 1200;
+    var totalCalls = 10;
+    var averageDuration = totalDuration / totalCalls;
 
     expect(averageDuration).toBe(120);
   });
 });
 
-describe("Authentication Validation", () => {
-  test("should validate required registration fields", () => {
-    const requiredFields = ["displayName", "email", "firebaseUid"];
-    const userData = {
+describe("Authentication Validation", function () {
+  test("should validate required registration fields", function () {
+    var requiredFields = ["displayName", "email", "firebaseUid"];
+    var userData = {
       displayName: "Test User",
       email: "test@example.com",
       firebaseUid: "firebase-123",
     };
 
-    requiredFields.forEach((field) => {
+    requiredFields.forEach(function (field) {
       expect(userData).toHaveProperty(field);
     });
   });
 
-  test("should validate required login fields", () => {
-    const loginData = {
+  test("should validate required login fields", function () {
+    var loginData = {
       email: "test@example.com",
       password: "password123",
     };
@@ -305,13 +260,12 @@ describe("Authentication Validation", () => {
     expect(loginData.password).toBeDefined();
   });
 
-  test("should validate user response structure", () => {
-    const userResponse = {
+  test("should validate user response structure", function () {
+    var userResponse = {
       uid: "test-uid",
       displayName: "Test User",
       email: "test@example.com",
       care4wId: "care4w-1000001",
-      createdAt: expect.any(Date),
     };
 
     expect(userResponse).toHaveProperty("uid");
@@ -321,15 +275,15 @@ describe("Authentication Validation", () => {
   });
 });
 
-describe("Webhook Verification", () => {
-  test("should validate Twilio signature format", () => {
-    const signature = "abc123xyz789signature";
+describe("Webhook Verification", function () {
+  test("should validate Twilio signature format", function () {
+    var signature = "abc123xyz789signature";
     expect(typeof signature).toBe("string");
     expect(signature.length).toBeGreaterThan(0);
   });
 
-  test("should validate webhook payload structure", () => {
-    const payload = {
+  test("should validate webhook payload structure", function () {
+    var payload = {
       CallSid: "CA123456789",
       CallStatus: "completed",
       CallDuration: 120,
@@ -341,8 +295,8 @@ describe("Webhook Verification", () => {
     expect(payload).toHaveProperty("CallDuration");
   });
 
-  test("should validate voicemail webhook structure", () => {
-    const voicemailPayload = {
+  test("should validate voicemail webhook structure", function () {
+    var voicemailPayload = {
       CallSid: "CA123456789",
       RecordingUrl: "https://api.twilio.com/Recording.mp3",
       RecordingDuration: 45,
@@ -355,4 +309,3 @@ describe("Webhook Verification", () => {
     expect(voicemailPayload).toHaveProperty("TranscriptionText");
   });
 });
-

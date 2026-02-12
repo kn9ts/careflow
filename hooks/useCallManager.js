@@ -343,7 +343,7 @@ export function useCallManager() {
 
 /**
  * useOutgoingCall Hook
- *专门处理拨打电话的逻辑
+ * Handles outgoing call logic
  */
 export function useOutgoingCall() {
   const { token } = useAuth();
