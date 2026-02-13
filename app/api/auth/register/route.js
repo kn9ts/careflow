@@ -1,7 +1,7 @@
-import { connectDB } from "@/lib/db";
-import { getOrCreateUser } from "@/lib/auth";
-import { successResponse, errorResponse } from "@/lib/apiResponse";
-import { generateCare4wId } from "@/lib/careFlowIdGenerator";
+import { connectDB } from '@/lib/db';
+import { getOrCreateUser } from '@/lib/auth';
+import { successResponse, errorResponse } from '@/lib/apiResponse';
+import { generateCare4wId } from '@/lib/careFlowIdGenerator';
 
 export async function POST(request) {
   try {
@@ -14,10 +14,10 @@ export async function POST(request) {
 
     // Validate required fields
     if (!displayName || !email || !firebaseUid) {
-      return errorResponse(
-        "Missing required fields: displayName, email, firebaseUid",
-        { status: 400, code: "VALIDATION_ERROR" },
-      );
+      return errorResponse('Missing required fields: displayName, email, firebaseUid', {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+      });
     }
 
     // Generate care4wId for WebRTC calls
@@ -30,7 +30,7 @@ export async function POST(request) {
     });
 
     return successResponse({
-      message: "User profile created successfully",
+      message: 'User profile created successfully',
       user: {
         id: user._id,
         email: user.email,
@@ -42,10 +42,10 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("Auth register error:", error);
-    return errorResponse("Failed to create user profile", {
+    console.error('Auth register error:', error);
+    return errorResponse('Failed to create user profile', {
       status: 500,
-      code: "AUTH_REGISTER_FAILED",
+      code: 'AUTH_REGISTER_FAILED',
     });
   }
 }

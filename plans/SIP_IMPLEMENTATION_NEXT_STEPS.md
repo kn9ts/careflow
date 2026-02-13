@@ -144,10 +144,10 @@ Update `lib/callManager.js`:
 ```javascript
 // Add SIP configuration
 const sipConfig = {
-  server: process.env.NEXT_PUBLIC_SIP_SERVER || "sip.careflow.io",
+  server: process.env.NEXT_PUBLIC_SIP_SERVER || 'sip.careflow.io',
   port: process.env.NEXT_PUBLIC_SIP_PORT || 5061,
-  transport: process.env.NEXT_PUBLIC_SIP_TRANSPORT || "tls",
-  realm: "sip.careflow.io",
+  transport: process.env.NEXT_PUBLIC_SIP_TRANSPORT || 'tls',
+  realm: 'sip.careflow.io',
 };
 ```
 
@@ -157,11 +157,11 @@ const sipConfig = {
 // Register SIP user in browser
 async function registerSIPUser(credentials) {
   const sipStack = new SIPml.Stack({
-    realm: "sip.careflow.io",
+    realm: 'sip.careflow.io',
     impi: credentials.username,
     impu: `sip:${credentials.username}@sip.careflow.io`,
     password: credentials.password,
-    transport: "tls",
+    transport: 'tls',
     ws_proxy_url: `wss://sip.careflow.io:5061`,
     enable_rtcweb_allow: true,
   });
@@ -176,7 +176,7 @@ async function registerSIPUser(credentials) {
 ```javascript
 // Make outbound call
 async function makeCall(calleeCareflowId) {
-  const callSession = sipStack.newSession("call-audio", {
+  const callSession = sipStack.newSession('call-audio', {
     audio: true,
     video: false,
   });
@@ -186,7 +186,7 @@ async function makeCall(calleeCareflowId) {
 }
 
 // Handle incoming calls
-sipStack.setEventListener("onIncomingCall", (event) => {
+sipStack.setEventListener('onIncomingCall', (event) => {
   const session = event.session;
   // Show incoming call UI
   // Play ringtone

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
   const { currentUser, loading } = useAuth();
@@ -15,14 +15,14 @@ export default function HomePage() {
 
   useEffect(() => {
     if (mounted && !loading && currentUser) {
-      router.push("/dashboard");
+      router.push('/dashboard');
     }
   }, [mounted, loading, currentUser, router]);
 
   if (loading || !mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background-dark via-primary-blue/10 to-background-dark flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-white"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-white" />
       </div>
     );
   }
@@ -37,13 +37,11 @@ export default function HomePage() {
           className="w-full h-full object-cover"
         />
         {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background-dark/90 via-background-dark/80 to-background-dark/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-background-dark/90 via-background-dark/80 to-background-dark/90" />
       </div>
 
       <div className="w-full max-w-2xl text-center relative z-10">
-        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-          CareFlow
-        </h1>
+        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">CareFlow</h1>
         <p className="text-xl md:text-2xl text-gray-300 mb-8">
           Browser-based calling powered by Twilio Voice
         </p>
@@ -63,9 +61,7 @@ export default function HomePage() {
           </a>
         </div>
 
-        <p className="mt-8 text-gray-400 text-sm">
-          Secure. Reliable. Browser-based calling.
-        </p>
+        <p className="mt-8 text-gray-400 text-sm">Secure. Reliable. Browser-based calling.</p>
       </div>
     </div>
   );

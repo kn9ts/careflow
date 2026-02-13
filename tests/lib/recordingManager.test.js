@@ -3,9 +3,9 @@
  * Tests for call recording functionality
  */
 
-describe("Recording Manager", () => {
-  describe("CallRecordingManager Class", () => {
-    test("should initialize with default state", () => {
+describe('Recording Manager', () => {
+  describe('CallRecordingManager Class', () => {
+    test('should initialize with default state', () => {
       const manager = {
         mediaRecorder: null,
         recordedChunks: [],
@@ -23,7 +23,7 @@ describe("Recording Manager", () => {
       expect(manager.isRecording).toBe(false);
     });
 
-    test("should have event listeners object", () => {
+    test('should have event listeners object', () => {
       const listeners = {
         onRecordingStarted: null,
         onRecordingStopped: null,
@@ -33,45 +33,45 @@ describe("Recording Manager", () => {
         onUploadError: null,
       };
 
-      expect(listeners).toHaveProperty("onRecordingStarted");
-      expect(listeners).toHaveProperty("onRecordingStopped");
+      expect(listeners).toHaveProperty('onRecordingStarted');
+      expect(listeners).toHaveProperty('onRecordingStopped');
     });
 
-    test("should initialize with call ID", () => {
+    test('should initialize with call ID', () => {
       const manager = {
-        callId: "call-123",
+        callId: 'call-123',
         recordedChunks: [],
         uploadProgress: 0,
       };
 
-      expect(manager.callId).toBe("call-123");
+      expect(manager.callId).toBe('call-123');
       expect(manager.recordedChunks).toEqual([]);
     });
 
-    test("should generate call ID if not provided", () => {
+    test('should generate call ID if not provided', () => {
       const timestamp = Date.now();
       const randomPart = Math.random().toString(36).substr(2, 9);
-      const callId = "call-" + timestamp + "-" + randomPart;
+      const callId = `call-${timestamp}-${randomPart}`;
 
       expect(callId).toMatch(/^call-\d+-[a-z0-9]+$/);
     });
   });
 
-  describe("Recording State Management", () => {
-    test("should return correct recording state", () => {
+  describe('Recording State Management', () => {
+    test('should return correct recording state', () => {
       const state = {
         isRecording: true,
-        callId: "call-123",
-        startTime: new Date("2024-01-01T00:00:00Z"),
+        callId: 'call-123',
+        startTime: new Date('2024-01-01T00:00:00Z'),
         duration: 60,
       };
 
       expect(state.isRecording).toBe(true);
-      expect(state.callId).toBe("call-123");
+      expect(state.callId).toBe('call-123');
       expect(state.duration).toBe(60);
     });
 
-    test("should handle non-recording state", () => {
+    test('should handle non-recording state', () => {
       const state = {
         isRecording: false,
         recordingStartTime: null,
@@ -82,16 +82,16 @@ describe("Recording Manager", () => {
     });
   });
 
-  describe("MIME Type Support", () => {
-    test("should prefer opus codec for webm", () => {
-      const mimeTypes = ["audio/webm;codecs=opus", "audio/webm"];
+  describe('MIME Type Support', () => {
+    test('should prefer opus codec for webm', () => {
+      const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm'];
 
-      expect(mimeTypes[0]).toBe("audio/webm;codecs=opus");
+      expect(mimeTypes[0]).toBe('audio/webm;codecs=opus');
     });
   });
 
-  describe("Event Listener Registration", () => {
-    test("should register event listeners", () => {
+  describe('Event Listener Registration', () => {
+    test('should register event listeners', () => {
       const listeners = {
         onRecordingStarted: null,
       };
@@ -103,12 +103,12 @@ describe("Recording Manager", () => {
       expect(listeners.onRecordingStarted).toBe(mockCallback);
     });
 
-    test("should ignore unknown event names", () => {
+    test('should ignore unknown event names', () => {
       const listeners = {
         onRecordingStarted: null,
       };
 
-      const unknownEvent = "unknownEvent";
+      const unknownEvent = 'unknownEvent';
       const callback = function () {};
 
       if (listeners.hasOwnProperty(unknownEvent)) {
@@ -119,18 +119,18 @@ describe("Recording Manager", () => {
     });
   });
 
-  describe("Recording Cleanup", () => {
-    test("should clean up resources on destroy", () => {
+  describe('Recording Cleanup', () => {
+    test('should clean up resources on destroy', () => {
       const manager = {
-        mediaRecorder: { state: "recording" },
+        mediaRecorder: { state: 'recording' },
         localStream: {
-          getTracks: function () {
-            return [{ stop: function () {} }];
+          getTracks() {
+            return [{ stop() {} }];
           },
         },
-        recordedChunks: ["chunk1", "chunk2"],
+        recordedChunks: ['chunk1', 'chunk2'],
         isRecording: true,
-        callId: "call-123",
+        callId: 'call-123',
       };
 
       // Simulate destroy
@@ -150,8 +150,8 @@ describe("Recording Manager", () => {
     });
   });
 
-  describe("Recording Uploader", () => {
-    test("should initialize with default settings", () => {
+  describe('Recording Uploader', () => {
+    test('should initialize with default settings', () => {
       const uploader = {
         maxRetries: 3,
         retryDelay: 1000,
@@ -162,23 +162,23 @@ describe("Recording Manager", () => {
       expect(uploader.retryDelay).toBe(1000);
     });
 
-    test("should generate correct filename", () => {
+    test('should generate correct filename', () => {
       const timestamp = Date.now();
       const generateFilename = function (callId, direction) {
-        return direction + "-" + callId + "-" + timestamp + ".webm";
+        return `${direction}-${callId}-${timestamp}.webm`;
       };
 
-      const filename = generateFilename("call-123", "outbound");
-      expect(filename).toContain("outbound-call-123-");
-      expect(filename).toContain(".webm");
+      const filename = generateFilename('call-123', 'outbound');
+      expect(filename).toContain('outbound-call-123-');
+      expect(filename).toContain('.webm');
     });
 
-    test("should handle exponential backoff", () => {
+    test('should handle exponential backoff', () => {
       const retryDelay = 1000;
       const delays = [];
 
       for (let attempt = 1; attempt <= 3; attempt++) {
-        const delay = retryDelay * Math.pow(2, attempt - 1);
+        const delay = retryDelay * 2 ** (attempt - 1);
         delays.push(delay);
       }
 
@@ -186,19 +186,19 @@ describe("Recording Manager", () => {
     });
   });
 
-  describe("Error Handling", () => {
-    test("should handle recording errors", () => {
+  describe('Error Handling', () => {
+    test('should handle recording errors', () => {
       const listeners = {
         onRecordingError: null,
       };
 
-      const mockError = { message: "Test error", code: "REC_ERROR" };
+      const mockError = { message: 'Test error', code: 'REC_ERROR' };
       listeners.onRecordingError = mockError;
 
       expect(listeners.onRecordingError).toEqual(mockError);
     });
 
-    test("should track retry attempts correctly", () => {
+    test('should track retry attempts correctly', () => {
       let attempts = 0;
       const maxRetries = 3;
 

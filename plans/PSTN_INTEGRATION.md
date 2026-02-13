@@ -220,15 +220,15 @@ route {
 // app/api/phone-numbers/route.js
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
+  const userId = searchParams.get('userId');
 
   // Get user's assigned phone numbers
   return Response.json({
     numbers: [
       {
-        number: "+1-800-227-3569",
-        type: "tollfree",
-        trunk: "twilio",
+        number: '+1-800-227-3569',
+        type: 'tollfree',
+        trunk: 'twilio',
         incoming: true,
         outgoing: true,
       },

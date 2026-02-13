@@ -442,12 +442,12 @@ CareFlow uses a sophisticated configuration management system with the following
 ```javascript
 const CONFIG_SCHEMA = {
   NODE_ENV: {
-    type: "string",
-    enum: ["development", "production", "test"],
-    default: "development",
+    type: 'string',
+    enum: ['development', 'production', 'test'],
+    default: 'development',
   },
   NEXT_PUBLIC_FIREBASE_API_KEY: {
-    type: "string",
+    type: 'string',
     required: true,
     pattern: /^[A-Za-z0-9_-]{10,}$/,
   },
@@ -607,11 +607,11 @@ CareFlow uses Firebase Authentication with the following components:
 ```javascript
 // In env.config.js - validation errors don't prevent app startup
 if (!validation.valid) {
-  console.error("Configuration validation failed:");
+  console.error('Configuration validation failed:');
   validation.errors.forEach((error) => console.error(`  - ${error}`));
 
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("Invalid configuration in production environment");
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Invalid configuration in production environment');
   }
   // In development, app continues with warnings
 }
@@ -641,12 +641,12 @@ const tokenRefresh = setInterval(
       const newToken = await getIdToken(user, true);
       setToken(newToken);
     } catch (err) {
-      console.error("Token refresh failed:", err);
+      console.error('Token refresh failed:', err);
       // If token refresh fails, sign out user
       await handleLogout();
     }
   },
-  50 * 60 * 1000,
+  50 * 60 * 1000
 ); // 50 minutes
 ```
 
@@ -696,7 +696,7 @@ const twimlAppSid = process.env.TWILIO_TWIML_APP_SID;
 
 if (!accountSid || !apiKey || !apiSecret || !twimlAppSid) {
   return res.status(500).json({
-    error: "Missing Twilio environment variables",
+    error: 'Missing Twilio environment variables',
   });
 }
 ```
@@ -764,8 +764,8 @@ const { displayName, email, firebaseUid } = body;
 
 if (!displayName || !email || !firebaseUid) {
   return NextResponse.json(
-    { error: "Missing required fields: displayName, email, firebaseUid" },
-    { status: 400 },
+    { error: 'Missing required fields: displayName, email, firebaseUid' },
+    { status: 400 }
   );
 }
 ```
@@ -860,27 +860,27 @@ if (!displayName || !email || !firebaseUid) {
 
 ```javascript
 // Create User.js model
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   firebaseUid: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   displayName: { type: String, required: true },
   twilioClientIdentity: { type: String, required: true },
-  role: { type: String, enum: ["user", "admin"], default: "user" },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   lastLoginAt: { type: Date },
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);
 ```
 
 ### 2. Implement Database Connection
 
 ```javascript
 // Create lib/db.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 let isConnected = false;
 
@@ -895,10 +895,10 @@ export async function connectDB() {
       useUnifiedTopology: true,
     });
     isConnected = true;
-    console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB');
   } catch (error) {
-    console.error("Database connection error:", error);
-    throw new Error("Database connection failed");
+    console.error('Database connection error:', error);
+    throw new Error('Database connection failed');
   }
 }
 ```
@@ -910,26 +910,23 @@ export async function connectDB() {
 export function errorHandler(err, req, res, next) {
   console.error(err.stack);
 
-  if (err.name === "ValidationError") {
+  if (err.name === 'ValidationError') {
     return res.status(400).json({
-      error: "Validation Error",
+      error: 'Validation Error',
       details: err.message,
     });
   }
 
-  if (err.name === "UnauthorizedError") {
+  if (err.name === 'UnauthorizedError') {
     return res.status(401).json({
-      error: "Unauthorized",
-      message: "Invalid or expired token",
+      error: 'Unauthorized',
+      message: 'Invalid or expired token',
     });
   }
 
   res.status(500).json({
-    error: "Internal Server Error",
-    message:
-      process.env.NODE_ENV === "production"
-        ? "Something went wrong"
-        : err.message,
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message,
   });
 }
 ```
@@ -943,7 +940,7 @@ export function validateInput(schema) {
     const { error } = schema.validate(req.body);
     if (error) {
       return res.status(400).json({
-        error: "Validation Error",
+        error: 'Validation Error',
         details: error.details[0].message,
       });
     }
@@ -956,13 +953,13 @@ export function validateInput(schema) {
 
 ```javascript
 // Create rate limiting middleware
-import rateLimit from "express-rate-limit";
+import rateLimit from 'express-rate-limit';
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: {
-    error: "Too many requests from this IP, please try again later.",
+    error: 'Too many requests from this IP, please try again later.',
   },
 });
 
@@ -970,7 +967,7 @@ export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // limit each IP to 5 login requests per windowMs
   message: {
-    error: "Too many login attempts, please try again later.",
+    error: 'Too many login attempts, please try again later.',
   },
 });
 ```
@@ -981,24 +978,24 @@ export const authLimiter = rateLimit({
 // Add to next.config.js
 const securityHeaders = [
   {
-    key: "X-DNS-Prefetch-Control",
-    value: "on",
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on',
   },
   {
-    key: "X-XSS-Protection",
-    value: "1; mode=block",
+    key: 'X-XSS-Protection',
+    value: '1; mode=block',
   },
   {
-    key: "X-Frame-Options",
-    value: "SAMEORIGIN",
+    key: 'X-Frame-Options',
+    value: 'SAMEORIGIN',
   },
   {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
   },
   {
-    key: "Referrer-Policy",
-    value: "origin-when-cross-origin",
+    key: 'Referrer-Policy',
+    value: 'origin-when-cross-origin',
   },
 ];
 ```
@@ -1009,7 +1006,7 @@ const securityHeaders = [
 // Create monitoring system
 export class ApplicationMonitor {
   static logError(error, context = {}) {
-    console.error("Application Error:", {
+    console.error('Application Error:', {
       message: error.message,
       stack: error.stack,
       context,
@@ -1018,7 +1015,7 @@ export class ApplicationMonitor {
   }
 
   static logPerformance(metric, value) {
-    console.log("Performance Metric:", {
+    console.log('Performance Metric:', {
       metric,
       value,
       timestamp: new Date().toISOString(),
@@ -1031,14 +1028,14 @@ export class ApplicationMonitor {
 
 ```javascript
 // Create test setup
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from '@jest/globals';
 
-describe("Authentication", () => {
-  it("should login with valid credentials", async () => {
+describe('Authentication', () => {
+  it('should login with valid credentials', async () => {
     // Test login functionality
   });
 
-  it("should reject invalid credentials", async () => {
+  it('should reject invalid credentials', async () => {
     // Test invalid login
   });
 });
@@ -1064,8 +1061,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "18"
-          cache: "yarn"
+          node-version: '18'
+          cache: 'yarn'
 
       - run: yarn install
       - run: yarn test

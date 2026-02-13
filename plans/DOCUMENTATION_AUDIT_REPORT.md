@@ -333,9 +333,7 @@ async function sendLegacyFCM(token, notification, data = {}) {
 
 ```javascript
 // hooks/useNotifications.js:31-61
-const registration = await navigator.serviceWorker.register(
-  "/firebase-messaging-sw.js",
-);
+const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
 // Registers service worker for push notifications
 ```
 

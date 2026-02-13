@@ -300,10 +300,10 @@ CareFlow supports dual calling modes with automatic fallback:
 const twilioConfigured = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN;
 
 if (twilioConfigured) {
-  mode = "twilio";
+  mode = 'twilio';
   // Use Twilio Voice SDK
 } else {
-  mode = "webrtc";
+  mode = 'webrtc';
   // Use WebRTC for peer-to-peer calls using care4wId
 }
 ```

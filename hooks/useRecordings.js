@@ -4,8 +4,8 @@
  * Following separation of concerns - data fetching only
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { fetchRecordings, deleteRecording } from "@/lib/api/recordings";
+import { useState, useEffect, useCallback } from 'react';
+import { fetchRecordings, deleteRecording } from '@/lib/api/recordings';
 
 export function useRecordings(authToken) {
   const [recordings, setRecordings] = useState([]);
@@ -16,7 +16,7 @@ export function useRecordings(authToken) {
   const fetch = useCallback(
     async (token = authToken) => {
       if (!token) {
-        setError("Authentication token is required");
+        setError('Authentication token is required');
         return [];
       }
 
@@ -34,14 +34,14 @@ export function useRecordings(authToken) {
         setIsLoading(false);
       }
     },
-    [authToken],
+    [authToken]
   );
 
   // Delete recording
   const remove = useCallback(
     async (recordingId) => {
       if (!authToken) {
-        setError("Authentication token is required");
+        setError('Authentication token is required');
         return false;
       }
 
@@ -54,7 +54,7 @@ export function useRecordings(authToken) {
         return false;
       }
     },
-    [authToken],
+    [authToken]
   );
 
   // Initial fetch

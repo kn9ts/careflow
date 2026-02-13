@@ -207,7 +207,7 @@ const tokenRefresh = setInterval(
       await handleLogout();
     }
   },
-  50 * 60 * 1000,
+  50 * 60 * 1000
 );
 ```
 
@@ -228,13 +228,13 @@ The server-side authentication utilities handle token verification and user mana
 
 ```javascript
 export async function verifyAuthToken(request) {
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get('authorization');
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { error: "Unauthorized - No token provided", status: 401 };
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { error: 'Unauthorized - No token provided', status: 401 };
   }
 
-  const token = authHeader.split("Bearer ")[1];
+  const token = authHeader.split('Bearer ')[1];
   const auth = getAdminAuth();
   const decodedToken = await auth.verifyIdToken(token);
 
@@ -540,9 +540,9 @@ class WebRTCManager {
 
 ```javascript
 const iceServers = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
 ];
 ```
 
@@ -784,7 +784,7 @@ class BackblazeStorage {
 const result = await backblazeStorage.uploadRecording(
   callId, // e.g., "CA123456"
   fileBuffer, // Audio file buffer
-  "recording.webm",
+  'recording.webm'
 );
 // Returns: { key: "recordings/CA123/1701234567-recording.webm", url: "..." }
 ```
@@ -850,7 +850,7 @@ export async function generateCare4wId() {
   const sequenceNumber = await getNextSequence();
 
   // Format: care4w-{7-digit-zero-padded-sequence}
-  const care4wId = `care4w-${sequenceNumber.toString().padStart(7, "0")}`;
+  const care4wId = `care4w-${sequenceNumber.toString().padStart(7, '0')}`;
 
   return { care4wId, sequenceNumber };
 }
@@ -858,11 +858,11 @@ export async function generateCare4wId() {
 async function getNextSequence() {
   // Uses MongoDB atomic increment
   const counter = await connection
-    .collection("counters")
+    .collection('counters')
     .findOneAndUpdate(
-      { _id: "care4wSequence" },
+      { _id: 'care4wSequence' },
       { $inc: { sequence: 1 } },
-      { upsert: true, returnDocument: "after" },
+      { upsert: true, returnDocument: 'after' }
     );
 
   // Start from 1000001
@@ -884,9 +884,7 @@ export function isValidCare4wId(care4wId) {
 
 ```javascript
 export async function lookupCare4wId(care4wId) {
-  const user = await User.findOne({ care4wId })
-    .select("displayName firebaseUid")
-    .lean();
+  const user = await User.findOne({ care4wId }).select('displayName firebaseUid').lean();
 
   if (user) {
     return {
@@ -1335,29 +1333,29 @@ const message = {
   message: {
     token, // FCM device token
     notification: {
-      title: "Incoming Call",
-      body: "Call from +1234567890",
-      icon: "/icon-192.png",
-      badge: "/badge-72.png",
-      click_action: "/dashboard",
+      title: 'Incoming Call',
+      body: 'Call from +1234567890',
+      icon: '/icon-192.png',
+      badge: '/badge-72.png',
+      click_action: '/dashboard',
     },
     data: {
-      type: "incoming_call",
-      callSid: "CA123456",
+      type: 'incoming_call',
+      callSid: 'CA123456',
       timestamp: new Date().toISOString(),
     },
     android: {
-      priority: "high",
+      priority: 'high',
       notification: {
-        channel_id: "incoming_calls",
-        sound: "default",
+        channel_id: 'incoming_calls',
+        sound: 'default',
       },
     },
     apns: {
       payload: {
         aps: {
           alert: { title, body },
-          sound: "default",
+          sound: 'default',
           badge: 1,
         },
       },

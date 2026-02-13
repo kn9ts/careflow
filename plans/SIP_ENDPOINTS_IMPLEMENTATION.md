@@ -44,16 +44,16 @@ graph TB
 
 ```yaml
 # docker-compose.sip.yml
-version: "3.8"
+version: '3.8'
 services:
   kamailio:
     image: kamailio/kamailio:5.7
     container_name: careflow-sip
     ports:
-      - "5060:5060/udp" # SIP UDP
-      - "5060:5060/tcp" # SIP TCP
-      - "5061:5061/tls" # SIP TLS
-      - "8080:8080" # REST API
+      - '5060:5060/udp' # SIP UDP
+      - '5060:5060/tcp' # SIP TCP
+      - '5061:5061/tls' # SIP TLS
+      - '8080:8080' # REST API
     volumes:
       - ./config/kamailio.cfg:/etc/kamailio/kamailio.cfg:ro
       - ./config/kamailio.d:/etc/kamailio/:ro
@@ -228,7 +228,7 @@ CREATE TABLE subscriber (
 
 ```javascript
 // app/api/sip/register/route.js
-import { connectDB } from "@/lib/db";
+import { connectDB } from '@/lib/db';
 
 export async function POST(request) {
   try {
@@ -236,11 +236,11 @@ export async function POST(request) {
     const { careflowUserId, sipUsername, sipPassword } = body;
 
     // Verify user exists in CareFlow
-    const User = (await import("@/models/User")).default;
+    const User = (await import('@/models/User')).default;
     const user = await User.findOne({ firebaseUid: careflowUserId });
 
     if (!user) {
-      return Response.json({ error: "User not found" }, { status: 404 });
+      return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Create SIP credentials in Kamailio database
@@ -251,23 +251,23 @@ export async function POST(request) {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         sipUsername,
-        "sip.careflow.io",
+        'sip.careflow.io',
         sipPassword,
-        generateHA1(sipUsername, "sip.careflow.io", sipPassword),
-        generateHA1b(sipUsername, "sip.careflow.io", sipPassword),
+        generateHA1(sipUsername, 'sip.careflow.io', sipPassword),
+        generateHA1b(sipUsername, 'sip.careflow.io', sipPassword),
         careflowUserId,
         user.care4wId,
         user.email,
-      ],
+      ]
     );
 
     return Response.json({
       success: true,
       sipConfig: {
-        domain: "sip.careflow.io",
+        domain: 'sip.careflow.io',
         port: 5060,
         tlsPort: 5061,
-        transport: "udp,tcp,tls",
+        transport: 'udp,tcp,tls',
       },
     });
   } catch (error) {
@@ -278,7 +278,7 @@ export async function POST(request) {
 // GET endpoint to retrieve SIP credentials
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const careflowUserId = searchParams.get("userId");
+  const careflowUserId = searchParams.get('userId');
 
   // Return SIP credentials for the user
   // In production, fetch from secure storage
@@ -289,36 +289,30 @@ export async function GET(request) {
 
 ```javascript
 // lib/sipCredentials.js
-import crypto from "crypto";
+import crypto from 'crypto';
 
 export function generateSIPCredentials(userId, care4wId) {
   // Username format: careflow_[userId]
   const username = `careflow_${userId.slice(0, 8)}`;
 
   // Generate secure random password (16 chars)
-  const password = crypto.randomBytes(8).toString("hex");
+  const password = crypto.randomBytes(8).toString('hex');
 
   return {
     username,
     password,
     displayName: care4wId,
-    domain: "sip.careflow.io",
-    realm: "sip.careflow.io",
+    domain: 'sip.careflow.io',
+    realm: 'sip.careflow.io',
   };
 }
 
 export function generateHA1(username, realm, password) {
-  return crypto
-    .createHash("md5")
-    .update(`${username}:${realm}:${password}`)
-    .digest("hex");
+  return crypto.createHash('md5').update(`${username}:${realm}:${password}`).digest('hex');
 }
 
 export function generateHA1b(username, realm, password) {
-  return crypto
-    .createHash("md5")
-    .update(`${username}:${realm}:${password}`)
-    .digest("hex");
+  return crypto.createHash('md5').update(`${username}:${realm}:${password}`).digest('hex');
 }
 ```
 
@@ -407,15 +401,15 @@ export default function SIPSettings({ user }) {
   const generateCredentials = async () => {
     setGenerating(true);
     try {
-      const response = await fetch("/api/sip/register", {
-        method: "POST",
+      const response = await fetch('/api/sip/register', {
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({ careflowUserId: user.uid }),
       });
       const data = await response.json();
       setCredentials(data);
     } catch (error) {
-      console.error("Failed to generate SIP credentials:", error);
+      console.error('Failed to generate SIP credentials:', error);
     } finally {
       setGenerating(false);
     }
@@ -427,7 +421,7 @@ export default function SIPSettings({ user }) {
 
       {!credentials ? (
         <button onClick={generateCredentials} disabled={generating}>
-          {generating ? "Generating..." : "Generate SIP Credentials"}
+          {generating ? 'Generating...' : 'Generate SIP Credentials'}
         </button>
       ) : (
         <div className="credentials">
@@ -439,7 +433,7 @@ export default function SIPSettings({ user }) {
           <button
             onClick={() =>
               navigator.clipboard.writeText(
-                `sip:${credentials.username}@${credentials.sipConfig.domain}`,
+                `sip:${credentials.username}@${credentials.sipConfig.domain}`
               )
             }
           >

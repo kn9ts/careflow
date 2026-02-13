@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ProtectedRoute({ children }) {
   const router = useRouter();
@@ -11,9 +11,7 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     // Check for existing token on initial mount and when auth state changes
     const storedToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("careflow_token")
-        : null;
+      typeof window !== 'undefined' ? localStorage.getItem('careflow_token') : null;
 
     // If we have either a Firebase user or a stored token, grant access
     if (currentUser || storedToken) {
@@ -22,7 +20,7 @@ export default function ProtectedRoute({ children }) {
 
     // If Firebase has finished loading and no user/token, redirect to login
     if (!loading && !currentUser && !storedToken) {
-      router.push("/login");
+      router.push('/login');
     }
 
     // Mark initial auth check as complete
@@ -33,7 +31,7 @@ export default function ProtectedRoute({ children }) {
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background-dark flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-red"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-red" />
       </div>
     );
   }

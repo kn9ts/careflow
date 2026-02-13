@@ -10,47 +10,41 @@
  * - Notification preferences
  */
 
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require('@playwright/test');
 
 // Test configuration
 const TEST_CONFIG = {
-  baseUrl: process.env.E2E_BASE_URL || "http://localhost:3001",
+  baseUrl: process.env.E2E_BASE_URL || 'http://localhost:3001',
 };
 
 // =====================================================
 // TEST SUITE: NOTIFICATION PERMISSIONS
 // =====================================================
 
-test.describe("Notification Permissions", () => {
+test.describe('Notification Permissions', () => {
   test.beforeEach(async ({ page }) => {
     // Login before each test
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
 
-  test("should show notification permission prompt", async ({ page }) => {
+  test('should show notification permission prompt', async ({ page }) => {
     // Navigate to settings or trigger permission prompt
     await page.click('[data-testid="settings-tab"]');
 
     // Check for notification permission section
-    await expect(
-      page.locator('[data-testid="notification-settings"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="notification-settings"]')).toBeVisible();
   });
 
-  test("should request notification permission when enabled", async ({
-    page,
-  }) => {
+  test('should request notification permission when enabled', async ({ page }) => {
     // Navigate to settings
     await page.click('[data-testid="settings-tab"]');
 
     // Enable notifications
-    const enableButton = page.locator(
-      '[data-testid="enable-notifications-button"]',
-    );
+    const enableButton = page.locator('[data-testid="enable-notifications-button"]');
     if (await enableButton.isVisible()) {
       await enableButton.click();
 
@@ -59,27 +53,23 @@ test.describe("Notification Permissions", () => {
     }
   });
 
-  test("should display notification permission status", async ({ page }) => {
+  test('should display notification permission status', async ({ page }) => {
     // Navigate to settings
     await page.click('[data-testid="settings-tab"]');
 
     // Check permission status display
-    const statusBadge = page.locator(
-      '[data-testid="notification-permission-status"]',
-    );
+    const statusBadge = page.locator('[data-testid="notification-permission-status"]');
     if (await statusBadge.isVisible()) {
       const status = await statusBadge.textContent();
       expect(status).toMatch(/granted|denied|default/i);
     }
   });
 
-  test("should show warning when notifications are denied", async ({
-    page,
-  }) => {
+  test('should show warning when notifications are denied', async ({ page }) => {
     // Simulate denied permission
     await page.evaluate(() => {
-      Object.defineProperty(window.Notification, "permission", {
-        value: "denied",
+      Object.defineProperty(window.Notification, 'permission', {
+        value: 'denied',
         configurable: true,
       });
     });
@@ -99,36 +89,34 @@ test.describe("Notification Permissions", () => {
 // TEST SUITE: FCM TOKEN REGISTRATION
 // =====================================================
 
-test.describe("FCM Token Registration", () => {
+test.describe('FCM Token Registration', () => {
   test.beforeEach(async ({ page }) => {
     // Login
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
 
-  test("should register FCM token on notification enable", async ({ page }) => {
+  test('should register FCM token on notification enable', async ({ page }) => {
     // Grant notification permission and enable
-    await page.context().grantPermissions(["notifications"]);
+    await page.context().grantPermissions(['notifications']);
 
     await page.click('[data-testid="settings-tab"]');
 
-    const enableButton = page.locator(
-      '[data-testid="enable-notifications-button"]',
-    );
+    const enableButton = page.locator('[data-testid="enable-notifications-button"]');
     if (await enableButton.isVisible()) {
       await enableButton.click();
 
       // Check for success message
-      await expect(page.locator("text=/enabled|registered/i")).toBeVisible({
+      await expect(page.locator('text=/enabled|registered/i')).toBeVisible({
         timeout: 5000,
       });
     }
   });
 
-  test("should show FCM token status", async ({ page }) => {
+  test('should show FCM token status', async ({ page }) => {
     // Navigate to settings
     await page.click('[data-testid="settings-tab"]');
 
@@ -140,21 +128,17 @@ test.describe("FCM Token Registration", () => {
     }
   });
 
-  test("should unregister FCM token when notifications disabled", async ({
-    page,
-  }) => {
+  test('should unregister FCM token when notifications disabled', async ({ page }) => {
     // Navigate to settings
     await page.click('[data-testid="settings-tab"]');
 
     // Disable notifications
-    const disableButton = page.locator(
-      '[data-testid="disable-notifications-button"]',
-    );
+    const disableButton = page.locator('[data-testid="disable-notifications-button"]');
     if (await disableButton.isVisible()) {
       await disableButton.click();
 
       // Check for confirmation
-      await expect(page.locator("text=/disabled|unregistered/i")).toBeVisible({
+      await expect(page.locator('text=/disabled|unregistered/i')).toBeVisible({
         timeout: 5000,
       });
     }
@@ -165,88 +149,85 @@ test.describe("FCM Token Registration", () => {
 // TEST SUITE: INCOMING CALL NOTIFICATIONS
 // =====================================================
 
-test.describe("Incoming Call Notifications", () => {
+test.describe('Incoming Call Notifications', () => {
   test.beforeEach(async ({ page }) => {
     // Login and grant notification permission
-    await page.context().grantPermissions(["notifications"]);
+    await page.context().grantPermissions(['notifications']);
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
 
-  test("should show incoming call notification", async ({ page }) => {
+  test('should show incoming call notification', async ({ page }) => {
     // Simulate incoming call notification
     await page.evaluate(() => {
       // Simulate FCM message
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Incoming Call",
-              body: "Call from +1234567890",
+              title: 'Incoming Call',
+              body: 'Call from +1234567890',
             },
             data: {
-              type: "incoming_call",
-              from: "+1234567890",
-              callSid: "CA1234567890",
+              type: 'incoming_call',
+              from: '+1234567890',
+              callSid: 'CA1234567890',
             },
           },
-        }),
+        })
       );
     });
 
     // Check for incoming call UI
-    await expect(
-      page.locator('[data-testid="incoming-call-modal"]'),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="incoming-call-modal"]')).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test("should display caller information in notification", async ({
-    page,
-  }) => {
+  test('should display caller information in notification', async ({ page }) => {
     // Simulate incoming call
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Incoming Call",
-              body: "Call from +1234567890",
+              title: 'Incoming Call',
+              body: 'Call from +1234567890',
             },
             data: {
-              type: "incoming_call",
-              from: "+1234567890",
+              type: 'incoming_call',
+              from: '+1234567890',
             },
           },
-        }),
+        })
       );
     });
 
     // Check caller info
-    await expect(page.locator('[data-testid="caller-id"]')).toContainText(
-      "+1234567890",
-      { timeout: 5000 },
-    );
+    await expect(page.locator('[data-testid="caller-id"]')).toContainText('+1234567890', {
+      timeout: 5000,
+    });
   });
 
-  test("should handle notification click to answer call", async ({ page }) => {
+  test('should handle notification click to answer call', async ({ page }) => {
     // Simulate incoming call
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Incoming Call",
-              body: "Call from +1234567890",
+              title: 'Incoming Call',
+              body: 'Call from +1234567890',
             },
             data: {
-              type: "incoming_call",
-              from: "+1234567890",
+              type: 'incoming_call',
+              from: '+1234567890',
             },
           },
-        }),
+        })
       );
     });
 
@@ -259,24 +240,22 @@ test.describe("Incoming Call Notifications", () => {
     });
   });
 
-  test("should handle notification dismiss to reject call", async ({
-    page,
-  }) => {
+  test('should handle notification dismiss to reject call', async ({ page }) => {
     // Simulate incoming call
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Incoming Call",
-              body: "Call from +1234567890",
+              title: 'Incoming Call',
+              body: 'Call from +1234567890',
             },
             data: {
-              type: "incoming_call",
-              from: "+1234567890",
+              type: 'incoming_call',
+              from: '+1234567890',
             },
           },
-        }),
+        })
       );
     });
 
@@ -284,9 +263,9 @@ test.describe("Incoming Call Notifications", () => {
     await page.click('[data-testid="reject-call-button"]');
 
     // Verify modal is closed
-    await expect(
-      page.locator('[data-testid="incoming-call-modal"]'),
-    ).not.toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid="incoming-call-modal"]')).not.toBeVisible({
+      timeout: 3000,
+    });
   });
 });
 
@@ -294,59 +273,59 @@ test.describe("Incoming Call Notifications", () => {
 // TEST SUITE: MISSED CALL NOTIFICATIONS
 // =====================================================
 
-test.describe("Missed Call Notifications", () => {
+test.describe('Missed Call Notifications', () => {
   test.beforeEach(async ({ page }) => {
     // Login
-    await page.context().grantPermissions(["notifications"]);
+    await page.context().grantPermissions(['notifications']);
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
 
-  test("should show missed call notification", async ({ page }) => {
+  test('should show missed call notification', async ({ page }) => {
     // Simulate missed call
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Missed Call",
-              body: "You missed a call from +1234567890",
+              title: 'Missed Call',
+              body: 'You missed a call from +1234567890',
             },
             data: {
-              type: "missed_call",
-              from: "+1234567890",
+              type: 'missed_call',
+              from: '+1234567890',
               timestamp: new Date().toISOString(),
             },
           },
-        }),
+        })
       );
     });
 
     // Check for missed call indicator
-    await expect(
-      page.locator('[data-testid="missed-call-indicator"]'),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="missed-call-indicator"]')).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test("should update missed call count badge", async ({ page }) => {
+  test('should update missed call count badge', async ({ page }) => {
     // Simulate missed call
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Missed Call",
-              body: "You missed a call from +1234567890",
+              title: 'Missed Call',
+              body: 'You missed a call from +1234567890',
             },
             data: {
-              type: "missed_call",
-              from: "+1234567890",
+              type: 'missed_call',
+              from: '+1234567890',
             },
           },
-        }),
+        })
       );
     });
 
@@ -358,22 +337,22 @@ test.describe("Missed Call Notifications", () => {
     }
   });
 
-  test("should add missed call to history", async ({ page }) => {
+  test('should add missed call to history', async ({ page }) => {
     // Simulate missed call
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "Missed Call",
-              body: "You missed a call from +1234567890",
+              title: 'Missed Call',
+              body: 'You missed a call from +1234567890',
             },
             data: {
-              type: "missed_call",
-              from: "+1234567890",
+              type: 'missed_call',
+              from: '+1234567890',
             },
           },
-        }),
+        })
       );
     });
 
@@ -381,9 +360,7 @@ test.describe("Missed Call Notifications", () => {
     await page.click('[data-testid="history-tab"]');
 
     // Check for missed call in list
-    await expect(page.locator('[data-testid="call-item"]').first()).toBeVisible(
-      { timeout: 5000 },
-    );
+    await expect(page.locator('[data-testid="call-item"]').first()).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -391,58 +368,58 @@ test.describe("Missed Call Notifications", () => {
 // TEST SUITE: VOICEMAIL NOTIFICATIONS
 // =====================================================
 
-test.describe("Voicemail Notifications", () => {
+test.describe('Voicemail Notifications', () => {
   test.beforeEach(async ({ page }) => {
     // Login
-    await page.context().grantPermissions(["notifications"]);
+    await page.context().grantPermissions(['notifications']);
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
   });
 
-  test("should show voicemail notification", async ({ page }) => {
+  test('should show voicemail notification', async ({ page }) => {
     // Simulate voicemail notification
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "New Voicemail",
-              body: "You have a new voicemail from +1234567890",
+              title: 'New Voicemail',
+              body: 'You have a new voicemail from +1234567890',
             },
             data: {
-              type: "voicemail",
-              from: "+1234567890",
-              recordingUrl: "https://example.com/voicemail.mp3",
+              type: 'voicemail',
+              from: '+1234567890',
+              recordingUrl: 'https://example.com/voicemail.mp3',
             },
           },
-        }),
+        })
       );
     });
 
     // Check for voicemail indicator
-    await expect(
-      page.locator('[data-testid="voicemail-indicator"]'),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="voicemail-indicator"]')).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test("should update voicemail count badge", async ({ page }) => {
+  test('should update voicemail count badge', async ({ page }) => {
     // Simulate voicemail
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "New Voicemail",
-              body: "You have a new voicemail",
+              title: 'New Voicemail',
+              body: 'You have a new voicemail',
             },
             data: {
-              type: "voicemail",
+              type: 'voicemail',
             },
           },
-        }),
+        })
       );
     });
 
@@ -454,23 +431,21 @@ test.describe("Voicemail Notifications", () => {
     }
   });
 
-  test("should navigate to recordings on voicemail notification click", async ({
-    page,
-  }) => {
+  test('should navigate to recordings on voicemail notification click', async ({ page }) => {
     // Simulate voicemail notification click
     await page.evaluate(() => {
       window.dispatchEvent(
-        new CustomEvent("fcm-message", {
+        new CustomEvent('fcm-message', {
           detail: {
             notification: {
-              title: "New Voicemail",
-              body: "You have a new voicemail",
+              title: 'New Voicemail',
+              body: 'You have a new voicemail',
             },
             data: {
-              type: "voicemail",
+              type: 'voicemail',
             },
           },
-        }),
+        })
       );
     });
 
@@ -480,9 +455,9 @@ test.describe("Voicemail Notifications", () => {
       await indicator.click();
 
       // Should navigate to recordings
-      await expect(
-        page.locator('[data-testid="recordings-content"]'),
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="recordings-content"]')).toBeVisible({
+        timeout: 5000,
+      });
     }
   });
 });
@@ -491,25 +466,23 @@ test.describe("Voicemail Notifications", () => {
 // TEST SUITE: NOTIFICATION PREFERENCES
 // =====================================================
 
-test.describe("Notification Preferences", () => {
+test.describe('Notification Preferences', () => {
   test.beforeEach(async ({ page }) => {
     // Login
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     await page.click('[data-testid="settings-tab"]');
   });
 
-  test("should display notification preferences", async ({ page }) => {
+  test('should display notification preferences', async ({ page }) => {
     // Check for preferences section
-    await expect(
-      page.locator('[data-testid="notification-preferences"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="notification-preferences"]')).toBeVisible();
   });
 
-  test("should toggle incoming call notifications", async ({ page }) => {
+  test('should toggle incoming call notifications', async ({ page }) => {
     // Find toggle
     const toggle = page.locator('[data-testid="incoming-calls-toggle"]');
 
@@ -525,7 +498,7 @@ test.describe("Notification Preferences", () => {
     }
   });
 
-  test("should toggle missed call notifications", async ({ page }) => {
+  test('should toggle missed call notifications', async ({ page }) => {
     const toggle = page.locator('[data-testid="missed-calls-toggle"]');
 
     if (await toggle.isVisible()) {
@@ -535,7 +508,7 @@ test.describe("Notification Preferences", () => {
     }
   });
 
-  test("should toggle voicemail notifications", async ({ page }) => {
+  test('should toggle voicemail notifications', async ({ page }) => {
     const toggle = page.locator('[data-testid="voicemail-toggle"]');
 
     if (await toggle.isVisible()) {
@@ -545,7 +518,7 @@ test.describe("Notification Preferences", () => {
     }
   });
 
-  test("should toggle email notifications", async ({ page }) => {
+  test('should toggle email notifications', async ({ page }) => {
     const toggle = page.locator('[data-testid="email-notifications-toggle"]');
 
     if (await toggle.isVisible()) {
@@ -555,7 +528,7 @@ test.describe("Notification Preferences", () => {
     }
   });
 
-  test("should save notification preferences", async ({ page }) => {
+  test('should save notification preferences', async ({ page }) => {
     // Change a preference
     const toggle = page.locator('[data-testid="incoming-calls-toggle"]');
     if (await toggle.isVisible()) {
@@ -566,7 +539,7 @@ test.describe("Notification Preferences", () => {
     await page.click('[data-testid="save-preferences-button"]');
 
     // Check for success message
-    await expect(page.locator("text=/saved|updated/i")).toBeVisible({
+    await expect(page.locator('text=/saved|updated/i')).toBeVisible({
       timeout: 5000,
     });
   });
@@ -576,18 +549,18 @@ test.describe("Notification Preferences", () => {
 // TEST SUITE: NOTIFICATION SOUND
 // =====================================================
 
-test.describe("Notification Sound", () => {
+test.describe('Notification Sound', () => {
   test.beforeEach(async ({ page }) => {
     // Login
     await page.goto(`${TEST_CONFIG.baseUrl}/login`);
-    await page.fill('[data-testid="email-input"]', "test@example.com");
-    await page.fill('[data-testid="password-input"]', "TestPassword123!");
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
     await page.click('[data-testid="login-button"]');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     await page.click('[data-testid="settings-tab"]');
   });
 
-  test("should toggle notification sound", async ({ page }) => {
+  test('should toggle notification sound', async ({ page }) => {
     const toggle = page.locator('[data-testid="notification-sound-toggle"]');
 
     if (await toggle.isVisible()) {
@@ -597,7 +570,7 @@ test.describe("Notification Sound", () => {
     }
   });
 
-  test("should play test notification sound", async ({ page }) => {
+  test('should play test notification sound', async ({ page }) => {
     const testButton = page.locator('[data-testid="test-notification-sound"]');
 
     if (await testButton.isVisible()) {
@@ -605,7 +578,7 @@ test.describe("Notification Sound", () => {
 
       // Audio would play - we can't easily verify this in tests
       // But we can check for visual feedback
-      await expect(page.locator("text=/playing|sound played/i")).toBeVisible({
+      await expect(page.locator('text=/playing|sound played/i')).toBeVisible({
         timeout: 2000,
       });
     }

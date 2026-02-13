@@ -1,14 +1,10 @@
-import { connectDB } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
-import Recording from "@/models/Recording";
-import {
-  successResponse,
-  errorResponse,
-  handleAuthResult,
-} from "@/lib/apiResponse";
+import { connectDB } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
+import Recording from '@/models/Recording';
+import { successResponse, errorResponse, handleAuthResult } from '@/lib/apiResponse';
 
 // Force dynamic rendering - this route uses request.headers for auth
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 /**
  * DELETE /api/calls/[id]
@@ -25,7 +21,7 @@ export async function DELETE(request, { params }) {
     await connectDB();
 
     const { id } = params;
-    const firebaseUid = auth.user.firebaseUid;
+    const { firebaseUid } = auth.user;
 
     // Find the recording
     const recording = await Recording.findOne({
@@ -34,9 +30,9 @@ export async function DELETE(request, { params }) {
     });
 
     if (!recording) {
-      return errorResponse("Recording not found", {
+      return errorResponse('Recording not found', {
         status: 404,
-        code: "RECORDING_NOT_FOUND",
+        code: 'RECORDING_NOT_FOUND',
       });
     }
 
@@ -48,14 +44,14 @@ export async function DELETE(request, { params }) {
     // If you need to delete from S3, you would need to add that logic here
 
     return successResponse({
-      message: "Recording deleted successfully",
+      message: 'Recording deleted successfully',
       deletedId: recording._id,
     });
   } catch (error) {
-    console.error("Delete recording error:", error);
-    return errorResponse("Failed to delete recording", {
+    console.error('Delete recording error:', error);
+    return errorResponse('Failed to delete recording', {
       status: 500,
-      code: "DELETE_RECORDING_FAILED",
+      code: 'DELETE_RECORDING_FAILED',
     });
   }
 }
@@ -75,7 +71,7 @@ export async function GET(request, { params }) {
     await connectDB();
 
     const { id } = params;
-    const firebaseUid = auth.user.firebaseUid;
+    const { firebaseUid } = auth.user;
 
     // Find the recording
     const recording = await Recording.findOne({
@@ -84,9 +80,9 @@ export async function GET(request, { params }) {
     });
 
     if (!recording) {
-      return errorResponse("Recording not found", {
+      return errorResponse('Recording not found', {
         status: 404,
-        code: "RECORDING_NOT_FOUND",
+        code: 'RECORDING_NOT_FOUND',
       });
     }
 
@@ -105,10 +101,10 @@ export async function GET(request, { params }) {
       },
     });
   } catch (error) {
-    console.error("Get recording error:", error);
-    return errorResponse("Failed to fetch recording", {
+    console.error('Get recording error:', error);
+    return errorResponse('Failed to fetch recording', {
       status: 500,
-      code: "GET_RECORDING_FAILED",
+      code: 'GET_RECORDING_FAILED',
     });
   }
 }

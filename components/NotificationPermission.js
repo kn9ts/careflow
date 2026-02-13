@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { requestNotificationPermission, getFCMToken } from "@/lib/firebase";
+import React, { useState, useEffect } from 'react';
+import { requestNotificationPermission, getFCMToken } from '@/lib/firebase';
 
 export default function NotificationPermission({ onTokenRegistered }) {
-  const [permission, setPermission] = useState("default");
+  const [permission, setPermission] = useState('default');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     // Check current permission status
-    if (typeof window !== "undefined" && "Notification" in window) {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
       setPermission(Notification.permission);
     }
   }, []);
@@ -23,7 +23,7 @@ export default function NotificationPermission({ onTokenRegistered }) {
       const granted = await requestNotificationPermission();
 
       if (granted) {
-        setPermission("granted");
+        setPermission('granted');
 
         // Get FCM token
         const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
@@ -31,10 +31,10 @@ export default function NotificationPermission({ onTokenRegistered }) {
 
         if (token) {
           // Register token with backend
-          const response = await fetch("/api/notifications/register", {
-            method: "POST",
+          const response = await fetch('/api/notifications/register', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               fcmToken: token,
@@ -47,23 +47,23 @@ export default function NotificationPermission({ onTokenRegistered }) {
           });
 
           if (response.ok) {
-            console.log("Notification token registered successfully");
+            console.log('Notification token registered successfully');
             if (onTokenRegistered) {
               onTokenRegistered(token);
             }
           } else {
-            throw new Error("Failed to register notification token");
+            throw new Error('Failed to register notification token');
           }
         } else {
-          throw new Error("Failed to get FCM token");
+          throw new Error('Failed to get FCM token');
         }
       } else {
-        setPermission("denied");
-        setError("Notification permission was denied");
+        setPermission('denied');
+        setError('Notification permission was denied');
       }
     } catch (err) {
-      console.error("Notification permission error:", err);
-      setError(err.message || "Failed to enable notifications");
+      console.error('Notification permission error:', err);
+      setError(err.message || 'Failed to enable notifications');
     } finally {
       setLoading(false);
     }
@@ -75,11 +75,11 @@ export default function NotificationPermission({ onTokenRegistered }) {
   // - Dismissed by user
   // - Not supported
   if (
-    permission === "granted" ||
-    permission === "denied" ||
+    permission === 'granted' ||
+    permission === 'denied' ||
     dismissed ||
-    typeof window === "undefined" ||
-    !("Notification" in window)
+    typeof window === 'undefined' ||
+    !('Notification' in window)
   ) {
     return null;
   }
@@ -106,12 +106,10 @@ export default function NotificationPermission({ onTokenRegistered }) {
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-white mb-2">
-              Enable Notifications
-            </h3>
+            <h3 className="text-lg font-semibold text-white mb-2">Enable Notifications</h3>
             <p className="text-gray-400 text-sm mb-4">
-              Get notified about incoming calls even when your browser is
-              closed. Stay connected with CareFlow.
+              Get notified about incoming calls even when your browser is closed. Stay connected
+              with CareFlow.
             </p>
             {error && (
               <div className="bg-red-600/20 border border-red-600/30 rounded-lg p-3 mb-4">
@@ -124,7 +122,7 @@ export default function NotificationPermission({ onTokenRegistered }) {
                 disabled={loading}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Enabling..." : "Enable Notifications"}
+                {loading ? 'Enabling...' : 'Enable Notifications'}
               </button>
               <button
                 onClick={() => setDismissed(true)}

@@ -3,9 +3,9 @@
  * Displays analytics data and charts
  */
 
-import { RefreshCw } from "lucide-react";
-import Analytics from "@/components/dashboard/Analytics";
-import { CardSkeleton } from "@/components/common/Loading/LoadingComponents";
+import { RefreshCw } from 'lucide-react';
+import Analytics from '@/components/dashboard/Analytics';
+import { CardSkeleton } from '@/components/common/Loading/LoadingComponents';
 
 export default function AnalyticsTab({
   analytics,
@@ -17,12 +17,8 @@ export default function AnalyticsTab({
     <div className="analytics-tab">
       <div className="tab-header">
         <h2 className="tab-title">Analytics</h2>
-        <button
-          onClick={onRefreshAnalytics}
-          className="refresh-btn"
-          disabled={analyticsLoading}
-        >
-          <RefreshCw size={16} className={analyticsLoading ? "spinning" : ""} />
+        <button onClick={onRefreshAnalytics} className="refresh-btn" disabled={analyticsLoading}>
+          <RefreshCw size={16} className={analyticsLoading ? 'spinning' : ''} />
           Refresh
         </button>
       </div>

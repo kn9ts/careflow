@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   // Firebase Auth ID (primary identifier)
@@ -16,10 +16,10 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
     validate: {
-      validator: function (v) {
+      validator(v) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
-      message: "Invalid email format",
+      message: 'Invalid email format',
     },
   },
   displayName: {
@@ -31,14 +31,14 @@ const userSchema = new mongoose.Schema({
   },
   photoURL: {
     type: String,
-    default: "",
+    default: '',
   },
 
   // Role & Permissions
   role: {
     type: String,
-    enum: ["user", "admin"],
-    default: "user",
+    enum: ['user', 'admin'],
+    default: 'user',
     required: true,
   },
 
@@ -53,12 +53,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
     validate: {
-      validator: function (v) {
+      validator(v) {
         if (!v) return true; // Allow null/empty
         return /^\+?[1-9]\d{1,14}$/.test(v);
       },
-      message:
-        "Invalid phone number format. Use E.164 format (e.g., +1234567890)",
+      message: 'Invalid phone number format. Use E.164 format (e.g., +1234567890)',
     },
   },
   twilioClientIdentity: {
@@ -133,7 +132,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Update updatedAt before saving
-userSchema.pre("save", function (next) {
+userSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
@@ -145,4 +144,4 @@ userSchema.index({ isActive: 1, lastLoginAt: -1 }); // For finding active users 
 userSchema.index({ role: 1, isActive: 1 }); // For filtering users by role and status
 userSchema.index({ createdAt: -1 }); // For sorting users by creation date
 
-export default mongoose.models.User || mongoose.model("User", userSchema);
+export default mongoose.models.User || mongoose.model('User', userSchema);

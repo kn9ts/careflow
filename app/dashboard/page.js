@@ -9,63 +9,55 @@
  * - Error handling: ErrorBoundary component
  */
 
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 // Context Providers
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { CallStateProvider, useCallState } from "@/hooks/useCallState";
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { CallStateProvider, useCallState } from '@/hooks/useCallState';
 
 // Components
-import ProtectedRoute from "@/components/ProtectedRoute/ProtectedRoute";
-import ErrorBoundary from "@/components/common/ErrorBoundary/ErrorBoundary";
-import { ErrorDisplay } from "@/components/common/ErrorBoundary/ErrorBoundary";
-import DashboardHeader from "@/components/layout/DashboardHeader";
-import DashboardSidebar from "@/components/layout/DashboardSidebar";
-import { SidebarTabContent } from "@/components/layout/DashboardSidebar";
+import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import ErrorBoundary, { ErrorDisplay } from '@/components/common/ErrorBoundary/ErrorBoundary';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import DashboardSidebar, { SidebarTabContent } from '@/components/layout/DashboardSidebar';
 
 // Dashboard Components
-import DialPadModal from "@/components/dashboard/DialPadModal";
-import NotificationPermission from "@/components/NotificationPermission";
+import DialPadModal from '@/components/dashboard/DialPadModal';
+import NotificationPermission from '@/components/NotificationPermission';
 
 // Hooks
-import { useRecordings } from "@/hooks/useRecordings";
-import { useAnalytics } from "@/hooks/useAnalytics";
-import { useCallHistory } from "@/hooks/useCallHistory";
-import { useCallManager } from "@/hooks/useCallManager";
-import { useAudioRecorder } from "@/hooks/useAudioRecorder";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useRecordings } from '@/hooks/useRecordings';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useCallHistory } from '@/hooks/useCallHistory';
+import { useCallManager } from '@/hooks/useCallManager';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Tab Content Components
-import DialerTab from "./tabs/DialerTab";
-import HistoryTab from "./tabs/HistoryTab";
-import AnalyticsTab from "./tabs/AnalyticsTab";
-import RecordingsTab from "./tabs/RecordingsTab";
+import DialerTab from './tabs/DialerTab';
+import HistoryTab from './tabs/HistoryTab';
+import AnalyticsTab from './tabs/AnalyticsTab';
+import RecordingsTab from './tabs/RecordingsTab';
 
 // Tab configurations
 const TABS = [
-  { id: "dialer", label: "Dialer", component: DialerTab },
-  { id: "history", label: "Call History", component: HistoryTab },
-  { id: "analytics", label: "Analytics", component: AnalyticsTab },
-  { id: "recordings", label: "Recordings", component: RecordingsTab },
+  { id: 'dialer', label: 'Dialer', component: DialerTab },
+  { id: 'history', label: 'Call History', component: HistoryTab },
+  { id: 'analytics', label: 'Analytics', component: AnalyticsTab },
+  { id: 'recordings', label: 'Recordings', component: RecordingsTab },
 ];
 
 // Dashboard content component
 function DashboardContent() {
   const { user, token } = useAuth();
-  const [activeTab, setActiveTab] = useState("dialer");
+  const [activeTab, setActiveTab] = useState('dialer');
   const [isDialPadOpen, setIsDialPadOpen] = useState(false);
 
   // Call state from useCallState hook
-  const {
-    phoneNumber,
-    callStatus,
-    callDuration,
-    callError,
-    isMuted,
-    setPhoneNumber,
-  } = useCallState();
+  const { phoneNumber, callStatus, callDuration, callError, isMuted, setPhoneNumber } =
+    useCallState();
 
   // Data hooks - only run if we have a token
   const {
@@ -97,7 +89,7 @@ function DashboardContent() {
   const notifications = useNotifications({
     token,
     onIncomingCall: (callData) => {
-      console.log("Incoming call notification:", callData);
+      console.log('Incoming call notification:', callData);
     },
   });
 
@@ -112,7 +104,7 @@ function DashboardContent() {
   }, []);
 
   const handleCloseDialPad = useCallback(() => {
-    console.log("Closing dial pad...");
+    console.log('Closing dial pad...');
     setIsDialPadOpen(false);
   }, []);
 
@@ -122,10 +114,8 @@ function DashboardContent() {
   return (
     <div className="dashboard-layout">
       {/* Notifications Permission */}
-      {notifications.isSupported && notifications.permission === "default" && (
-        <NotificationPermission
-          onTokenRegistered={notifications.registerToken}
-        />
+      {notifications.isSupported && notifications.permission === 'default' && (
+        <NotificationPermission onTokenRegistered={notifications.registerToken} />
       )}
 
       {/* Header */}
@@ -186,6 +176,7 @@ function DashboardContent() {
         onAccept={callManager.acceptCall}
         onReject={callManager.rejectCall}
         onMute={callManager.toggleMute}
+        onDTMF={callManager.sendDigits}
         audioRecorder={audioRecorder}
       />
     </div>

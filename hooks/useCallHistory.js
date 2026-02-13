@@ -4,8 +4,8 @@
  * Following separation of concerns - data fetching only
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { fetchCallHistory } from "@/lib/api/calls";
+import { useState, useEffect, useCallback } from 'react';
+import { fetchCallHistory } from '@/lib/api/calls';
 
 export function useCallHistory(authToken) {
   const [callHistory, setCallHistory] = useState([]);
@@ -15,7 +15,7 @@ export function useCallHistory(authToken) {
   const fetch = useCallback(
     async (token = authToken) => {
       if (!token) {
-        setError("Authentication token is required");
+        setError('Authentication token is required');
         return [];
       }
 
@@ -34,7 +34,7 @@ export function useCallHistory(authToken) {
         setIsLoading(false);
       }
     },
-    [authToken],
+    [authToken]
   );
 
   // Initial fetch
@@ -76,27 +76,27 @@ export function useCallHistory(authToken) {
  */
 export function formatCallType(type) {
   const typeMap = {
-    incoming: "Incoming",
-    outgoing: "Outgoing",
-    missed: "Missed",
-    voicemail: "Voicemail",
+    incoming: 'Incoming',
+    outgoing: 'Outgoing',
+    missed: 'Missed',
+    voicemail: 'Voicemail',
   };
   return typeMap[type] || type;
 }
 
 export function formatCallDuration(seconds) {
-  if (!seconds) return "0:00";
+  if (!seconds) return '0:00';
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function getCallIcon(type) {
   const iconMap = {
-    incoming: "📥",
-    outgoing: "📤",
-    missed: "❌",
-    voicemail: "📩",
+    incoming: '📥',
+    outgoing: '📤',
+    missed: '❌',
+    voicemail: '📩',
   };
-  return iconMap[type] || "📞";
+  return iconMap[type] || '📞';
 }

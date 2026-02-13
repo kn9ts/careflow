@@ -119,7 +119,7 @@ Use self-hosted TURN for primary traffic and cloud TURN for redundancy.
 
 ```yaml
 # docker-compose.yml
-version: "3.8"
+version: '3.8'
 
 services:
   coturn:
@@ -127,11 +127,11 @@ services:
     container_name: coturn-server
     restart: unless-stopped
     ports:
-      - "3478:3478"
-      - "3478:3478/udp"
-      - "5349:5349"
-      - "5349:5349/udp"
-      - "49152-65535:49152-65535/udp"
+      - '3478:3478'
+      - '3478:3478/udp'
+      - '5349:5349'
+      - '5349:5349/udp'
+      - '49152-65535:49152-65535/udp'
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
       - ./turn_pkey.pem:/etc/coturn/turn_pkey.pem:ro
@@ -331,14 +331,14 @@ spec:
               mountPath: /etc/coturn/certs
           env:
             - name: TZ
-              value: "UTC"
+              value: 'UTC'
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "250m"
+              memory: '256Mi'
+              cpu: '250m'
             limits:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: '1Gi'
+              cpu: '1000m'
       volumes:
         - name: config
           configMap:
@@ -427,10 +427,10 @@ function generateTURNUsername() {
 
 function generateTURNPassword() {
   // HMAC-SHA1 signature
-  const crypto = require("crypto");
-  const hmac = crypto.createHmac("sha1", TWILIO_API_KEY_SECRET);
+  const crypto = require('crypto');
+  const hmac = crypto.createHmac('sha1', TWILIO_API_KEY_SECRET);
   hmac.update(generateTURNUsername());
-  return hmac.digest("base64");
+  return hmac.digest('base64');
 }
 
 module.exports = {
@@ -506,9 +506,9 @@ NEXT_PUBLIC_TURN_CREDENTIAL_3=fallback-password
 function getIceServers() {
   const servers = [
     // Public STUN servers
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
   ];
 
   // Add TURN servers from environment
@@ -560,9 +560,9 @@ For enhanced security, use time-limited credentials:
 // Generate short-lived credentials
 const generateTimeLimitedCredentials = (username, secret, ttl = 3600) => {
   const expiry = Math.floor(Date.now() / 1000) + ttl;
-  const hmac = crypto.createHmac("sha1", secret);
+  const hmac = crypto.createHmac('sha1', secret);
   hmac.update(`${username}:${expiry}`);
-  const password = hmac.digest("base64");
+  const password = hmac.digest('base64');
   return { username: `${username}:${expiry}`, password };
 };
 ```
@@ -633,9 +633,9 @@ grep "session" /var/log/turnserver.log | wc -l
 ```yaml
 # prometheus.yml
 scrape_configs:
-  - job_name: "coturn"
+  - job_name: 'coturn'
     static_configs:
-      - targets: ["localhost:9641"]
+      - targets: ['localhost:9641']
     metrics_path: /metrics
 ```
 
@@ -643,7 +643,7 @@ scrape_configs:
 
 ```javascript
 // health-check.js
-const net = require("net");
+const net = require('net');
 
 async function checkCoturnHealth(port = 3478) {
   return new Promise((resolve) => {
@@ -651,22 +651,22 @@ async function checkCoturnHealth(port = 3478) {
 
     socket.setTimeout(5000);
 
-    socket.on("connect", () => {
+    socket.on('connect', () => {
       socket.destroy();
-      resolve({ status: "healthy", port });
+      resolve({ status: 'healthy', port });
     });
 
-    socket.on("timeout", () => {
+    socket.on('timeout', () => {
       socket.destroy();
-      resolve({ status: "unhealthy", port, error: "timeout" });
+      resolve({ status: 'unhealthy', port, error: 'timeout' });
     });
 
-    socket.on("error", (err) => {
+    socket.on('error', (err) => {
       socket.destroy();
-      resolve({ status: "unhealthy", port, error: err.message });
+      resolve({ status: 'unhealthy', port, error: err.message });
     });
 
-    socket.connect(port, "localhost");
+    socket.connect(port, 'localhost');
   });
 }
 
@@ -736,9 +736,9 @@ openssl s_client -connect your-turn-server.com:5349
 // Check WebRTC stats
 const stats = await peerConnection.getStats();
 stats.forEach((report) => {
-  if (report.type === "inbound-rtp") {
-    console.log("Packets received:", report.packetsReceived);
-    console.log("Packets lost:", report.packetsLost);
+  if (report.type === 'inbound-rtp') {
+    console.log('Packets received:', report.packetsReceived);
+    console.log('Packets lost:', report.packetsLost);
   }
 });
 ```

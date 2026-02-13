@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { getInitializationStatus, isInitialized } from "@/lib/init";
+import { useEffect, useState } from 'react';
+import { getInitializationStatus, isInitialized } from '@/lib/init';
 
 /**
  * Initialization Status Component
@@ -10,10 +10,7 @@ import { getInitializationStatus, isInitialized } from "@/lib/init";
  * including environment configuration loading and service readiness.
  * This component is useful for debugging and monitoring application startup.
  */
-export default function InitializationStatus({
-  showDetails = false,
-  className = "",
-}) {
+export default function InitializationStatus({ showDetails = false, className = '' }) {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
 
@@ -42,56 +39,46 @@ export default function InitializationStatus({
   }
 
   const getStatusColor = () => {
-    if (error) return "text-red-400";
-    if (!status?.initialized) return "text-yellow-400";
-    return "text-green-400";
+    if (error) return 'text-red-400';
+    if (!status?.initialized) return 'text-yellow-400';
+    return 'text-green-400';
   };
 
   const getStatusIcon = () => {
-    if (error) return "❌";
-    if (!status?.initialized) return "⏳";
-    return "✅";
+    if (error) return '❌';
+    if (!status?.initialized) return '⏳';
+    return '✅';
   };
 
   const getStatusText = () => {
-    if (error) return "Initialization Error";
-    if (!status?.initialized) return "Initializing...";
-    return "Initialized";
+    if (error) return 'Initialization Error';
+    if (!status?.initialized) return 'Initializing...';
+    return 'Initialized';
   };
 
   return (
-    <div
-      className={`border border-white/10 bg-background-card rounded-lg p-4 ${className}`}
-    >
+    <div className={`border border-white/10 bg-background-card rounded-lg p-4 ${className}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-lg">{getStatusIcon()}</span>
           <span className="font-semibold text-white">Application Status</span>
         </div>
-        <span className={`text-sm font-medium ${getStatusColor()}`}>
-          {getStatusText()}
-        </span>
+        <span className={`text-sm font-medium ${getStatusColor()}`}>{getStatusText()}</span>
       </div>
 
       {showDetails && (
         <div className="space-y-2 text-sm text-gray-400">
           <div className="grid grid-cols-2 gap-2">
             <span className="text-gray-500">Environment:</span>
-            <span className="text-white">
-              {status?.environment || "Unknown"}
-            </span>
+            <span className="text-white">{status?.environment || 'Unknown'}</span>
 
             <span className="text-gray-500">Initialized:</span>
-            <span className="text-white">
-              {status?.initialized ? "Yes" : "No"}
-            </span>
+            <span className="text-white">{status?.initialized ? 'Yes' : 'No'}</span>
 
             {status?.timestamp && (
               <>
                 <span className="text-gray-500">Last Check:</span>
-                <span className="text-white">
-                  {new Date(status.timestamp).toLocaleString()}
-                </span>
+                <span className="text-white">{new Date(status.timestamp).toLocaleString()}</span>
               </>
             )}
           </div>
@@ -105,9 +92,7 @@ export default function InitializationStatus({
 
           {global.APP_METADATA && (
             <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2">
-              <span className="text-blue-400 font-medium">
-                Global Metadata:
-              </span>
+              <span className="text-blue-400 font-medium">Global Metadata:</span>
               <div className="mt-1 text-xs space-y-1">
                 <div>App: {global.APP_METADATA.name}</div>
                 <div>Version: {global.APP_METADATA.version}</div>
@@ -118,9 +103,7 @@ export default function InitializationStatus({
 
           {global.SERVICE_CONFIGS && (
             <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
-              <span className="text-green-400 font-medium">
-                Service Configs:
-              </span>
+              <span className="text-green-400 font-medium">Service Configs:</span>
               <div className="mt-1 text-xs space-y-1">
                 {Object.keys(global.SERVICE_CONFIGS).map((service) => (
                   <div key={service} className="flex justify-between">
@@ -181,9 +164,7 @@ export function InitializationProvider({ children, fallback = null }) {
     return (
       <div className="min-h-screen bg-background-dark flex items-center justify-center">
         <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
-          <h2 className="text-red-400 text-lg font-semibold mb-2">
-            Initialization Failed
-          </h2>
+          <h2 className="text-red-400 text-lg font-semibold mb-2">Initialization Failed</h2>
           <p className="text-red-300 text-sm mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -201,7 +182,7 @@ export function InitializationProvider({ children, fallback = null }) {
       fallback || (
         <div className="min-h-screen bg-background-dark flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-red mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-red mx-auto mb-4" />
             <p className="text-gray-400">Initializing application...</p>
           </div>
         </div>
@@ -219,13 +200,13 @@ export function InitializationProvider({ children, fallback = null }) {
  */
 export function DevelopmentInitializationMonitor() {
   // Only render in development
-  if (process.env.NODE_ENV !== "development") {
+  if (process.env.NODE_ENV !== 'development') {
     return null;
   }
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <InitializationStatus showDetails={true} />
+      <InitializationStatus showDetails />
     </div>
   );
 }

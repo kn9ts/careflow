@@ -78,7 +78,7 @@ Organize state into three distinct categories:
 // ✅ GOOD: Local state for UI concerns
 function DialPad() {
   const [isOpen, setIsOpen] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [activeKey, setActiveKey] = useState(null);
 
   return <div>...</div>;
@@ -99,7 +99,7 @@ const { user, token, logout } = useAuth();
 
 // ✅ GOOD: Zustand for complex global state
 const useCallStore = create((set) => ({
-  callStatus: "idle",
+  callStatus: 'idle',
   setCallStatus: (status) => set({ callStatus: status }),
 }));
 ```
@@ -120,7 +120,7 @@ const {
   isLoading,
   error,
 } = useQuery({
-  queryKey: ["recordings"],
+  queryKey: ['recordings'],
   queryFn: fetchRecordings,
 });
 ```
@@ -132,12 +132,12 @@ const {
 ```javascript
 // app/dashboard/page.js (current - problematic)
 export default function Dashboard() {
-  const [callStatus, setCallStatus] = useState("idle");
+  const [callStatus, setCallStatus] = useState('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [mode, setMode] = useState(null);
   const [care4wId, setCare4wId] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [callError, setCallError] = useState(null);
   const [recordings, setRecordings] = useState([]);
   const [analytics, setAnalytics] = useState(null);
@@ -149,15 +149,15 @@ export default function Dashboard() {
 
 ```javascript
 // hooks/useCallState.js
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export const useCallState = create((set) => ({
-  callStatus: "idle",
+  callStatus: 'idle',
   callDuration: 0,
   isMuted: false,
   mode: null,
   care4wId: null,
-  phoneNumber: "",
+  phoneNumber: '',
   callError: null,
 
   // Actions
@@ -170,16 +170,16 @@ export const useCallState = create((set) => ({
   setCallError: (error) => set({ callError: error }),
   resetCallState: () =>
     set({
-      callStatus: "idle",
+      callStatus: 'idle',
       callDuration: 0,
       isMuted: false,
-      phoneNumber: "",
+      phoneNumber: '',
       callError: null,
     }),
 }));
 
 // hooks/useRecordings.js (server state)
-import useSWR from "swr";
+import useSWR from 'swr';
 
 const fetcher = (url, token) =>
   fetch(url, { headers: { Authorization: `Bearer ${token}` } })
@@ -188,8 +188,8 @@ const fetcher = (url, token) =>
 
 export function useRecordings(token) {
   const { data, error, isLoading, mutate } = useSWR(
-    token ? ["/api/recordings", token] : null,
-    ([url, token]) => fetcher(url, token),
+    token ? ['/api/recordings', token] : null,
+    ([url, token]) => fetcher(url, token)
   );
 
   return {
@@ -236,8 +236,8 @@ export default function Dashboard() {
   const fetchRecordings = async () => {
     setIsLoading(true);
     try {
-      const authToken = token || localStorage.getItem("careflow_token");
-      const response = await fetch("/api/recordings", {
+      const authToken = token || localStorage.getItem('careflow_token');
+      const response = await fetch('/api/recordings', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       const data = await response.json();
@@ -264,12 +264,12 @@ export default function Dashboard() {
 ```javascript
 // lib/api/recordings.js
 export async function fetchRecordings(authToken) {
-  const response = await fetch("/api/recordings", {
+  const response = await fetch('/api/recordings', {
     headers: { Authorization: `Bearer ${authToken}` },
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch recordings");
+    throw new Error('Failed to fetch recordings');
   }
 
   const data = await response.json();
@@ -278,7 +278,7 @@ export async function fetchRecordings(authToken) {
 
 // lib/api/analytics.js
 export async function fetchAnalytics(authToken) {
-  const response = await fetch("/api/analytics", {
+  const response = await fetch('/api/analytics', {
     headers: { Authorization: `Bearer ${authToken}` },
   });
 
@@ -287,18 +287,18 @@ export async function fetchAnalytics(authToken) {
 }
 
 // hooks/useRecordings.js
-import { useCallback } from "react";
-import useSWR from "swr";
-import { fetchRecordings } from "@/lib/api/recordings";
+import { useCallback } from 'react';
+import useSWR from 'swr';
+import { fetchRecordings } from '@/lib/api/recordings';
 
 export function useRecordings(authToken) {
   const { data, error, isLoading, mutate } = useSWR(
-    authToken ? ["recordings", authToken] : null,
+    authToken ? ['recordings', authToken] : null,
     async ([_, token]) => fetchRecordings(token),
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,
-    },
+    }
   );
 
   const refresh = useCallback(() => mutate(), [mutate]);
@@ -312,18 +312,18 @@ export function useRecordings(authToken) {
 }
 
 // hooks/useAnalytics.js
-import useSWR from "swr";
-import { fetchAnalytics } from "@/lib/api/analytics";
+import useSWR from 'swr';
+import { fetchAnalytics } from '@/lib/api/analytics';
 
 export function useAnalytics(authToken, options = {}) {
   return useSWR(
-    authToken ? ["analytics", authToken] : null,
+    authToken ? ['analytics', authToken] : null,
     async ([_, token]) => fetchAnalytics(token),
     {
       revalidateOnFocus: true,
       refreshInterval: 300000, // 5 minutes
       ...options,
-    },
+    }
   );
 }
 
@@ -361,15 +361,14 @@ export default function Dashboard() {
 
 ```javascript
 // hooks/useCallManager.js
-import { useEffect, useCallback, useRef } from "react";
-import { useCallState } from "./useCallState";
-import { useAuth } from "@/context/AuthContext";
-import { callManager } from "@/lib/callManager";
+import { useEffect, useCallback, useRef } from 'react';
+import { useCallState } from './useCallState';
+import { useAuth } from '@/context/AuthContext';
+import { callManager } from '@/lib/callManager';
 
 export function useCallManager() {
   const { token, user } = useAuth();
-  const { setCallStatus, setMode, setCare4wId, setPhoneNumber, setCallError } =
-    useCallState();
+  const { setCallStatus, setMode, setCare4wId, setPhoneNumber, setCallError } = useCallState();
 
   const initialized = useRef(false);
 
@@ -381,23 +380,23 @@ export function useCallManager() {
       try {
         const { mode: callMode, care4wId: cfId } = await callManager.initialize(
           token,
-          user.care4wId,
+          user.care4wId
         );
 
         setMode(callMode);
         setCare4wId(cfId);
 
         // Set up event listeners (more side effects)
-        callManager.on("onCallStateChange", (status) => {
+        callManager.on('onCallStateChange', (status) => {
           setCallStatus(status);
         });
 
-        callManager.on("onIncomingCall", (callData) => {
+        callManager.on('onIncomingCall', (callData) => {
           setPhoneNumber(callData.from || callData.targetCare4wId);
-          setCallStatus("incoming");
+          setCallStatus('incoming');
         });
 
-        callManager.on("onError", (error) => {
+        callManager.on('onError', (error) => {
           setCallError(error.message);
         });
 
@@ -416,15 +415,7 @@ export function useCallManager() {
         initialized.current = false;
       }
     };
-  }, [
-    token,
-    user,
-    setCallStatus,
-    setMode,
-    setCare4wId,
-    setPhoneNumber,
-    setCallError,
-  ]);
+  }, [token, user, setCallStatus, setMode, setCare4wId, setPhoneNumber, setCallError]);
 
   // Action methods (pure functions that trigger side effects)
   const makeCall = useCallback(
@@ -437,7 +428,7 @@ export function useCallManager() {
         throw error;
       }
     },
-    [setCallError],
+    [setCallError]
   );
 
   const endCall = useCallback(() => {
@@ -494,7 +485,7 @@ components/
 ```javascript
 // components/dashboard/DialPad.jsx - mixed concerns
 export default function DialPad({ onCall }) {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isCallActive, setIsCallActive] = useState(false);
   const { makeCall, endCall } = useCallLogic(); // Business logic
 
@@ -511,9 +502,7 @@ export default function DialPad({ onCall }) {
         onChange={(e) => setPhoneNumber(e.target.value)}
         placeholder="Enter number"
       />
-      <button onClick={handleCall}>
-        {isCallActive ? "Calling..." : "Call"}
-      </button>
+      <button onClick={handleCall}>{isCallActive ? 'Calling...' : 'Call'}</button>
       {/* 100+ lines of UI code */}
     </div>
   );
@@ -797,7 +786,7 @@ export default function Header({ onMenuToggle }) {
 
 ```javascript
 // components/layout/Sidebar/Sidebar.jsx
-import { useState, useCallback, createContext, useContext } from "react";
+import { useState, useCallback, createContext, useContext } from 'react';
 import {
   Phone,
   History,
@@ -807,7 +796,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Sidebar Context for state management
 const SidebarContext = createContext();
@@ -824,8 +813,7 @@ export default function Sidebar({
 }) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
 
-  const isCollapsed =
-    externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
 
   const toggle = useCallback(() => {
     if (onToggle) onToggle(!isCollapsed);
@@ -833,28 +821,28 @@ export default function Sidebar({
   }, [isCollapsed, onToggle]);
 
   const menuItems = [
-    { id: "dialer", icon: Phone, label: "Dialer" },
-    { id: "history", icon: History, label: "Call History" },
-    { id: "analytics", icon: BarChart2, label: "Analytics" },
-    { id: "recordings", icon: FileText, label: "Recordings" },
-    { id: "settings", icon: Settings, label: "Settings" },
+    { id: 'dialer', icon: Phone, label: 'Dialer' },
+    { id: 'history', icon: History, label: 'Call History' },
+    { id: 'analytics', icon: BarChart2, label: 'Analytics' },
+    { id: 'recordings', icon: FileText, label: 'Recordings' },
+    { id: 'settings', icon: Settings, label: 'Settings' },
   ];
 
   const handleItemClick = useCallback(
     (itemId) => {
       if (onItemSelect) onItemSelect(itemId);
     },
-    [onItemSelect],
+    [onItemSelect]
   );
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggle }}>
-      <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+      <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <nav className="sidebar-nav">
           {menuItems.map((item) => (
             <button
               key={item.id}
-              className={`sidebar-item ${activeItem === item.id ? "active" : ""}`}
+              className={`sidebar-item ${activeItem === item.id ? 'active' : ''}`}
               onClick={() => handleItemClick(item.id)}
               title={isCollapsed ? item.label : undefined}
             >
@@ -867,7 +855,7 @@ export default function Sidebar({
         <button
           className="sidebar-toggle"
           onClick={toggle}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -931,7 +919,7 @@ export default function DashboardPage() {
 
 ```javascript
 // hooks/useAuthorization.js
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from '@/context/AuthContext';
 
 export function useAuthorization() {
   const { user, token } = useAuth();
@@ -940,38 +928,36 @@ export function useAuthorization() {
     (role) => {
       return user?.role === role;
     },
-    [user],
+    [user]
   );
 
   const hasAnyRole = useCallback(
     (roles) => {
       return roles.includes(user?.role);
     },
-    [user],
+    [user]
   );
 
   const hasPermission = useCallback(
     (permission) => {
       return user?.permissions?.includes(permission);
     },
-    [user],
+    [user]
   );
 
   const can = useCallback(
     (action, resource) => {
       // Implement your permission logic here
       const permissions = {
-        "call:make": ["user", "admin", "agent"],
-        "recordings:view": ["user", "admin", "supervisor"],
-        "analytics:view": ["admin", "supervisor"],
-        "settings:edit": ["admin"],
+        'call:make': ['user', 'admin', 'agent'],
+        'recordings:view': ['user', 'admin', 'supervisor'],
+        'analytics:view': ['admin', 'supervisor'],
+        'settings:edit': ['admin'],
       };
 
-      return (
-        permissions[`${resource}:${action}`]?.includes(user?.role) ?? false
-      );
+      return permissions[`${resource}:${action}`]?.includes(user?.role) ?? false;
     },
-    [user],
+    [user]
   );
 
   return {
@@ -981,8 +967,8 @@ export function useAuthorization() {
     hasAnyRole,
     hasPermission,
     can,
-    isAdmin: user?.role === "admin",
-    isSupervisor: user?.role === "supervisor",
+    isAdmin: user?.role === 'admin',
+    isSupervisor: user?.role === 'supervisor',
   };
 }
 ```
@@ -995,7 +981,7 @@ export function useAuthorization() {
 
 ```javascript
 // components/common/ErrorBoundary/ErrorBoundary.jsx
-import { Component } from "react";
+import { Component } from 'react';
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -1008,7 +994,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo);
+    console.error('Error caught by boundary:', error, errorInfo);
 
     // Optional: Send to error reporting service
     if (this.props.onError) {
@@ -1032,7 +1018,7 @@ export default class ErrorBoundary extends Component {
       return (
         <div className="error-boundary">
           <h2>Something went wrong</h2>
-          <p>{this.state.error?.message || "An unexpected error occurred"}</p>
+          <p>{this.state.error?.message || 'An unexpected error occurred'}</p>
           <button onClick={this.handleRetry}>Try again</button>
         </div>
       );
@@ -1043,7 +1029,7 @@ export default class ErrorBoundary extends Component {
 }
 
 // hooks/useErrorHandler.js
-import { useCallback } from "react";
+import { useCallback } from 'react';
 
 export function useErrorHandler() {
   const handleError = useCallback((error, customMessage) => {
@@ -1064,11 +1050,11 @@ export function useErrorHandler() {
 
 ```javascript
 // components/common/Loading/LoadingStates.jsx
-export function LoadingSpinner({ size = "md", text }) {
+export function LoadingSpinner({ size = 'md', text }) {
   const sizeClasses = {
-    sm: "spinner-sm",
-    md: "spinner-md",
-    lg: "spinner-lg",
+    sm: 'spinner-sm',
+    md: 'spinner-md',
+    lg: 'spinner-lg',
   };
 
   return (
@@ -1089,7 +1075,7 @@ export function Skeleton({ count = 1, className }) {
   );
 }
 
-export function PageLoader({ text = "Loading..." }) {
+export function PageLoader({ text = 'Loading...' }) {
   return (
     <div className="page-loader">
       <LoadingSpinner size="lg" text={text} />
@@ -1098,7 +1084,7 @@ export function PageLoader({ text = "Loading..." }) {
 }
 
 // hooks/useAsync.js
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 export function useAsync(asyncFunction, options = {}) {
   const [data, setData] = useState(null);
@@ -1123,7 +1109,7 @@ export function useAsync(asyncFunction, options = {}) {
         setLoading(false);
       }
     },
-    [asyncFunction, options.silent],
+    [asyncFunction, options.silent]
   );
 
   const reset = useCallback(() => {
@@ -1163,10 +1149,10 @@ hooks/
 
 ```javascript
 // hooks/useCallManager.js - Complete example
-import { useEffect, useCallback, useRef } from "react";
-import { useCallState } from "./useCallState";
-import { useAuth } from "@/context/AuthContext";
-import { callManager } from "@/lib/callManager";
+import { useEffect, useCallback, useRef } from 'react';
+import { useCallState } from './useCallState';
+import { useAuth } from '@/context/AuthContext';
+import { callManager } from '@/lib/callManager';
 
 export function useCallManager() {
   const { token, user } = useAuth();
@@ -1192,30 +1178,30 @@ export function useCallManager() {
       try {
         const { mode: callMode, care4wId: cfId } = await callManager.initialize(
           token,
-          user.care4wId,
+          user.care4wId
         );
 
         setMode(callMode);
         setCare4wId(cfId);
 
         // Event listeners
-        callManager.on("onCallStateChange", (status) => {
+        callManager.on('onCallStateChange', (status) => {
           setCallStatus(status);
 
           // Handle call timer
-          if (status === "connected") {
+          if (status === 'connected') {
             startTimer();
           } else {
             stopTimer();
           }
         });
 
-        callManager.on("onIncomingCall", (callData) => {
+        callManager.on('onIncomingCall', (callData) => {
           setPhoneNumber(callData.from || callData.targetCare4wId);
-          setCallStatus("incoming");
+          setCallStatus('incoming');
         });
 
-        callManager.on("onError", (error) => {
+        callManager.on('onError', (error) => {
           setCallError(error.message);
         });
 
@@ -1233,15 +1219,7 @@ export function useCallManager() {
         initializedRef.current = false;
       }
     };
-  }, [
-    token,
-    user,
-    setCallStatus,
-    setMode,
-    setCare4wId,
-    setPhoneNumber,
-    setCallError,
-  ]);
+  }, [token, user, setCallStatus, setMode, setCare4wId, setPhoneNumber, setCallError]);
 
   const startTimer = useCallback(() => {
     setCallDuration(0);
@@ -1261,32 +1239,32 @@ export function useCallManager() {
   const makeCall = useCallback(
     async (phoneNumber) => {
       setCallError(null);
-      setCallStatus("connecting");
+      setCallStatus('connecting');
 
       try {
         await callManager.makeCall(phoneNumber);
       } catch (error) {
         setCallError(error.message);
-        setCallStatus("idle");
+        setCallStatus('idle');
         throw error;
       }
     },
-    [setCallError, setCallStatus],
+    [setCallError, setCallStatus]
   );
 
   const endCall = useCallback(() => {
     callManager.endCall();
-    setCallStatus("disconnected");
+    setCallStatus('disconnected');
   }, [setCallStatus]);
 
   const answerCall = useCallback(async () => {
-    setCallStatus("connecting");
+    setCallStatus('connecting');
     await callManager.answerCall();
   }, [setCallStatus]);
 
   const declineCall = useCallback(() => {
     callManager.declineCall();
-    setCallStatus("idle");
+    setCallStatus('idle');
   }, [setCallStatus]);
 
   const muteCall = useCallback((shouldMute) => {
@@ -1314,7 +1292,7 @@ export function useCallManager() {
     formatDuration: (seconds) => {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
-      return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     },
   };
 }
@@ -1324,11 +1302,11 @@ export function useCallManager() {
 
 ```javascript
 // hooks/useLocalStorage.js
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
-    if (typeof window === "undefined") return initialValue;
+    if (typeof window === 'undefined') return initialValue;
 
     try {
       const item = window.localStorage.getItem(key);
@@ -1342,24 +1320,23 @@ export function useLocalStorage(key, initialValue) {
   const setValue = useCallback(
     (value) => {
       try {
-        const valueToStore =
-          value instanceof Function ? value(storedValue) : value;
+        const valueToStore = value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
-        if (typeof window !== "undefined") {
+        if (typeof window !== 'undefined') {
           window.localStorage.setItem(key, JSON.stringify(valueToStore));
         }
       } catch (error) {
         console.error(error);
       }
     },
-    [key, storedValue],
+    [key, storedValue]
   );
 
   return [storedValue, setValue];
 }
 
 // hooks/useDebounce.js
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -1378,7 +1355,7 @@ export function useDebounce(value, delay) {
 }
 
 // hooks/useClickOutside.js
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export function useClickOutside(ref, handler) {
   useEffect(() => {
@@ -1389,12 +1366,12 @@ export function useClickOutside(ref, handler) {
       handler(event);
     };
 
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
+    document.addEventListener('mousedown', listener);
+    document.addEventListener('touchstart', listener);
 
     return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
+      document.removeEventListener('mousedown', listener);
+      document.removeEventListener('touchstart', listener);
     };
   }, [ref, handler]);
 }
@@ -1410,36 +1387,36 @@ export function useClickOutside(ref, handler) {
 
 ```javascript
 // app/dashboard/page.js - BEFORE
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { Phone, LogOut } from "lucide-react";
-import CallControls from "@/components/dashboard/CallControls";
-import DialPadModal from "@/components/dashboard/DialPadModal";
-import CallStatus from "@/components/dashboard/CallStatus";
-import CallHistory from "@/components/dashboard/CallHistory";
-import Analytics from "@/components/dashboard/Analytics";
-import RecordingManager from "@/components/dashboard/RecordingManager";
-import ProtectedRoute from "@/components/ProtectedRoute/ProtectedRoute";
-import { useNotifications } from "@/hooks/useNotifications";
-import { callManager } from "@/lib/callManager";
-import { AudioProcessor } from "@/lib/audioProcessor";
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { Phone, LogOut } from 'lucide-react';
+import CallControls from '@/components/dashboard/CallControls';
+import DialPadModal from '@/components/dashboard/DialPadModal';
+import CallStatus from '@/components/dashboard/CallStatus';
+import CallHistory from '@/components/dashboard/CallHistory';
+import Analytics from '@/components/dashboard/Analytics';
+import RecordingManager from '@/components/dashboard/RecordingManager';
+import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import { useNotifications } from '@/hooks/useNotifications';
+import { callManager } from '@/lib/callManager';
+import { AudioProcessor } from '@/lib/audioProcessor';
 
 export default function Dashboard() {
   const router = useRouter();
   const { user, token, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState("dialer");
+  const [activeTab, setActiveTab] = useState('dialer');
 
   // Call state (15+ variables)
-  const [callStatus, setCallStatus] = useState("idle");
+  const [callStatus, setCallStatus] = useState('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [mode, setMode] = useState(null);
   const [care4wId, setCare4wId] = useState(null);
   const [modeInfo, setModeInfo] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [callError, setCallError] = useState(null);
   const [isDialPadOpen, setIsDialPadOpen] = useState(false);
 
@@ -1459,9 +1436,9 @@ export default function Dashboard() {
   } = useNotifications({
     token,
     onIncomingCall: (callData) => {
-      console.log("Incoming call notification received:", callData);
+      console.log('Incoming call notification received:', callData);
       setPhoneNumber(callData.from);
-      setCallStatus("incoming");
+      setCallStatus('incoming');
     },
   });
 
@@ -1525,10 +1502,10 @@ export default function Dashboard() {
       <div className="dashboard-layout">
         <header>...</header>
         <main>
-          {activeTab === "dialer" && <DialPadModal />}
-          {activeTab === "history" && <CallHistory />}
-          {activeTab === "analytics" && <Analytics />}
-          {activeTab === "recordings" && <RecordingManager />}
+          {activeTab === 'dialer' && <DialPadModal />}
+          {activeTab === 'history' && <CallHistory />}
+          {activeTab === 'analytics' && <Analytics />}
+          {activeTab === 'recordings' && <RecordingManager />}
         </main>
         <footer>...</footer>
       </div>
@@ -1654,7 +1631,7 @@ const [state, dispatch] = useReducer(reducer, initialState);
 const auth = useAuth();
 
 // ✅ USE: React Query for server state
-const { data } = useQuery({ queryKey: ["key"], queryFn });
+const { data } = useQuery({ queryKey: ['key'], queryFn });
 
 // ✅ USE: Zustand for global UI state
 const useStore = create((set) => ({
@@ -1691,7 +1668,7 @@ const value = useCustomHook(dep);
 // ✅ THIN PAGE.JS - Good example
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState('overview');
 
   return (
     <DashboardLayout user={user}>
@@ -1724,7 +1701,7 @@ export default function AnalyticsPage() {
   // Route-specific logic
   useEffect(() => {
     if (!canViewAnalytics(user)) {
-      router.push("/unauthorized");
+      router.push('/unauthorized');
     }
   }, [user]);
 
@@ -1738,10 +1715,7 @@ export default function AnalyticsPage() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title="Analytics"
-        actions={<ShareButton onShare={handleShare} />}
-      />
+      <PageHeader title="Analytics" actions={<ShareButton onShare={handleShare} />} />
       <DateRangeSelector value={dateRange} onChange={setDateRange} />
       <FilterBar filters={filters} onChange={setFilters} />
       <AnalyticsChart data={analytics} />
@@ -1769,21 +1743,21 @@ export default function AnalyticsPage() {
 
 ```javascript
 // hooks/index.js
-export { useAuth } from "./useAuth";
-export { useCallManager } from "./useCallManager";
-export { useRecordings } from "./useRecordings";
-export { useAnalytics } from "./useAnalytics";
-export { useNotifications } from "./useNotifications";
-export { useAsync } from "./useAsync";
-export { useLocalStorage } from "./useLocalStorage";
-export { useDebounce } from "./useDebounce";
+export { useAuth } from './useAuth';
+export { useCallManager } from './useCallManager';
+export { useRecordings } from './useRecordings';
+export { useAnalytics } from './useAnalytics';
+export { useNotifications } from './useNotifications';
+export { useAsync } from './useAsync';
+export { useLocalStorage } from './useLocalStorage';
+export { useDebounce } from './useDebounce';
 
 // components/dashboard/index.js
-export { default as DialPad } from "./DialPad";
-export { default as CallControls } from "./CallControls";
-export { default as CallHistory } from "./CallHistory";
-export { default as Analytics } from "./Analytics";
-export { default as RecordingManager } from "./RecordingManager";
+export { default as DialPad } from './DialPad';
+export { default as CallControls } from './CallControls';
+export { default as CallHistory } from './CallHistory';
+export { default as Analytics } from './Analytics';
+export { default as RecordingManager } from './RecordingManager';
 ```
 
 ### Named Exports for Utilities
@@ -1803,19 +1777,19 @@ export async function deleteRecording(token, id) {
 }
 
 // lib/api/index.js
-export * from "./recordings";
-export * from "./analytics";
-export * from "./calls";
+export * from './recordings';
+export * from './analytics';
+export * from './calls';
 ```
 
 ### Component Exports
 
 ```javascript
 // components/dashboard/DialPad/index.js
-export { default } from "./DialPad";
-export { useDialPad } from "./useDialPad";
-export { DialPadSkeleton } from "./DialPadSkeleton";
-export { DialPadButton } from "./DialPadButton";
+export { default } from './DialPad';
+export { useDialPad } from './useDialPad';
+export { DialPadSkeleton } from './DialPadSkeleton';
+export { DialPadButton } from './DialPadButton';
 ```
 
 ### Import Organization
@@ -1823,29 +1797,29 @@ export { DialPadButton } from "./DialPadButton";
 ```javascript
 // ✅ RECOMMENDED: Organized imports
 // 1. React/Next.js imports
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 // 2. Third-party imports
-import { format, parseISO } from "date-fns";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { format, parseISO } from 'date-fns';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 // 3. Context/Hooks
-import { useAuth } from "@/context/AuthContext";
-import { useCallManager } from "@/hooks/useCallManager";
+import { useAuth } from '@/context/AuthContext';
+import { useCallManager } from '@/hooks/useCallManager';
 
 // 4. Components
-import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
-import DialPad from "@/components/dashboard/DialPad";
-import CallHistory from "@/components/dashboard/CallHistory";
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import DialPad from '@/components/dashboard/DialPad';
+import CallHistory from '@/components/dashboard/CallHistory';
 
 // 5. Lib/Utils
-import { formatDuration } from "@/lib/utils";
-import { fetchRecordings } from "@/lib/api/recordings";
+import { formatDuration } from '@/lib/utils';
+import { fetchRecordings } from '@/lib/api/recordings';
 
 // 6. Styles
-import styles from "./Dashboard.module.css";
+import styles from './Dashboard.module.css';
 ```
 
 ---

@@ -1,14 +1,10 @@
-import { connectDB } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
-import Recording from "@/models/Recording";
-import {
-  successResponse,
-  errorResponse,
-  handleAuthResult,
-} from "@/lib/apiResponse";
+import { connectDB } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
+import Recording from '@/models/Recording';
+import { successResponse, errorResponse, handleAuthResult } from '@/lib/apiResponse';
 
 // Force dynamic rendering - this route uses request.headers for auth
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
@@ -22,9 +18,9 @@ export async function GET(request) {
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page")) || 1;
-    const limit = parseInt(searchParams.get("limit")) || 20;
-    const type = searchParams.get("type"); // 'call' or 'voicemail'
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 20;
+    const type = searchParams.get('type'); // 'call' or 'voicemail'
 
     // Build query (only user's own recordings)
     const query = { firebaseUid: auth.user.firebaseUid };
@@ -39,8 +35,21 @@ export async function GET(request) {
 
     const total = await Recording.countDocuments(query);
 
+    // Add derived callStatus to each recording for frontend consistency
+    const callsWithStatus = recordings.map((recording) => ({
+      ...recording,
+      callStatus:
+        recording.duration > 0
+          ? 'completed'
+          : recording.status === 'no-answer'
+            ? 'missed'
+            : recording.status === 'failed'
+              ? 'failed'
+              : 'missed',
+    }));
+
     return successResponse({
-      calls: recordings,
+      calls: callsWithStatus,
       pagination: {
         page,
         limit,
@@ -51,10 +60,10 @@ export async function GET(request) {
       },
     });
   } catch (error) {
-    console.error("Calls history error:", error);
-    return errorResponse("Failed to fetch call history", {
+    console.error('Calls history error:', error);
+    return errorResponse('Failed to fetch call history', {
       status: 500,
-      code: "CALL_HISTORY_FAILED",
+      code: 'CALL_HISTORY_FAILED',
     });
   }
 }

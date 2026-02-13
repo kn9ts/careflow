@@ -3,10 +3,8 @@
  * Self-contained header with user menu, notifications, and mode display
  */
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Phone as PhoneIcon,
   Bell,
@@ -15,10 +13,12 @@ import {
   ChevronDown,
   ChevronUp,
   LogOut,
-} from "lucide-react";
-import styles from "./DashboardHeader.module.css";
+} from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
+import styles from './DashboardHeader.module.css';
 
-export default function DashboardHeader({ onOpenDialPad, className = "" }) {
+export default function DashboardHeader({ onOpenDialPad, className = '' }) {
   const router = useRouter();
   const { user, logout, token } = useAuth();
   const { unregisterToken } = useNotifications({ token });
@@ -30,20 +30,20 @@ export default function DashboardHeader({ onOpenDialPad, className = "" }) {
     try {
       await unregisterToken();
       await logout();
-      router.push("/login");
+      router.push('/login');
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error('Logout failed:', error);
     }
   }, [router, logout, unregisterToken]);
 
   const handleSettings = useCallback(() => {
     setShowUserMenu(false);
-    router.push("/settings");
+    router.push('/settings');
   }, [router]);
 
   const handleProfile = useCallback(() => {
     setShowUserMenu(false);
-    router.push("/profile");
+    router.push('/profile');
   }, [router]);
 
   const toggleUserMenu = useCallback(() => {
@@ -84,9 +84,7 @@ export default function DashboardHeader({ onOpenDialPad, className = "" }) {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className={`notification-badge ${styles.notificationBadge}`}>
-              3
-            </span>
+            <span className={`notification-badge ${styles.notificationBadge}`}>3</span>
           </button>
 
           {showNotifications && (
@@ -112,7 +110,7 @@ export default function DashboardHeader({ onOpenDialPad, className = "" }) {
                 />
               </div>
               <div className={styles.dropdownFooter}>
-                <button onClick={() => router.push("/notifications")}>
+                <button onClick={() => router.push('/notifications')}>
                   View all notifications
                 </button>
               </div>
@@ -126,7 +124,7 @@ export default function DashboardHeader({ onOpenDialPad, className = "" }) {
             {user?.photoURL ? (
               <img
                 src={user.photoURL}
-                alt={user.displayName || "User"}
+                alt={user.displayName || 'User'}
                 className={styles.userAvatar}
               />
             ) : (
@@ -134,14 +132,8 @@ export default function DashboardHeader({ onOpenDialPad, className = "" }) {
                 <User className="w-5 h-5" />
               </div>
             )}
-            <span className={styles.userName}>
-              {user?.displayName || user?.email || "User"}
-            </span>
-            {showUserMenu ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
+            <span className={styles.userName}>{user?.displayName || user?.email || 'User'}</span>
+            {showUserMenu ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
 
           {showUserMenu && (

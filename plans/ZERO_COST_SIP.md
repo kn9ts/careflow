@@ -95,21 +95,21 @@ export async function initiateP2PCall(callerId, calleeId) {
   if (callerOnline && calleeOnline) {
     // Both online - direct P2P call
     return {
-      type: "p2p",
-      method: "webrtc",
+      type: 'p2p',
+      method: 'webrtc',
       cost: 0,
     };
   } else if (calleeOnline) {
     // Callee online - call to their registered devices
     return {
-      type: "sip",
-      method: "internal",
+      type: 'sip',
+      method: 'internal',
       cost: 0,
     };
   } else {
     // Neither online - need callback/PSTN
     return {
-      type: "callback",
+      type: 'callback',
       cost: callbackCost,
     };
   }

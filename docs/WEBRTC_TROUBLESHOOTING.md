@@ -83,12 +83,12 @@ Issue resolved ✓
    ```javascript
    // In browser console
    const pc = new RTCPeerConnection({
-     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
    });
 
    // Check ICE connection state
    pc.oniceconnectionstatechange = () => {
-     console.log("ICE state:", pc.iceConnectionState);
+     console.log('ICE state:', pc.iceConnectionState);
    };
    ```
 
@@ -105,13 +105,13 @@ Issue resolved ✓
    ```javascript
    // lib/webrtc.js
    const ICE_SERVERS = [
-     { urls: "stun:stun.l.google.com:19302" },
-     { urls: "stun:stun1.l.google.com:19302" },
+     { urls: 'stun:stun.l.google.com:19302' },
+     { urls: 'stun:stun1.l.google.com:19302' },
      // Add TURN server
      {
-       urls: "turn:your-turn-server.com:3478",
-       username: "user",
-       credential: "password",
+       urls: 'turn:your-turn-server.com:3478',
+       username: 'user',
+       credential: 'password',
      },
    ];
    ```
@@ -128,16 +128,16 @@ Issue resolved ✓
 
    ```javascript
    // Check Firebase connection
-   import { getDatabase, ref, onValue } from "firebase/database";
+   import { getDatabase, ref, onValue } from 'firebase/database';
 
    const db = getDatabase();
-   const connectedRef = ref(db, ".info/connected");
+   const connectedRef = ref(db, '.info/connected');
 
    onValue(connectedRef, (snap) => {
      if (snap.val() === true) {
-       console.log("Firebase connected");
+       console.log('Firebase connected');
      } else {
-       console.log("Firebase disconnected");
+       console.log('Firebase disconnected');
      }
    });
    ```
@@ -156,13 +156,13 @@ Issue resolved ✓
 
    ```javascript
    // In browser console
-   const stream = document.querySelector("audio").srcObject;
+   const stream = document.querySelector('audio').srcObject;
    const tracks = stream.getAudioTracks();
 
    tracks.forEach((track) => {
-     console.log("Track:", track.label);
-     console.log("Enabled:", track.enabled);
-     console.log("Muted:", track.muted);
+     console.log('Track:', track.label);
+     console.log('Enabled:', track.enabled);
+     console.log('Muted:', track.muted);
    });
    ```
 
@@ -172,11 +172,11 @@ Issue resolved ✓
    // Check if audio is muted
    const audioTracks = peerConnection
      .getTransceivers()
-     .filter((t) => t.mediaKind === "audio")
+     .filter((t) => t.mediaKind === 'audio')
      .map((t) => t.sender.track);
 
    audioTracks.forEach((track) => {
-     console.log("Audio track muted:", track.muted);
+     console.log('Audio track muted:', track.muted);
    });
    ```
 
@@ -184,9 +184,9 @@ Issue resolved ✓
    ```javascript
    const stats = await peerConnection.getStats();
    stats.forEach((report) => {
-     if (report.type === "inbound-rtp" && report.kind === "audio") {
-       console.log("Packets received:", report.packetsReceived);
-       console.log("Packets lost:", report.packetsLost);
+     if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+       console.log('Packets received:', report.packetsReceived);
+       console.log('Packets lost:', report.packetsLost);
      }
    });
    ```
@@ -196,7 +196,7 @@ Issue resolved ✓
 1. **Unmute audio**
 
    ```javascript
-   const stream = document.querySelector("audio").srcObject;
+   const stream = document.querySelector('audio').srcObject;
    stream.getAudioTracks().forEach((track) => {
      track.enabled = true;
    });
@@ -212,12 +212,10 @@ Issue resolved ✓
    ```javascript
    // Stop and restart audio track
    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-   const oldStream = document.querySelector("audio").srcObject;
+   const oldStream = document.querySelector('audio').srcObject;
 
    // Replace track in peer connection
-   const sender = peerConnection
-     .getSenders()
-     .find((s) => s.track && s.track.kind === "audio");
+   const sender = peerConnection.getSenders().find((s) => s.track && s.track.kind === 'audio');
    if (sender) {
      await sender.replaceTrack(stream.getAudioTracks()[0]);
    }
@@ -270,8 +268,8 @@ Issue resolved ✓
    ```javascript
    // In browser console
    const devices = await navigator.mediaDevices.enumerateDevices();
-   const audioInputs = devices.filter((d) => d.kind === "audioinput");
-   console.log("Audio input devices:", audioInputs);
+   const audioInputs = devices.filter((d) => d.kind === 'audioinput');
+   console.log('Audio input devices:', audioInputs);
    ```
 
 2. **Test microphone directly**
@@ -295,8 +293,8 @@ Issue resolved ✓
        },
      });
    } catch (error) {
-     if (error.name === "NotAllowedError") {
-       console.log("Permission denied");
+     if (error.name === 'NotAllowedError') {
+       console.log('Permission denied');
      }
    }
    ```
@@ -305,7 +303,7 @@ Issue resolved ✓
 
    ```javascript
    const devices = await navigator.mediaDevices.enumerateDevices();
-   const audioInputs = devices.filter((d) => d.kind === "audioinput");
+   const audioInputs = devices.filter((d) => d.kind === 'audioinput');
 
    if (audioInputs.length > 0) {
      const stream = await navigator.mediaDevices.getUserMedia({
@@ -333,9 +331,9 @@ Issue resolved ✓
    ```javascript
    const stats = await peerConnection.getStats();
    stats.forEach((report) => {
-     if (report.type === "candidate-pair" && report.state === "succeeded") {
-       console.log("Round trip time:", report.currentRoundTripTime);
-       console.log("Available bandwidth:", report.availableOutgoingBitrate);
+     if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+       console.log('Round trip time:', report.currentRoundTripTime);
+       console.log('Available bandwidth:', report.availableOutgoingBitrate);
      }
    });
    ```
@@ -345,16 +343,11 @@ Issue resolved ✓
    ```javascript
    peerConnection.getStats().then((stats) => {
      const inbound = [...stats.values()].find(
-       (s) => s.type === "inbound-rtp" && s.kind === "audio",
+       (s) => s.type === 'inbound-rtp' && s.kind === 'audio'
      );
 
      if (inbound) {
-       console.log(
-         "Packet loss:",
-         inbound.packetsLost,
-         "/",
-         inbound.packetsReceived,
-       );
+       console.log('Packet loss:', inbound.packetsLost, '/', inbound.packetsReceived);
      }
    });
    ```
@@ -386,7 +379,7 @@ Issue resolved ✓
    const sdp = offer.sdp;
    const modifiedSDP = sdp.replace(
      /b=AS:.*\r\n/,
-     "b=AS:24\r\n", // 24 kbps for audio
+     'b=AS:24\r\n' // 24 kbps for audio
    );
    ```
 
@@ -422,17 +415,17 @@ Issue resolved ✓
    ```javascript
    // Create test peer connection
    const pc = new RTCPeerConnection({
-     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
    });
 
-   pc.createDataChannel("test");
+   pc.createDataChannel('test');
    const offer = await pc.createOffer();
    await pc.setLocalDescription(offer);
 
    // Check local candidates
    pc.onicecandidate = (event) => {
      if (event.candidate) {
-       console.log("Candidate type:", event.candidate.type);
+       console.log('Candidate type:', event.candidate.type);
      }
    };
    ```
@@ -443,11 +436,11 @@ Issue resolved ✓
 
    ```javascript
    const iceServers = [
-     { urls: "stun:stun.l.google.com:19302" },
+     { urls: 'stun:stun.l.google.com:19302' },
      {
-       urls: "turn:your-turn-server.com:3478",
-       username: "user",
-       credential: "password",
+       urls: 'turn:your-turn-server.com:3478',
+       username: 'user',
+       credential: 'password',
      },
    ];
    ```
@@ -482,7 +475,7 @@ Issue resolved ✓
    const start = Date.now();
    await peerConnection.createOffer();
    const latency = Date.now() - start;
-   console.log("Offer creation latency:", latency);
+   console.log('Offer creation latency:', latency);
    ```
 
 2. **Check geographic location**
@@ -495,10 +488,10 @@ Issue resolved ✓
 
    ```javascript
    const iceServers = [
-     { urls: "stun:stun.l.google.com:19302" },
+     { urls: 'stun:stun.l.google.com:19302' },
      // Use regional TURN servers
-     { urls: "turn:us-west.turn.example.com:3478" },
-     { urls: "turn:eu-central.turn.example.com:3478" },
+     { urls: 'turn:us-west.turn.example.com:3478' },
+     { urls: 'turn:eu-central.turn.example.com:3478' },
    ];
    ```
 
@@ -522,10 +515,8 @@ Issue resolved ✓
 1. **Enable audio context**
 
    ```javascript
-   const audioContext = new (
-     window.AudioContext || window.webkitAudioContext
-   )();
-   if (audioContext.state === "suspended") {
+   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+   if (audioContext.state === 'suspended') {
      await audioContext.resume();
    }
    ```
@@ -546,7 +537,7 @@ Issue resolved ✓
 
 1. **Use Firefox-specific workarounds**
    ```javascript
-   const isFirefox = navigator.userAgent.toLowerCase().includes("firefox");
+   const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
    if (isFirefox) {
      // Apply Firefox-specific configuration
    }
@@ -566,20 +557,16 @@ Issue resolved ✓
 
    ```javascript
    // Safari requires user gesture for audio
-   document.addEventListener("click", async () => {
-     const audioContext = new (
-       window.AudioContext || window.webkitAudioContext
-     )();
+   document.addEventListener('click', async () => {
+     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
      await audioContext.resume();
    });
    ```
 
 2. **Use compatible codecs**
    ```javascript
-   const supportedCodecs = RTCRtpSender.getCapabilities("audio").codecs;
-   const preferredCodec = supportedCodecs.find(
-     (c) => c.mimeType === "audio/opus",
-   );
+   const supportedCodecs = RTCRtpSender.getCapabilities('audio').codecs;
+   const preferredCodec = supportedCodecs.find((c) => c.mimeType === 'audio/opus');
    ```
 
 ---
@@ -598,14 +585,14 @@ Issue resolved ✓
 1. **Monitor Firebase connection**
 
    ```javascript
-   import { getDatabase, ref, onValue, onDisconnect } from "firebase/database";
+   import { getDatabase, ref, onValue, onDisconnect } from 'firebase/database';
 
    const db = getDatabase();
-   const connectedRef = ref(db, ".info/connected");
+   const connectedRef = ref(db, '.info/connected');
 
    onValue(connectedRef, (snap) => {
      if (!snap.val()) {
-       console.log("Firebase disconnected");
+       console.log('Firebase disconnected');
      }
    });
    ```
@@ -619,12 +606,12 @@ Issue resolved ✓
 1. **Implement reconnection logic**
 
    ```javascript
-   manager.on("reconnecting", () => {
-     console.log("Attempting to reconnect...");
+   manager.on('reconnecting', () => {
+     console.log('Attempting to reconnect...');
    });
 
-   manager.on("reconnected", () => {
-     console.log("Reconnected successfully");
+   manager.on('reconnected', () => {
+     console.log('Reconnected successfully');
    });
    ```
 
@@ -645,9 +632,9 @@ Issue resolved ✓
 
    ```javascript
    const start = Date.now();
-   await set(ref(db, "test"), { timestamp: Date.now() });
+   await set(ref(db, 'test'), { timestamp: Date.now() });
    const latency = Date.now() - start;
-   console.log("Firebase write latency:", latency);
+   console.log('Firebase write latency:', latency);
    ```
 
 2. **Verify network path**
@@ -660,7 +647,7 @@ Issue resolved ✓
    // Configure Firebase with regional database
    const firebaseConfig = {
      // ... other config
-     databaseURL: "https://your-project.us-central1.firebasedatabase.app",
+     databaseURL: 'https://your-project.us-central1.firebasedatabase.app',
    };
    ```
 
@@ -696,9 +683,9 @@ Issue resolved ✓
    ```javascript
    const iceServers = [
      {
-       urls: "turn:turn.example.com:3478",
-       username: "correct-username",
-       credential: "correct-password",
+       urls: 'turn:turn.example.com:3478',
+       username: 'correct-username',
+       credential: 'correct-password',
      },
    ];
    ```
@@ -750,7 +737,7 @@ Issue resolved ✓
 
    ```javascript
    const configuration = {
-     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
      iceCandidatePoolSize: 10,
    };
    ```
@@ -777,9 +764,9 @@ Issue resolved ✓
    ```javascript
    // Request wake lock
    try {
-     const wakeLock = await navigator.wakeLock.request("audio");
+     const wakeLock = await navigator.wakeLock.request('audio');
    } catch (err) {
-     console.log("Wake lock not supported");
+     console.log('Wake lock not supported');
    }
    ```
 
@@ -804,44 +791,44 @@ Issue resolved ✓
 ```javascript
 // Run in browser console for comprehensive diagnostics
 async function diagnoseWebRTC() {
-  console.log("=== WebRTC Diagnostics ===\n");
+  console.log('=== WebRTC Diagnostics ===\n');
 
   // 1. Check browser support
-  console.log("Browser:", navigator.userAgent);
-  console.log("WebRTC supported:", !!window.RTCPeerConnection);
+  console.log('Browser:', navigator.userAgent);
+  console.log('WebRTC supported:', !!window.RTCPeerConnection);
   console.log(
-    "getUserMedia supported:",
-    !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+    'getUserMedia supported:',
+    !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
   );
 
   // 2. Check ICE servers
   const pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
   });
-  console.log("ICE servers configured:", pc.getConfiguration().iceServers);
+  console.log('ICE servers configured:', pc.getConfiguration().iceServers);
 
   // 3. List devices
   const devices = await navigator.mediaDevices.enumerateDevices();
   console.log(
-    "\nAudio input devices:",
-    devices.filter((d) => d.kind === "audioinput"),
+    '\nAudio input devices:',
+    devices.filter((d) => d.kind === 'audioinput')
   );
   console.log(
-    "Audio output devices:",
-    devices.filter((d) => d.kind === "audiooutput"),
+    'Audio output devices:',
+    devices.filter((d) => d.kind === 'audiooutput')
   );
 
   // 4. Test microphone
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    console.log("\nMicrophone test: SUCCESS");
+    console.log('\nMicrophone test: SUCCESS');
     stream.getTracks().forEach((t) => t.stop());
   } catch (err) {
-    console.log("\nMicrophone test: FAILED -", err.message);
+    console.log('\nMicrophone test: FAILED -', err.message);
   }
 
   // 5. Check Firebase connection
-  console.log("\n=== End Diagnostics ===");
+  console.log('\n=== End Diagnostics ===');
 }
 
 // Run the diagnostic
@@ -874,19 +861,19 @@ const originalConsole = { ...console };
 const logs = [];
 const originalLog = console.log;
 console.log = (...args) => {
-  logs.push({ type: "log", message: args.join(" "), timestamp: Date.now() });
+  logs.push({ type: 'log', message: args.join(' '), timestamp: Date.now() });
   originalLog.apply(console, args);
 };
 
 // Export logs
 function exportLogs() {
   const blob = new Blob([JSON.stringify(logs, null, 2)], {
-    type: "application/json",
+    type: 'application/json',
   });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
-  a.download = "webrtc-logs.json";
+  a.download = 'webrtc-logs.json';
   a.click();
 }
 ```
@@ -927,7 +914,7 @@ async function emergencyEndCall() {
 
   // Remove from Firebase
   if (manager.db && manager.currentRoomId) {
-    const { remove } = await import("firebase/database");
+    const { remove } = await import('firebase/database');
     await remove(ref(manager.db, `calls/${manager.currentRoomId}`));
   }
 }

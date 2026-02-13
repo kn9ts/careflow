@@ -33,16 +33,16 @@ The Playwright configuration is in [`playwright.config.js`](../playwright.config
 
 ```javascript
 export default defineConfig({
-  testDir: "./tests/e2e", // E2E test directory
-  baseURL: "http://localhost:3001", // Application URL
+  testDir: './tests/e2e', // E2E test directory
+  baseURL: 'http://localhost:3001', // Application URL
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-    { name: "webkit", use: { ...devices["Desktop Safari"] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3001",
+    command: 'npm run dev',
+    url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
   },
 });
@@ -189,8 +189,8 @@ test.beforeEach(async ({ page }) => {
   await page.goto(`${TEST_CONFIG.baseUrl}/login`);
 
   // Fill credentials
-  await page.fill('[data-testid="email-input"]', "test@example.com");
-  await page.fill('[data-testid="password-input"]', "TestPassword123!");
+  await page.fill('[data-testid="email-input"]', 'test@example.com');
+  await page.fill('[data-testid="password-input"]', 'TestPassword123!');
 
   // Submit login
   await page.click('[data-testid="login-button"]');
@@ -205,13 +205,13 @@ test.beforeEach(async ({ page }) => {
 For tests that don't need full login flow:
 
 ```javascript
-test("should access protected route", async ({ page }) => {
+test('should access protected route', async ({ page }) => {
   // Mock authenticated state
   await page.evaluate(() => {
-    localStorage.setItem("careflow_token", JSON.stringify("valid-test-token"));
+    localStorage.setItem('careflow_token', JSON.stringify('valid-test-token'));
   });
 
-  await page.goto("/dashboard");
+  await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/dashboard/);
 });
 ```
@@ -223,7 +223,7 @@ For notification tests:
 ```javascript
 test.beforeEach(async ({ page }) => {
   // Grant notification permission
-  await page.context().grantPermissions(["notifications"]);
+  await page.context().grantPermissions(['notifications']);
 
   // Then login...
 });
@@ -237,21 +237,21 @@ For testing real-time features:
 // Simulate incoming call
 await page.evaluate(() => {
   window.dispatchEvent(
-    new CustomEvent("incoming-call", {
-      detail: { from: "+1234567890", callSid: "CA123" },
-    }),
+    new CustomEvent('incoming-call', {
+      detail: { from: '+1234567890', callSid: 'CA123' },
+    })
   );
 });
 
 // Simulate FCM message
 await page.evaluate(() => {
   window.dispatchEvent(
-    new CustomEvent("fcm-message", {
+    new CustomEvent('fcm-message', {
       detail: {
-        notification: { title: "Missed Call", body: "From +1234567890" },
-        data: { type: "missed_call", from: "+1234567890" },
+        notification: { title: 'Missed Call', body: 'From +1234567890' },
+        data: { type: 'missed_call', from: '+1234567890' },
       },
-    }),
+    })
   );
 });
 ```
@@ -260,7 +260,7 @@ await page.evaluate(() => {
 
 ```javascript
 // Mock API response
-await page.route("**/api/analytics", (route) => {
+await page.route('**/api/analytics', (route) => {
   route.fulfill({
     status: 200,
     body: JSON.stringify({ totalCalls: 100 }),
@@ -268,7 +268,7 @@ await page.route("**/api/analytics", (route) => {
 });
 
 // Simulate slow network
-await page.route("**/*", (route) => {
+await page.route('**/*', (route) => {
   route.continue({
     latency: 1000,
     throughput: 50,
@@ -296,9 +296,9 @@ Tests user authentication flows.
 **Example:**
 
 ```javascript
-test("should login successfully", async ({ page }) => {
-  await page.fill('[data-testid="email-input"]', "test@example.com");
-  await page.fill('[data-testid="password-input"]', "TestPassword123!");
+test('should login successfully', async ({ page }) => {
+  await page.fill('[data-testid="email-input"]', 'test@example.com');
+  await page.fill('[data-testid="password-input"]', 'TestPassword123!');
   await page.click('[data-testid="login-button"]');
   await expect(page).toHaveURL(/\/dashboard/);
 });
@@ -330,7 +330,7 @@ Tests peer-to-peer calling functionality.
 **Example:**
 
 ```javascript
-test("should establish P2P call", async ({ browser }) => {
+test('should establish P2P call', async ({ browser }) => {
   const context1 = await browser.newContext();
   const context2 = await browser.newContext();
   const page1 = await context1.newPage();
@@ -356,8 +356,8 @@ Tests Twilio Voice integration for PSTN calling.
 **Example:**
 
 ```javascript
-test("should initiate PSTN call", async ({ page }) => {
-  await page.fill('[data-testid="phone-input"]', "+1234567890");
+test('should initiate PSTN call', async ({ page }) => {
+  await page.fill('[data-testid="phone-input"]', '+1234567890');
   await page.click('[data-testid="call-button"]');
   await expect(page.locator('[data-testid="call-status"]')).toBeVisible();
 });
@@ -380,20 +380,18 @@ Tests push notification functionality.
 **Example:**
 
 ```javascript
-test("should show incoming call notification", async ({ page }) => {
+test('should show incoming call notification', async ({ page }) => {
   await page.evaluate(() => {
     window.dispatchEvent(
-      new CustomEvent("fcm-message", {
+      new CustomEvent('fcm-message', {
         detail: {
-          notification: { title: "Incoming Call", body: "From +1234567890" },
-          data: { type: "incoming_call", from: "+1234567890" },
+          notification: { title: 'Incoming Call', body: 'From +1234567890' },
+          data: { type: 'incoming_call', from: '+1234567890' },
         },
-      }),
+      })
     );
   });
-  await expect(
-    page.locator('[data-testid="incoming-call-modal"]'),
-  ).toBeVisible();
+  await expect(page.locator('[data-testid="incoming-call-modal"]')).toBeVisible();
 });
 ```
 
@@ -415,13 +413,13 @@ Tests user settings and account management.
 **Example:**
 
 ```javascript
-test("should update display name", async ({ page }) => {
+test('should update display name', async ({ page }) => {
   await page.click('[data-testid="settings-tab"]');
   const nameInput = page.locator('[data-testid="display-name-input"]');
   await nameInput.clear();
-  await nameInput.fill("Updated Name");
+  await nameInput.fill('Updated Name');
   await page.click('[data-testid="save-profile-button"]');
-  await expect(page.locator("text=/saved|updated/i")).toBeVisible();
+  await expect(page.locator('text=/saved|updated/i')).toBeVisible();
 });
 ```
 
@@ -477,7 +475,7 @@ class LoginPage {
 // Each test should work in isolation
 test.beforeEach(async ({ page }) => {
   // Fresh login for each test
-  await page.goto("/login");
+  await page.goto('/login');
   // ... login steps
 });
 
@@ -490,13 +488,13 @@ test.afterEach(async ({ page }) => {
 
 ```javascript
 // Mock external APIs
-await page.route("**/api.twilio.com/**", (route) => {
-  route.fulfill({ status: 200, body: "{}" });
+await page.route('**/api.twilio.com/**', (route) => {
+  route.fulfill({ status: 200, body: '{}' });
 });
 
 // Mock Firebase
-await page.route("**/firebaseio.com/**", (route) => {
-  route.fulfill({ status: 200, body: "{}" });
+await page.route('**/firebaseio.com/**', (route) => {
+  route.fulfill({ status: 200, body: '{}' });
 });
 ```
 
@@ -529,7 +527,7 @@ if (await element.isVisible()) {
 
 ```javascript
 // Use proper waits instead of fixed timeouts
-await page.waitForLoadState("networkidle");
+await page.waitForLoadState('networkidle');
 await page.waitForSelector('[data-testid="loaded-content"]');
 ```
 
@@ -602,8 +600,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci

@@ -76,18 +76,18 @@ Tests for login, signup, and session management.
 
 ```javascript
 // Example: Login flow test
-test("should login successfully", async ({ page }) => {
-  await page.goto("/login");
+test('should login successfully', async ({ page }) => {
+  await page.goto('/login');
 
   // Fill credentials
-  await page.fill('[data-testid="email-input"]', "test@example.com");
-  await page.fill('[data-testid="password-input"]', "password123");
+  await page.fill('[data-testid="email-input"]', 'test@example.com');
+  await page.fill('[data-testid="password-input"]', 'password123');
 
   // Submit form
   await page.click('[data-testid="login-button"]');
 
   // Verify redirect to dashboard
-  await expect(page).toHaveURL("/dashboard");
+  await expect(page).toHaveURL('/dashboard');
 });
 ```
 
@@ -97,7 +97,7 @@ Tests for peer-to-peer calling functionality.
 
 ```javascript
 // Example: WebRTC call establishment
-test("should establish P2P call", async ({ browser }) => {
+test('should establish P2P call', async ({ browser }) => {
   // Create two browser contexts (caller and callee)
   const callerContext = await browser.newContext();
   const calleeContext = await browser.newContext();
@@ -131,17 +131,17 @@ Tests for recording playback and management.
 
 ```javascript
 // tests/e2e/feature.spec.js
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require('@playwright/test');
 
-test.describe("Feature Name", () => {
+test.describe('Feature Name', () => {
   // Setup before each test
   test.beforeEach(async ({ page }) => {
     // Common setup (login, navigate, etc.)
   });
 
-  test("should do something specific", async ({ page }) => {
+  test('should do something specific', async ({ page }) => {
     // Arrange: Setup test conditions
-    await page.goto("/dashboard");
+    await page.goto('/dashboard');
 
     // Act: Perform the action
     await page.click('[data-testid="action-button"]');
@@ -168,23 +168,23 @@ Add `data-testid` attributes to components for reliable selection:
 // Method 1: Mock authentication state
 await page.evaluate(() => {
   localStorage.setItem(
-    "careflow_auth",
+    'careflow_auth',
     JSON.stringify({
-      token: "test-token",
-      user: { uid: "test-user" },
-    }),
+      token: 'test-token',
+      user: { uid: 'test-user' },
+    })
   );
 });
 
 // Method 2: Use storage state
-test.use({ storageState: "tests/auth-state.json" });
+test.use({ storageState: 'tests/auth-state.json' });
 ```
 
 ### Network Interception
 
 ```javascript
 // Mock API responses
-await page.route("**/api/analytics", (route) => {
+await page.route('**/api/analytics', (route) => {
   route.fulfill({
     status: 200,
     body: JSON.stringify({ totalCalls: 100 }),
@@ -192,7 +192,7 @@ await page.route("**/api/analytics", (route) => {
 });
 
 // Simulate slow network
-await page.route("**/*", (route) => {
+await page.route('**/*', (route) => {
   route.continue({
     latency: 1000,
     throughput: 50,

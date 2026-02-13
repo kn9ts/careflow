@@ -82,13 +82,13 @@ graph TB
 
    ```yaml
    # docker-compose.yml
-   version: "3.8"
+   version: '3.8'
    services:
      kamailio:
        image: kamailio/kamailio:5.7
        ports:
-         - "5060:5060/udp"
-         - "5061:5061/tcp"
+         - '5060:5060/udp'
+         - '5061:5061/tcp'
        volumes:
          - ./kamailio.cfg:/etc/kamailio/kamailio.cfg
          - ./kamailio.d:/etc/kamailio/
@@ -96,13 +96,13 @@ graph TB
    FreeSWITCH:
      image: freeswitch/freeswitch:latest
      ports:
-       - "8021:8021"
-       - "5080:5080"
+       - '8021:8021'
+       - '5080:5080'
 
    rtpengine:
      image: sipwise/rtpengine:latest
      ports:
-       - "22222:22222/udp"
+       - '22222:22222/udp'
    ```
 
 ### Phase 2: Kamailio Configuration

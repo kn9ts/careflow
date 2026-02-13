@@ -76,14 +76,14 @@ Docker image: ~500MB
 
 ```yaml
 # docker-compose.asterisk.yml
-version: "3.8"
+version: '3.8'
 services:
   asterisk:
     image: asterisk/asterisk:18
     ports:
-      - "5060:5060/udp"
-      - "5060:5060/tcp"
-      - "8088:8088/http"
+      - '5060:5060/udp'
+      - '5060:5060/tcp'
+      - '8088:8088/http'
     volumes:
       - ./config/asterisk:/etc/asterisk:ro
       - ./sounds:/var/lib/asterisk/sounds

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 /**
  * Recording Schema
@@ -11,7 +11,7 @@ const recordingSchema = new mongoose.Schema({
   // Association with User
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
     index: true,
   },
@@ -24,7 +24,7 @@ const recordingSchema = new mongoose.Schema({
   // Recording Type
   type: {
     type: String,
-    enum: ["call", "voicemail"],
+    enum: ['call', 'voicemail'],
     required: true,
     index: true,
   },
@@ -32,9 +32,9 @@ const recordingSchema = new mongoose.Schema({
   // Call Mode (Twilio or WebRTC)
   callMode: {
     type: String,
-    enum: ["twilio", "webrtc"],
+    enum: ['twilio', 'webrtc'],
     required: true,
-    default: "twilio",
+    default: 'twilio',
   },
 
   // Call Information
@@ -57,7 +57,7 @@ const recordingSchema = new mongoose.Schema({
   },
   direction: {
     type: String,
-    enum: ["inbound", "outbound"],
+    enum: ['inbound', 'outbound'],
     required: true,
     index: true,
   },
@@ -67,9 +67,9 @@ const recordingSchema = new mongoose.Schema({
     // Storage provider
     provider: {
       type: String,
-      enum: ["twilio", "backblaze", "local"],
+      enum: ['twilio', 'backblaze', 'local'],
       required: true,
-      default: "backblaze",
+      default: 'backblaze',
     },
     // Backblaze B2 storage
     b2Key: {
@@ -100,8 +100,8 @@ const recordingSchema = new mongoose.Schema({
   },
   format: {
     type: String,
-    enum: ["webm", "wav", "mp3", "ogg"],
-    default: "webm",
+    enum: ['webm', 'wav', 'mp3', 'ogg'],
+    default: 'webm',
   },
   bitrate: {
     type: Number, // Audio bitrate in kbps
@@ -128,14 +128,14 @@ const recordingSchema = new mongoose.Schema({
   // Status
   status: {
     type: String,
-    enum: ["recording", "processing", "active", "archived", "deleted", "error"],
-    default: "processing",
+    enum: ['recording', 'processing', 'active', 'archived', 'deleted', 'error'],
+    default: 'processing',
     index: true,
   },
   storageClass: {
     type: String,
-    enum: ["STANDARD", "GLACIER_DEEP_ARCHIVE"],
-    default: "STANDARD",
+    enum: ['STANDARD', 'GLACIER_DEEP_ARCHIVE'],
+    default: 'STANDARD',
   },
   isListened: {
     type: Boolean,
@@ -169,7 +169,7 @@ const recordingSchema = new mongoose.Schema({
   transcription: {
     status: {
       type: String,
-      enum: ["pending", "processing", "completed", "failed"],
+      enum: ['pending', 'processing', 'completed', 'failed'],
     },
     text: {
       type: String,
@@ -179,7 +179,7 @@ const recordingSchema = new mongoose.Schema({
     },
     language: {
       type: String,
-      default: "en",
+      default: 'en',
     },
   },
   notes: [
@@ -226,23 +226,21 @@ recordingSchema.index({ userId: 1, isListened: 1 });
 recordingSchema.index({ userId: 1, status: 1 });
 recordingSchema.index({ userId: 1, direction: 1 });
 recordingSchema.index({ recordedAt: -1, status: 1 });
-recordingSchema.index({ "transcription.status": 1 });
+recordingSchema.index({ 'transcription.status': 1 });
 
 // Virtual for getting signed URL (computed on demand)
-recordingSchema.virtual("signedUrl").get(function () {
-  // This would be computed by the application
-  return null;
-});
+recordingSchema.virtual('signedUrl').get(
+  () =>
+    // This would be computed by the application
+    null
+);
 
 // Instance method to check if user has access
 recordingSchema.methods.hasAccess = function (firebaseUid) {
   if (this.accessControl.isPublic) return true;
   if (this.userId.toString() === firebaseUid) return true;
   if (this.accessControl.allowedUsers.includes(firebaseUid)) return true;
-  if (
-    this.accessControl.expiresAt &&
-    new Date() > this.accessControl.expiresAt
-  ) {
+  if (this.accessControl.expiresAt && new Date() > this.accessControl.expiresAt) {
     return false;
   }
   return false;
@@ -259,26 +257,22 @@ recordingSchema.methods.markAsListened = async function (firebaseUid) {
 
 // Instance method to get access URL
 recordingSchema.methods.getAccessUrl = async function () {
-  if (this.storage.provider === "backblaze" && this.storage.b2Key) {
+  if (this.storage.provider === 'backblaze' && this.storage.b2Key) {
     // Return signed URL from Backblaze
     return `/api/recordings/${this._id}/url`;
   }
-  if (this.storage.provider === "twilio" && this.storage.twilioUrl) {
+  if (this.storage.provider === 'twilio' && this.storage.twilioUrl) {
     return this.storage.twilioUrl;
   }
   return null;
 };
 
 // Pre-save hook for auto-updates
-recordingSchema.pre("save", function (next) {
-  if (this.isModified("isListened") && this.isListened && !this.listenedAt) {
+recordingSchema.pre('save', function (next) {
+  if (this.isModified('isListened') && this.isListened && !this.listenedAt) {
     this.listenedAt = new Date();
   }
-  if (
-    this.isModified("isDownloaded") &&
-    this.isDownloaded &&
-    !this.downloadedAt
-  ) {
+  if (this.isModified('isDownloaded') && this.isDownloaded && !this.downloadedAt) {
     this.downloadedAt = new Date();
   }
   next();
@@ -306,11 +300,10 @@ recordingSchema.statics.findByUser = function (userId, options = {}) {
 // Static method for admin queries
 recordingSchema.statics.adminFind = function (filters = {}, options = {}) {
   return this.find(filters)
-    .populate("userId", "email displayName")
+    .populate('userId', 'email displayName')
     .sort({ recordedAt: -1 })
     .skip(options.skip || 0)
     .limit(options.limit || 50);
 };
 
-export default mongoose.models.Recording ||
-  mongoose.model("Recording", recordingSchema);
+export default mongoose.models.Recording || mongoose.model('Recording', recordingSchema);

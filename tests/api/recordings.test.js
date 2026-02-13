@@ -3,12 +3,12 @@
  * Tests for recording management endpoints
  */
 
-describe("Recordings API", () => {
-  describe("GET /api/recordings", () => {
-    test("should return 401 without authentication", () => {
+describe('Recordings API', () => {
+  describe('GET /api/recordings', () => {
+    test('should return 401 without authentication', () => {
       const authResult = {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
 
@@ -16,64 +16,62 @@ describe("Recordings API", () => {
       expect(authResult.status).toBe(401);
     });
 
-    test("should parse pagination parameters", () => {
-      const url = new URL(
-        "http://localhost:3000/api/recordings?page=2&limit=10",
-      );
+    test('should parse pagination parameters', () => {
+      const url = new URL('http://localhost:3000/api/recordings?page=2&limit=10');
 
-      expect(url.searchParams.get("page")).toBe("2");
-      expect(url.searchParams.get("limit")).toBe("10");
+      expect(url.searchParams.get('page')).toBe('2');
+      expect(url.searchParams.get('limit')).toBe('10');
     });
 
-    test("should parse filter parameters", () => {
+    test('should parse filter parameters', () => {
       const url = new URL(
-        "http://localhost:3000/api/recordings?type=call&direction=inbound&status=active",
+        'http://localhost:3000/api/recordings?type=call&direction=inbound&status=active'
       );
 
-      expect(url.searchParams.get("type")).toBe("call");
-      expect(url.searchParams.get("direction")).toBe("inbound");
-      expect(url.searchParams.get("status")).toBe("active");
+      expect(url.searchParams.get('type')).toBe('call');
+      expect(url.searchParams.get('direction')).toBe('inbound');
+      expect(url.searchParams.get('status')).toBe('active');
     });
 
-    test("should parse date range parameters", () => {
+    test('should parse date range parameters', () => {
       const url = new URL(
-        "http://localhost:3000/api/recordings?startDate=2024-01-01&endDate=2024-12-31",
+        'http://localhost:3000/api/recordings?startDate=2024-01-01&endDate=2024-12-31'
       );
 
-      expect(url.searchParams.get("startDate")).toBe("2024-01-01");
-      expect(url.searchParams.get("endDate")).toBe("2024-12-31");
+      expect(url.searchParams.get('startDate')).toBe('2024-01-01');
+      expect(url.searchParams.get('endDate')).toBe('2024-12-31');
     });
   });
 
-  describe("Recording Query Building", () => {
-    test("should build query with user ID", () => {
-      const firebaseUid = "firebase-123";
-      const query = { firebaseUid: firebaseUid };
+  describe('Recording Query Building', () => {
+    test('should build query with user ID', () => {
+      const firebaseUid = 'firebase-123';
+      const query = { firebaseUid };
 
-      expect(query.firebaseUid).toBe("firebase-123");
+      expect(query.firebaseUid).toBe('firebase-123');
     });
 
-    test("should add filters to query", () => {
-      const query = { firebaseUid: "firebase-123" };
+    test('should add filters to query', () => {
+      const query = { firebaseUid: 'firebase-123' };
 
-      const type = "call";
-      const direction = "outbound";
-      const status = "active";
+      const type = 'call';
+      const direction = 'outbound';
+      const status = 'active';
 
       if (type) query.type = type;
       if (direction) query.direction = direction;
       if (status) query.status = status;
 
-      expect(query.type).toBe("call");
-      expect(query.direction).toBe("outbound");
-      expect(query.status).toBe("active");
+      expect(query.type).toBe('call');
+      expect(query.direction).toBe('outbound');
+      expect(query.status).toBe('active');
     });
 
-    test("should build date range query", () => {
-      const query = { firebaseUid: "firebase-123" };
+    test('should build date range query', () => {
+      const query = { firebaseUid: 'firebase-123' };
 
-      const startDate = "2024-01-01";
-      const endDate = "2024-12-31";
+      const startDate = '2024-01-01';
+      const endDate = '2024-12-31';
 
       if (startDate || endDate) {
         query.recordedAt = {};
@@ -81,11 +79,11 @@ describe("Recordings API", () => {
         if (endDate) query.recordedAt.$lte = endDate;
       }
 
-      expect(query.recordedAt.$gte).toBe("2024-01-01");
-      expect(query.recordedAt.$lte).toBe("2024-12-31");
+      expect(query.recordedAt.$gte).toBe('2024-01-01');
+      expect(query.recordedAt.$lte).toBe('2024-12-31');
     });
 
-    test("should calculate pagination correctly", () => {
+    test('should calculate pagination correctly', () => {
       const total = 100;
       const limit = 20;
       const page = 3;
@@ -98,19 +96,19 @@ describe("Recordings API", () => {
     });
   });
 
-  describe("Recording Response Formatting", () => {
-    test("should format recording response", () => {
+  describe('Recording Response Formatting', () => {
+    test('should format recording response', () => {
       const recording = {
-        _id: "rec-123",
-        type: "call",
-        callMode: "twilio",
-        from: "+1234567890",
-        to: "+0987654321",
-        direction: "outbound",
+        _id: 'rec-123',
+        type: 'call',
+        callMode: 'twilio',
+        from: '+1234567890',
+        to: '+0987654321',
+        direction: 'outbound',
         duration: 120,
         fileSize: 1024,
-        format: "webm",
-        status: "active",
+        format: 'webm',
+        status: 'active',
         isListened: false,
       };
 
@@ -128,42 +126,35 @@ describe("Recordings API", () => {
         isListened: recording.isListened,
       };
 
-      expect(formatted.id).toBe("rec-123");
-      expect(formatted.type).toBe("call");
+      expect(formatted.id).toBe('rec-123');
+      expect(formatted.type).toBe('call');
       expect(formatted.duration).toBe(120);
     });
   });
 });
 
-describe("Recording Validation", () => {
-  describe("Recording Type Validation", () => {
-    test("should have valid recording types", () => {
-      const validTypes = ["call", "voicemail"];
+describe('Recording Validation', () => {
+  describe('Recording Type Validation', () => {
+    test('should have valid recording types', () => {
+      const validTypes = ['call', 'voicemail'];
 
-      expect(validTypes).toContain("call");
-      expect(validTypes).toContain("voicemail");
+      expect(validTypes).toContain('call');
+      expect(validTypes).toContain('voicemail');
     });
   });
 
-  describe("Recording Direction Validation", () => {
-    test("should have valid directions", () => {
-      const validDirections = ["inbound", "outbound"];
+  describe('Recording Direction Validation', () => {
+    test('should have valid directions', () => {
+      const validDirections = ['inbound', 'outbound'];
 
-      expect(validDirections).toContain("inbound");
-      expect(validDirections).toContain("outbound");
+      expect(validDirections).toContain('inbound');
+      expect(validDirections).toContain('outbound');
     });
   });
 
-  describe("Recording Status Validation", () => {
-    test("should have valid statuses", () => {
-      const validStatuses = [
-        "recording",
-        "processing",
-        "active",
-        "archived",
-        "deleted",
-        "error",
-      ];
+  describe('Recording Status Validation', () => {
+    test('should have valid statuses', () => {
+      const validStatuses = ['recording', 'processing', 'active', 'archived', 'deleted', 'error'];
 
       validStatuses.forEach((status) => {
         expect(validStatuses).toContain(status);
@@ -171,23 +162,23 @@ describe("Recording Validation", () => {
     });
   });
 
-  describe("Call Mode Validation", () => {
-    test("should have valid call modes", () => {
-      const validModes = ["twilio", "webrtc"];
+  describe('Call Mode Validation', () => {
+    test('should have valid call modes', () => {
+      const validModes = ['twilio', 'webrtc'];
 
-      expect(validModes).toContain("twilio");
-      expect(validModes).toContain("webrtc");
+      expect(validModes).toContain('twilio');
+      expect(validModes).toContain('webrtc');
     });
   });
 
-  describe("Audio Format Validation", () => {
-    test("should have valid audio formats", () => {
-      const validFormats = ["webm", "wav", "mp3", "ogg"];
+  describe('Audio Format Validation', () => {
+    test('should have valid audio formats', () => {
+      const validFormats = ['webm', 'wav', 'mp3', 'ogg'];
 
-      expect(validFormats).toContain("webm");
-      expect(validFormats).toContain("wav");
-      expect(validFormats).toContain("mp3");
-      expect(validFormats).toContain("ogg");
+      expect(validFormats).toContain('webm');
+      expect(validFormats).toContain('wav');
+      expect(validFormats).toContain('mp3');
+      expect(validFormats).toContain('ogg');
     });
   });
 });

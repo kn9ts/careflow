@@ -1,14 +1,10 @@
-import { connectDB } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
-import Recording from "@/models/Recording";
-import {
-  successResponse,
-  errorResponse,
-  handleAuthResult,
-} from "@/lib/apiResponse";
+import { connectDB } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
+import Recording from '@/models/Recording';
+import { successResponse, errorResponse, handleAuthResult } from '@/lib/apiResponse';
 
 // Force dynamic rendering - this route uses request.headers for auth
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
@@ -20,31 +16,31 @@ export async function GET(request) {
     // Connect to database
     await connectDB();
 
-    const firebaseUid = auth.user.firebaseUid;
+    const { firebaseUid } = auth.user;
 
     // Get basic statistics
     const totalCalls = await Recording.countDocuments({
       firebaseUid,
-      type: "call",
+      type: 'call',
     });
 
     const totalVoicemails = await Recording.countDocuments({
       firebaseUid,
-      type: "voicemail",
+      type: 'voicemail',
     });
 
     const totalDuration = await Recording.aggregate([
       {
         $match: {
           firebaseUid,
-          type: "call",
+          type: 'call',
           duration: { $gt: 0 },
         },
       },
       {
         $group: {
           _id: null,
-          totalDuration: { $sum: "$duration" },
+          totalDuration: { $sum: '$duration' },
         },
       },
     ]);
@@ -56,23 +52,22 @@ export async function GET(request) {
     todayStart.setHours(0, 0, 0, 0);
     const todayCalls = await Recording.countDocuments({
       firebaseUid,
-      type: "call",
+      type: 'call',
       recordedAt: { $gte: todayStart },
     });
 
     // Calculate success rate (calls with duration > 0)
     const successfulCalls = await Recording.countDocuments({
       firebaseUid,
-      type: "call",
+      type: 'call',
       duration: { $gt: 0 },
     });
-    const successRate =
-      totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
+    const successRate = totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
 
     // Get recent calls with derived call status
     const recentCalls = await Recording.find({
       firebaseUid,
-      type: "call",
+      type: 'call',
     })
       .sort({ recordedAt: -1 })
       .limit(10)
@@ -81,7 +76,7 @@ export async function GET(request) {
     // Add derived call status to each recent call
     const recentCallsWithStatus = recentCalls.map((call) => ({
       ...call,
-      callStatus: call.duration > 0 ? "completed" : "missed",
+      callStatus: call.duration > 0 ? 'completed' : 'missed',
     }));
 
     return successResponse({
@@ -89,18 +84,17 @@ export async function GET(request) {
         totalCalls,
         totalVoicemails,
         totalDuration: totalDurationSeconds,
-        averageCallDuration:
-          totalCalls > 0 ? Math.round(totalDurationSeconds / totalCalls) : 0,
+        averageCallDuration: totalCalls > 0 ? Math.round(totalDurationSeconds / totalCalls) : 0,
         todayCalls,
         successRate,
         recentCalls: recentCallsWithStatus,
       },
     });
   } catch (error) {
-    console.error("Analytics error:", error);
-    return errorResponse("Failed to fetch analytics", {
+    console.error('Analytics error:', error);
+    return errorResponse('Failed to fetch analytics', {
       status: 500,
-      code: "ANALYTICS_FETCH_FAILED",
+      code: 'ANALYTICS_FETCH_FAILED',
     });
   }
 }

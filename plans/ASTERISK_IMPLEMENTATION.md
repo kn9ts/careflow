@@ -126,7 +126,7 @@ infrastructure/
 
 ```yaml
 # infrastructure/docker-compose.sip.yml
-version: "3.8"
+version: '3.8'
 
 services:
   # Kamailio SIP Proxy
@@ -135,9 +135,9 @@ services:
     container_name: careflow-kamailio
     restart: unless-stopped
     ports:
-      - "5060:5060/udp"
-      - "5060:5060/tcp"
-      - "8080:8080/tcp"
+      - '5060:5060/udp'
+      - '5060:5060/tcp'
+      - '8080:8080/tcp'
     volumes:
       - ./kamailio/config:/etc/kamailio:ro
       - kamailio-data:/var/run/kamailio
@@ -148,7 +148,7 @@ services:
     networks:
       - sip-network
     healthcheck:
-      test: ["CMD", "kamailio", "-c", "/etc/kamailio/kamailio.cfg"]
+      test: ['CMD', 'kamailio', '-c', '/etc/kamailio/kamailio.cfg']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -159,9 +159,9 @@ services:
     container_name: careflow-asterisk
     restart: unless-stopped
     ports:
-      - "5061:5061/tcp"
-      - "5061:5061/udp"
-      - "8088:8088/tcp"
+      - '5061:5061/tcp'
+      - '5061:5061/udp'
+      - '8088:8088/tcp'
     volumes:
       - ./asterisk/config:/etc/asterisk:ro
       - asterisk-data:/var/lib/asterisk
@@ -177,7 +177,7 @@ services:
     depends_on:
       - postgres
     healthcheck:
-      test: ["CMD", "asterisk", "-rx", "core show version"]
+      test: ['CMD', 'asterisk', '-rx', 'core show version']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -188,8 +188,8 @@ services:
     container_name: careflow-rtpengine
     restart: unless-stopped
     ports:
-      - "2222:2222/udp"
-      - "2223:2223/tcp"
+      - '2222:2222/udp'
+      - '2223:2223/tcp'
     volumes:
       - ./rtpengine/config:/etc/rtpengine:ro
       - rtpengine-data:/var/lib/rtpengine
@@ -207,7 +207,7 @@ services:
     container_name: careflow-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
@@ -218,7 +218,7 @@ services:
     networks:
       - sip-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "careflow"]
+      test: ['CMD', 'pg_isready', '-U', 'careflow']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -229,7 +229,7 @@ services:
     container_name: careflow-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     networks:
@@ -242,7 +242,7 @@ services:
     container_name: careflow-monitoring
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - ./monitoring/config:/etc/grafana:ro
       - monitoring-data:/var/lib/grafana
@@ -260,13 +260,13 @@ services:
     container_name: careflow-prometheus
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     networks:
       - sip-network
 
@@ -293,7 +293,7 @@ networks:
 
 ```yaml
 # infrastructure/docker-compose.sip.arm64.yml
-version: "3.8"
+version: '3.8'
 
 services:
   # ARM64 Kamailio (pre-built for Oracle Cloud ARM)
@@ -303,9 +303,9 @@ services:
     restart: unless-stopped
     privileged: true
     ports:
-      - "5060:5060/udp"
-      - "5060:5060/tcp"
-      - "8080:8080/tcp"
+      - '5060:5060/udp'
+      - '5060:5060/tcp'
+      - '8080:8080/tcp'
     volumes:
       - ./kamailio/config:/etc/kamailio:ro
       - /sys:/sys:ro
@@ -323,9 +323,9 @@ services:
     container_name: careflow-asterisk
     restart: unless-stopped
     ports:
-      - "5061:5061/tcp"
-      - "5061:5061/udp"
-      - "8088:8088/tcp"
+      - '5061:5061/tcp'
+      - '5061:5061/udp'
+      - '8088:8088/tcp'
     volumes:
       - ./asterisk/config:/etc/asterisk:ro
       - asterisk-data:/var/lib/asterisk
@@ -345,7 +345,7 @@ services:
     container_name: careflow-rtpengine
     restart: unless-stopped
     ports:
-      - "2222:2222/udp"
+      - '2222:2222/udp'
     environment:
       - RTPE_LOG_LEVEL=notice
     networks:
@@ -989,24 +989,24 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: "kamailio"
+  - job_name: 'kamailio'
     static_configs:
-      - targets: ["kamailio:8080"]
+      - targets: ['kamailio:8080']
     metrics_path: /metrics
 
-  - job_name: "asterisk"
+  - job_name: 'asterisk'
     static_configs:
-      - targets: ["asterisk:8088"]
+      - targets: ['asterisk:8088']
     metrics_path: /metrics
 
-  - job_name: "rtpengine"
+  - job_name: 'rtpengine'
     static_configs:
-      - targets: ["rtpengine:2223"]
+      - targets: ['rtpengine:2223']
     metrics_path: /metrics
 
-  - job_name: "node"
+  - job_name: 'node'
     static_configs:
-      - targets: ["node-exporter:9100"]
+      - targets: ['node-exporter:9100']
 ```
 
 ## SSL/TLS Certificates

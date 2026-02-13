@@ -12,11 +12,11 @@
  * - Error recovery scenarios
  */
 
-const { test, expect, chromium } = require("@playwright/test");
+const { test, expect, chromium } = require('@playwright/test');
 
 // Test configuration
 const TEST_CONFIG = {
-  baseUrl: process.env.E2E_BASE_URL || "http://localhost:3000",
+  baseUrl: process.env.E2E_BASE_URL || 'http://localhost:3000',
   timeout: 30000,
   callTimeout: 60000,
 };
@@ -25,10 +25,8 @@ const TEST_CONFIG = {
 // TEST SUITE: BASIC CONNECTION ESTABLISHMENT
 // =====================================================
 
-test.describe("Basic Connection Establishment", () => {
-  test("should establish peer-to-peer connection between two users", async ({
-    browser,
-  }) => {
+test.describe('Basic Connection Establishment', () => {
+  test('should establish peer-to-peer connection between two users', async ({ browser }) => {
     // Create two browser contexts (simulating two users)
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
@@ -42,28 +40,28 @@ test.describe("Basic Connection Establishment", () => {
       await page2.goto(`${TEST_CONFIG.baseUrl}/dashboard`);
 
       // Wait for the page to load
-      await page1.waitForLoadState("networkidle");
-      await page2.waitForLoadState("networkidle");
+      await page1.waitForLoadState('networkidle');
+      await page2.waitForLoadState('networkidle');
 
       // Simulate login for both users
       // In real tests, this would go through the authentication flow
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -80,7 +78,7 @@ test.describe("Basic Connection Establishment", () => {
       });
 
       // User 1 initiates call to User 2
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       // Verify call status changes
@@ -89,11 +87,10 @@ test.describe("Basic Connection Establishment", () => {
           const status = document.querySelector("[data-testid='call-status']");
           return (
             status &&
-            (status.textContent.includes("ringing") ||
-              status.textContent.includes("connecting"))
+            (status.textContent.includes('ringing') || status.textContent.includes('connecting'))
           );
         },
-        { timeout: 10000 },
+        { timeout: 10000 }
       );
 
       // User 2 should see incoming call
@@ -108,17 +105,17 @@ test.describe("Basic Connection Establishment", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 15000 },
+        { timeout: 15000 }
       );
 
       await page2.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 15000 },
+        { timeout: 15000 }
       );
     } finally {
       await context1.close();
@@ -126,7 +123,7 @@ test.describe("Basic Connection Establishment", () => {
     }
   });
 
-  test("should handle call rejection gracefully", async ({ browser }) => {
+  test('should handle call rejection gracefully', async ({ browser }) => {
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
 
@@ -139,21 +136,21 @@ test.describe("Basic Connection Establishment", () => {
 
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -165,7 +162,7 @@ test.describe("Basic Connection Establishment", () => {
       });
 
       // User 1 initiates call
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       // User 2 rejects the call
@@ -178,9 +175,9 @@ test.describe("Basic Connection Establishment", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("ended");
+          return status && status.textContent.includes('ended');
         },
-        { timeout: 10000 },
+        { timeout: 10000 }
       );
     } finally {
       await context1.close();
@@ -193,10 +190,8 @@ test.describe("Basic Connection Establishment", () => {
 // TEST SUITE: NETWORK CONDITION SIMULATIONS
 // =====================================================
 
-test.describe("Network Condition Simulations", () => {
-  test("should establish connection on slow network (3G)", async ({
-    browser,
-  }) => {
+test.describe('Network Condition Simulations', () => {
+  test('should establish connection on slow network (3G)', async ({ browser }) => {
     const context1 = await browser.newContext({
       viewport: { width: 1280, height: 720 },
     });
@@ -205,7 +200,7 @@ test.describe("Network Condition Simulations", () => {
     });
 
     // Simulate slow 3G network
-    await context1.route("**/*", (route) => {
+    await context1.route('**/*', (route) => {
       route.continue({
         latency: 1000, // 1 second latency
         throughput: 50, // 50 kbps
@@ -222,21 +217,21 @@ test.describe("Network Condition Simulations", () => {
       // Set auth
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -248,16 +243,16 @@ test.describe("Network Condition Simulations", () => {
       });
 
       // Initiate call
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       // Should eventually connect (with longer timeout)
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 30000 }, // Longer timeout for slow network
+        { timeout: 30000 } // Longer timeout for slow network
       );
     } finally {
       await context1.close();
@@ -265,9 +260,7 @@ test.describe("Network Condition Simulations", () => {
     }
   });
 
-  test("should handle network disconnection during call", async ({
-    browser,
-  }) => {
+  test('should handle network disconnection during call', async ({ browser }) => {
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
 
@@ -280,21 +273,21 @@ test.describe("Network Condition Simulations", () => {
 
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -306,7 +299,7 @@ test.describe("Network Condition Simulations", () => {
       });
 
       // Establish connection
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       await page2.waitForSelector("[data-testid='incoming-call-modal']", {
@@ -317,9 +310,9 @@ test.describe("Network Condition Simulations", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 15000 },
+        { timeout: 15000 }
       );
 
       // Simulate network disconnection
@@ -330,7 +323,7 @@ test.describe("Network Condition Simulations", () => {
 
       // Dispatch offline event
       await page1.evaluate(() => {
-        window.dispatchEvent(new Event("offline"));
+        window.dispatchEvent(new Event('offline'));
       });
 
       // Wait for disconnection handling
@@ -339,26 +332,25 @@ test.describe("Network Condition Simulations", () => {
           const status = document.querySelector("[data-testid='call-status']");
           return (
             status &&
-            (status.textContent.includes("disconnected") ||
-              status.textContent.includes("retrying"))
+            (status.textContent.includes('disconnected') || status.textContent.includes('retrying'))
           );
         },
-        { timeout: 10000 },
+        { timeout: 10000 }
       );
 
       // Restore network
       await page1.evaluate(() => {
         window.navigator.onLine = true;
-        window.dispatchEvent(new Event("online"));
+        window.dispatchEvent(new Event('online'));
       });
 
       // Should attempt reconnection
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("reconnecting");
+          return status && status.textContent.includes('reconnecting');
         },
-        { timeout: 10000 },
+        { timeout: 10000 }
       );
     } finally {
       await context1.close();
@@ -366,9 +358,7 @@ test.describe("Network Condition Simulations", () => {
     }
   });
 
-  test("should handle intermittent network connectivity", async ({
-    browser,
-  }) => {
+  test('should handle intermittent network connectivity', async ({ browser }) => {
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
 
@@ -381,21 +371,21 @@ test.describe("Network Condition Simulations", () => {
 
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -407,7 +397,7 @@ test.describe("Network Condition Simulations", () => {
       });
 
       // Initiate call
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       await page2.waitForSelector("[data-testid='incoming-call-modal']", {
@@ -418,23 +408,23 @@ test.describe("Network Condition Simulations", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 15000 },
+        { timeout: 15000 }
       );
 
       // Simulate multiple brief disconnections
       for (let i = 0; i < 3; i++) {
         await page1.evaluate(() => {
           window.navigator.onLine = false;
-          window.dispatchEvent(new Event("offline"));
+          window.dispatchEvent(new Event('offline'));
         });
 
         await page1.waitForTimeout(500);
 
         await page1.evaluate(() => {
           window.navigator.onLine = true;
-          window.dispatchEvent(new Event("online"));
+          window.dispatchEvent(new Event('online'));
         });
 
         await page1.waitForTimeout(1000);
@@ -443,7 +433,7 @@ test.describe("Network Condition Simulations", () => {
       // Should still be connected or attempting reconnection
       const status = await page1.evaluate(() => {
         const statusEl = document.querySelector("[data-testid='call-status']");
-        return statusEl ? statusEl.textContent : "";
+        return statusEl ? statusEl.textContent : '';
       });
 
       expect(status).toMatch(/connected|reconnecting|disconnected/);
@@ -458,19 +448,19 @@ test.describe("Network Condition Simulations", () => {
 // TEST SUITE: ICE CANDIDATE HANDLING
 // =====================================================
 
-test.describe("ICE Candidate Handling", () => {
-  test("should complete ICE gathering", async ({ browser }) => {
+test.describe('ICE Candidate Handling', () => {
+  test('should complete ICE gathering', async ({ browser }) => {
     const page = await browser.newPage();
 
     await page.goto(`${TEST_CONFIG.baseUrl}/dashboard`);
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -481,34 +471,32 @@ test.describe("ICE Candidate Handling", () => {
     });
 
     // Go to call interface
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button']");
 
     // Check for ICE gathering in console logs
-    const iceLogs = await page.evaluate(() => {
-      return window.__iceCandidateLogs || [];
-    });
+    const iceLogs = await page.evaluate(() => window.__iceCandidateLogs || []);
 
     // Verify ICE gathering started
     await page.waitForFunction(
       () => {
         const logs = window.__iceCandidateLogs || [];
-        return logs.some((log) => log.type === "icegatheringstatechange");
+        return logs.some((log) => log.type === 'icegatheringstatechange');
       },
-      { timeout: 15000 },
+      { timeout: 15000 }
     );
   });
 
-  test("should use STUN servers for NAT traversal", async ({ page }) => {
+  test('should use STUN servers for NAT traversal', async ({ page }) => {
     await page.goto(`${TEST_CONFIG.baseUrl}/dashboard`);
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -519,19 +507,15 @@ test.describe("ICE Candidate Handling", () => {
     });
 
     // Check ICE servers configuration
-    const iceServers = await page.evaluate(() => {
-      return window.__iceServersConfig || [];
-    });
+    const iceServers = await page.evaluate(() => window.__iceServersConfig || []);
 
     // Should have STUN servers
-    expect(iceServers.some((server) => server.urls.includes("stun:"))).toBe(
-      true,
-    );
+    expect(iceServers.some((server) => server.urls.includes('stun:'))).toBe(true);
   });
 
-  test("should use TURN server when configured", async ({ page }) => {
+  test('should use TURN server when configured', async ({ page }) => {
     // Set TURN server environment
-    await page.route("**/*.env*", (route) => {
+    await page.route('**/*.env*', (route) => {
       route.fulfill({
         status: 200,
         body: `
@@ -546,11 +530,11 @@ test.describe("ICE Candidate Handling", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -561,13 +545,9 @@ test.describe("ICE Candidate Handling", () => {
     });
 
     // Check that TURN server is in ICE configuration
-    const iceServers = await page.evaluate(() => {
-      return window.__iceServersConfig || [];
-    });
+    const iceServers = await page.evaluate(() => window.__iceServersConfig || []);
 
-    expect(
-      iceServers.some((server) => server.urls.includes("turn:")),
-    ).toBeTruthy();
+    expect(iceServers.some((server) => server.urls.includes('turn:'))).toBeTruthy();
   });
 });
 
@@ -575,8 +555,8 @@ test.describe("ICE Candidate Handling", () => {
 // TEST SUITE: CALL QUALITY
 // =====================================================
 
-test.describe("Call Quality", () => {
-  test("should display connection quality indicator", async ({ browser }) => {
+test.describe('Call Quality', () => {
+  test('should display connection quality indicator', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -584,11 +564,11 @@ test.describe("Call Quality", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -599,16 +579,16 @@ test.describe("Call Quality", () => {
     });
 
     // Make a call to establish connection
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button']");
 
     // Wait for connection
     await page.waitForFunction(
       () => {
         const status = document.querySelector("[data-testid='call-status']");
-        return status && status.textContent.includes("connected");
+        return status && status.textContent.includes('connected');
       },
-      { timeout: 15000 },
+      { timeout: 15000 }
     );
 
     // Check for quality indicator
@@ -616,7 +596,7 @@ test.describe("Call Quality", () => {
     expect(qualityIndicator).toBeTruthy();
   });
 
-  test("should show mute/unmute controls", async ({ browser }) => {
+  test('should show mute/unmute controls', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -624,11 +604,11 @@ test.describe("Call Quality", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -638,15 +618,15 @@ test.describe("Call Quality", () => {
       timeout: 10000,
     });
 
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button']");
 
     await page.waitForFunction(
       () => {
         const status = document.querySelector("[data-testid='call-status']");
-        return status && status.textContent.includes("connected");
+        return status && status.textContent.includes('connected');
       },
-      { timeout: 15000 },
+      { timeout: 15000 }
     );
 
     // Check mute button exists
@@ -657,12 +637,10 @@ test.describe("Call Quality", () => {
     await page.click("[data-testid='mute-button']");
 
     // Verify muted state
-    const isMuted = await page.evaluate(() => {
-      return window.__isMuted || false;
-    });
+    const isMuted = await page.evaluate(() => window.__isMuted || false);
   });
 
-  test("should show call duration timer", async ({ browser }) => {
+  test('should show call duration timer', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -670,11 +648,11 @@ test.describe("Call Quality", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -684,15 +662,15 @@ test.describe("Call Quality", () => {
       timeout: 10000,
     });
 
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button']");
 
     await page.waitForFunction(
       () => {
         const status = document.querySelector("[data-testid='call-status']");
-        return status && status.textContent.includes("connected");
+        return status && status.textContent.includes('connected');
       },
-      { timeout: 15000 },
+      { timeout: 15000 }
     );
 
     // Wait for timer to start
@@ -701,7 +679,7 @@ test.describe("Call Quality", () => {
     // Check timer is running
     const timerText = await page.evaluate(() => {
       const timer = document.querySelector("[data-testid='call-timer']");
-      return timer ? timer.textContent : "";
+      return timer ? timer.textContent : '';
     });
 
     expect(timerText).toMatch(/\d+:\d{2}/);
@@ -712,19 +690,19 @@ test.describe("Call Quality", () => {
 // TEST SUITE: ERROR HANDLING
 // =====================================================
 
-test.describe("Error Handling", () => {
-  test("should handle invalid phone number", async ({ browser }) => {
+test.describe('Error Handling', () => {
+  test('should handle invalid phone number', async ({ browser }) => {
     const page = await browser.newPage();
 
     await page.goto(`${TEST_CONFIG.baseUrl}/dashboard`);
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -735,7 +713,7 @@ test.describe("Error Handling", () => {
     });
 
     // Enter invalid number
-    await page.fill("[data-testid='phone-input']", "invalid");
+    await page.fill("[data-testid='phone-input']", 'invalid');
     await page.click("[data-testid='call-button']");
 
     // Should show error
@@ -743,7 +721,7 @@ test.describe("Error Handling", () => {
     expect(errorMessage).toBeTruthy();
   });
 
-  test("should handle peer connection failure", async ({ browser }) => {
+  test('should handle peer connection failure', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -751,11 +729,11 @@ test.describe("Error Handling", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -765,7 +743,7 @@ test.describe("Error Handling", () => {
       timeout: 10000,
     });
 
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button']");
 
     // Simulate peer connection failure
@@ -777,13 +755,13 @@ test.describe("Error Handling", () => {
     await page.waitForFunction(
       () => {
         const status = document.querySelector("[data-testid='call-status']");
-        return status && status.textContent.includes("failed");
+        return status && status.textContent.includes('failed');
       },
-      { timeout: 20000 },
+      { timeout: 20000 }
     );
   });
 
-  test("should handle media device errors", async ({ browser }) => {
+  test('should handle media device errors', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -794,11 +772,11 @@ test.describe("Error Handling", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -808,7 +786,7 @@ test.describe("Error Handling", () => {
       timeout: 10000,
     });
 
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button]");
 
     // Should show permission error
@@ -821,8 +799,8 @@ test.describe("Error Handling", () => {
 // TEST SUITE: CALL TERMINATION
 // =====================================================
 
-test.describe("Call Termination", () => {
-  test("should end call correctly", async ({ browser }) => {
+test.describe('Call Termination', () => {
+  test('should end call correctly', async ({ browser }) => {
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
 
@@ -835,21 +813,21 @@ test.describe("Call Termination", () => {
 
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -861,7 +839,7 @@ test.describe("Call Termination", () => {
       });
 
       // Establish call
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       await page2.waitForSelector("[data-testid='incoming-call-modal']", {
@@ -872,9 +850,9 @@ test.describe("Call Termination", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 15000 },
+        { timeout: 15000 }
       );
 
       // Wait a moment
@@ -887,9 +865,9 @@ test.describe("Call Termination", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("ended");
+          return status && status.textContent.includes('ended');
         },
-        { timeout: 5000 },
+        { timeout: 5000 }
       );
     } finally {
       await context1.close();
@@ -897,7 +875,7 @@ test.describe("Call Termination", () => {
     }
   });
 
-  test("should handle remote hangup", async ({ browser }) => {
+  test('should handle remote hangup', async ({ browser }) => {
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
 
@@ -910,21 +888,21 @@ test.describe("Call Termination", () => {
 
       await page1.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-1",
-            care4wId: "care4w-1000001",
-          }),
+            userId: 'test-user-1',
+            care4wId: 'care4w-1000001',
+          })
         );
       });
 
       await page2.evaluate(() => {
         localStorage.setItem(
-          "careflow_auth",
+          'careflow_auth',
           JSON.stringify({
-            userId: "test-user-2",
-            care4wId: "care4w-1000002",
-          }),
+            userId: 'test-user-2',
+            care4wId: 'care4w-1000002',
+          })
         );
       });
 
@@ -936,7 +914,7 @@ test.describe("Call Termination", () => {
       });
 
       // Establish call
-      await page1.fill("[data-testid='phone-input']", "1000002");
+      await page1.fill("[data-testid='phone-input']", '1000002');
       await page1.click("[data-testid='call-button']");
 
       await page2.waitForSelector("[data-testid='incoming-call-modal']", {
@@ -947,9 +925,9 @@ test.describe("Call Termination", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("connected");
+          return status && status.textContent.includes('connected');
         },
-        { timeout: 15000 },
+        { timeout: 15000 }
       );
 
       // Callee hangs up
@@ -959,9 +937,9 @@ test.describe("Call Termination", () => {
       await page1.waitForFunction(
         () => {
           const status = document.querySelector("[data-testid='call-status']");
-          return status && status.textContent.includes("ended");
+          return status && status.textContent.includes('ended');
         },
-        { timeout: 5000 },
+        { timeout: 5000 }
       );
     } finally {
       await context1.close();
@@ -974,8 +952,8 @@ test.describe("Call Termination", () => {
 // TEST SUITE: MEDIA RECORDING
 // =====================================================
 
-test.describe("Media Recording", () => {
-  test("should start and stop recording", async ({ browser }) => {
+test.describe('Media Recording', () => {
+  test('should start and stop recording', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -983,11 +961,11 @@ test.describe("Media Recording", () => {
 
     await page.evaluate(() => {
       localStorage.setItem(
-        "careflow_auth",
+        'careflow_auth',
         JSON.stringify({
-          userId: "test-user-1",
-          care4wId: "care4w-1000001",
-        }),
+          userId: 'test-user-1',
+          care4wId: 'care4w-1000001',
+        })
       );
     });
 
@@ -997,22 +975,22 @@ test.describe("Media Recording", () => {
       timeout: 10000,
     });
 
-    await page.fill("[data-testid='phone-input']", "1000002");
+    await page.fill("[data-testid='phone-input']", '1000002');
     await page.click("[data-testid='call-button]");
 
     await page.waitForFunction(
       () => {
         const status = document.querySelector("[data-testid='call-status']");
-        return status && status.textContent.includes("connected");
+        return status && status.textContent.includes('connected');
       },
-      { timeout: 15000 },
+      { timeout: 15000 }
     );
 
     // Start recording
     await page.click("[data-testid='record-button]");
     const isRecording = await page.evaluate(() => {
       const btn = document.querySelector("[data-testid='record-button]");
-      return btn && btn.classList.contains("recording");
+      return btn && btn.classList.contains('recording');
     });
     expect(isRecording).toBe(true);
 
@@ -1023,8 +1001,6 @@ test.describe("Media Recording", () => {
     await page.click("[data-testid='record-button]");
 
     // Should have recording
-    const hasRecording = await page.evaluate(() => {
-      return window.__lastRecording !== null;
-    });
+    const hasRecording = await page.evaluate(() => window.__lastRecording !== null);
   });
 });

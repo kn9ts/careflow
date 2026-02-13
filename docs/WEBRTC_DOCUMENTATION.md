@@ -292,9 +292,9 @@ WebRTC uses STUN/TURN servers for NAT traversal:
 ```javascript
 // Current STUN servers (free, public)
 const iceServers = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
 ];
 ```
 
@@ -328,19 +328,19 @@ Enable debug logging in browser console:
 
 ```javascript
 // In browser console
-localStorage.setItem("webrtc_debug", "true");
+localStorage.setItem('webrtc_debug', 'true');
 // Refresh page
 ```
 
 ### Checking Browser Support
 
 ```javascript
-import { WebRTCManager } from "@/lib/webrtc";
+import { WebRTCManager } from '@/lib/webrtc';
 
 if (WebRTCManager.isSupported()) {
-  console.log("WebRTC is supported!");
+  console.log('WebRTC is supported!');
 } else {
-  console.log("WebRTC is NOT supported in this browser");
+  console.log('WebRTC is NOT supported in this browser');
 }
 ```
 
@@ -483,3 +483,377 @@ The implementation includes client-side rate limiting:
 | SELF_CALL   | "Cannot call your own CareFlow ID"       | Use different ID        |
 | INVALID_ID  | "Invalid CareFlow User ID"               | Check ID format         |
 | MIC_DENIED  | (Browser permission error)               | Allow microphone        |
+
+## Testing Infrastructure
+
+### Overview
+
+The WebRTC testing infrastructure uses comprehensive mocks to simulate browser APIs in a Node.js test environment. This allows testing WebRTC functionality without requiring an actual browser or media devices.
+
+### Test Files
+
+| File                               | Purpose                                   |
+| ---------------------------------- | ----------------------------------------- |
+| `tests/webrtc.test.js`             | Unit tests for WebRTCManager class        |
+| `tests/webrtc-integration.test.js` | Integration tests for signaling workflows |
+| `tests/lib/webrtc.test.js`         | Configuration and utility tests           |
+
+### Mock Configuration
+
+#### 1. Logger Mock
+
+The logger must be mocked first to prevent import errors:
+
+```javascript
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    init: jest.fn(),
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    success: jest.fn(),
+    loading: jest.fn(),
+    trace: jest.fn(),
+    incomingCall: jest.fn(),
+    recordingStart: jest.fn(),
+    recordingStop: jest.fn(),
+    complete: jest.fn(),
+  },
+}));
+```
+
+#### 2. Firebase Mocks
+
+Firebase is mocked to avoid actual database connections:
+
+```javascript
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(() => ({
+    name: '[DEFAULT]',
+    options: {},
+  })),
+  getApps: jest.fn(() => []),
+}));
+
+jest.mock('firebase/database', () => {
+  const off = jest.fn();
+  return {
+    getDatabase: jest.fn(() => ({ ref: jest.fn() })),
+    ref: jest.fn(() => ({
+      on: jest.fn(),
+      off: off,
+      set: jest.fn().mockResolvedValue(undefined),
+      remove: jest.fn().mockResolvedValue(undefined),
+    })),
+    onValue: jest.fn((ref, callback) => {
+      callback({ val: () => null });
+      return jest.fn(); // unsubscribe function
+    }),
+    set: jest.fn().mockResolvedValue(undefined),
+    remove: jest.fn().mockResolvedValue(undefined),
+    serverTimestamp: jest.fn(() => Date.now()),
+    push: jest.fn(() => ({ key: 'mock-push-key' })),
+    off: off,
+  };
+});
+```
+
+#### 3. WebRTC API Mocks
+
+The WebRTC API mocks must be set up in `beforeAll()` before importing the WebRTC module. **Critical**: All WebRTC APIs must be set on both `global` AND `global.window` for the `isWebRTCSupported()` check to pass.
+
+```javascript
+beforeAll(async () => {
+  // Set up global window object
+  global.window = {};
+
+  // Mock RTCSessionDescription (define before setting on window)
+  global.RTCSessionDescription = class RTCSessionDescription {
+    constructor(description) {
+      this.type = description.type;
+      this.sdp = description.sdp;
+    }
+  };
+  // Also set on window for isWebRTCSupported() check
+  global.window.RTCSessionDescription = global.RTCSessionDescription;
+
+  // Mock RTCIceCandidate
+  global.RTCIceCandidate = class RTCIceCandidate {
+    constructor(candidate) {
+      this.candidate = candidate.candidate;
+      this.sdpMid = candidate.sdpMid;
+      this.sdpMLineIndex = candidate.sdpMLineIndex;
+    }
+  };
+  global.window.RTCIceCandidate = global.RTCIceCandidate;
+
+  // Mock RTCPeerConnection
+  global.RTCPeerConnection = jest.fn().mockImplementation(() => ({
+    onicecandidate: null,
+    onconnectionstatechange: null,
+    ontrack: null,
+    onsignalingstatechange: null,
+    connectionState: 'new',
+    signalingState: 'stable',
+    localDescription: null,
+    remoteDescription: null,
+    iceGatheringState: 'complete',
+    createOffer: jest.fn().mockResolvedValue({
+      type: 'offer',
+      sdp: 'v=0\r\no=- 123456789 0 IN IP4 0.0.0.0\r\ns=-\r\n',
+    }),
+    createAnswer: jest.fn().mockResolvedValue({
+      type: 'answer',
+      sdp: 'v=0\r\no=- 123456789 0 IN IP4 0.0.0.0\r\ns=-\r\n',
+    }),
+    setLocalDescription: jest.fn().mockResolvedValue(undefined),
+    setRemoteDescription: jest.fn().mockResolvedValue(undefined),
+    addIceCandidate: jest.fn().mockResolvedValue(undefined),
+    addTrack: jest.fn(),
+    getStats: jest.fn().mockResolvedValue(
+      new Map([
+        ['inbound-rtp', { type: 'inbound-rtp', bytesReceived: 1000, packetsLost: 0 }],
+        ['outbound-rtp', { type: 'outbound-rtp', bytesSent: 2000 }],
+        ['candidate-pair', { type: 'candidate-pair', currentRoundTripTime: 0.05 }],
+      ])
+    ),
+    close: jest.fn(),
+  }));
+  // Also set on window for isWebRTCSupported() check
+  global.window.RTCPeerConnection = global.RTCPeerConnection;
+
+  // Mock MediaRecorder
+  global.MediaRecorder = class MediaRecorder {
+    constructor(stream, options) {
+      this.stream = stream;
+      this.options = options;
+      this.state = 'inactive';
+      this.ondataavailable = null;
+      this.onstop = null;
+    }
+
+    start(interval) {
+      this.state = 'recording';
+    }
+
+    stop() {
+      this.state = 'inactive';
+      if (this.onstop) {
+        this.onstop();
+      }
+    }
+
+    static isTypeSupported(mimeType) {
+      const supported = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4',
+      ];
+      return supported.includes(mimeType);
+    }
+  };
+
+  // Mock navigator.mediaDevices - MUST be set before importing WebRTC module
+  const mockAudioTrack = { kind: 'audio', enabled: true, stop: jest.fn() };
+  mockMediaDevices = {
+    getUserMedia: jest.fn().mockResolvedValue({
+      id: 'local-stream-id',
+      getTracks: () => [mockAudioTrack],
+      getAudioTracks: () => [mockAudioTrack],
+    }),
+  };
+
+  global.navigator = {
+    mediaDevices: mockMediaDevices,
+  };
+  // Also set on window for isWebRTCSupported() check
+  global.window.navigator = global.navigator;
+
+  // Import the module AFTER all mocks are set up
+  const module = await import('@/lib/webrtc.js');
+  WebRTCManager = module.default;
+  createWebRTCManager = module.createWebRTCManager;
+});
+```
+
+#### Common Mock Setup Issues
+
+1. **Missing `window` properties**: The `isWebRTCSupported()` function checks `window.RTCPeerConnection`, `window.RTCSessionDescription`, and `window.navigator.mediaDevices.getUserMedia`. All must be set on `global.window`.
+
+2. **Wrong mock order**: Define the mock class/function first, then set it on `global.window`. Setting `window.RTCPeerConnection` before defining `global.RTCPeerConnection` will result in `undefined`.
+
+3. **Missing navigator**: Both `global.navigator` and `global.window.navigator` must be set for the browser support check.
+
+### Environment Variables in Tests
+
+Each test file sets required environment variables in `beforeEach()`:
+
+```javascript
+beforeEach(() => {
+  jest.clearAllMocks();
+  originalEnv = { ...process.env };
+
+  // Set required env variables
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
+  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
+  process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
+  process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
+  process.env.NEXT_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abc123';
+  process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL = 'https://test.firebaseio.com';
+});
+
+afterEach(() => {
+  process.env = originalEnv;
+});
+```
+
+### Testing Browser Support Detection
+
+The `isWebRTCSupported()` function checks for all required browser APIs:
+
+```javascript
+it('should throw error when initialized in non-browser environment', async () => {
+  const manager = new WebRTCManager();
+  const originalWindow = global.window;
+  const originalNavigator = global.navigator;
+  delete global.window;
+  delete global.navigator;
+
+  await expect(manager.initialize('test-user')).rejects.toThrow(
+    'WebRTC is not supported in this browser'
+  );
+
+  global.window = originalWindow;
+  global.navigator = originalNavigator;
+});
+```
+
+### Test Categories
+
+#### 1. Initialization Tests
+
+- Browser environment detection
+- Peer connection creation with ICE servers
+- TURN server configuration
+- Firebase initialization
+- Connection state management
+
+#### 2. Local Stream Tests
+
+- Audio stream acquisition
+- Permission denial handling
+- Track management
+
+#### 3. Call Initiation Tests
+
+- Offer creation
+- Room ID generation
+- Firebase storage
+
+#### 4. Call Acceptance Tests
+
+- Answer creation
+- Remote description handling
+- ICE candidate listening
+
+#### 5. Call Termination Tests
+
+- Peer connection cleanup
+- Stream track stopping
+- Firebase room cleanup
+- Event listener notification
+
+#### 6. Recording Tests
+
+- MIME type detection
+- MediaRecorder lifecycle
+- Chunk collection
+
+#### 7. Event Listener Tests
+
+- Registration and unregistration
+- Event emission
+- Invalid event handling
+
+#### 8. Connection Statistics Tests
+
+- Stats retrieval
+- Null handling for no connection
+
+### Running Tests
+
+```bash
+# Run all WebRTC tests
+npm test -- --testPathPattern="webrtc"
+
+# Run specific test file
+npm test -- tests/webrtc.test.js
+
+# Run with coverage
+npm test -- --testPathPattern="webrtc" --coverage
+```
+
+### Common Test Issues
+
+| Issue                                     | Cause                       | Solution                                                         |
+| ----------------------------------------- | --------------------------- | ---------------------------------------------------------------- |
+| "WebRTC is not supported"                 | Mocks not set on `window`   | Add `global.window.RTCPeerConnection = global.RTCPeerConnection` |
+| "Firebase configuration incomplete"       | Missing env variables       | Set all `NEXT_PUBLIC_FIREBASE_*` in `beforeEach()`               |
+| Tests pass individually but fail together | State pollution             | Use `jest.clearAllMocks()` in `beforeEach()`                     |
+| Module import fails                       | Mocks not set before import | Ensure all mocks are in `beforeAll()` before `import()`          |
+
+### Test Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        WebRTC Test Architecture                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                         Jest Test Environment                        │    │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐           │    │
+│  │  │ Logger Mock   │  │ Firebase Mock │  │ WebRTC Mock   │           │    │
+│  │  └───────────────┘  └───────────────┘  └───────────────┘           │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                         Test Files                                   │    │
+│  │  ┌───────────────────┐  ┌───────────────────┐  ┌─────────────────┐  │    │
+│  │  │ webrtc.test.js    │  │ webrtc-           │  │ lib/webrtc.     │  │    │
+│  │  │ (Unit Tests)      │  │ integration.      │  │ test.js         │  │    │
+│  │  │                   │  │ test.js           │  │ (Config Tests)  │  │    │
+│  │  │ - Initialization  │  │ (Integration)     │  │                 │  │    │
+│  │  │ - Local Stream    │  │ - Signaling Flow  │  │ - ICE Config    │  │    │
+│  │  │ - Call Actions    │  │ - Error Handling  │  │ - Signaling Msg │  │    │
+│  │  │ - Recording       │  │ - Reconnection    │  │ - Quality Stats │  │    │
+│  │  │ - Event Listeners │  │                   │  │                 │  │    │
+│  │  └───────────────────┘  └───────────────────┘  └─────────────────┘  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                      WebRTCManager Module                            │    │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │    │
+│  │  │  Class Methods (tested via mocked browser APIs):             │    │    │
+│  │  │  - initialize() → Uses mocked Firebase & RTCPeerConnection   │    │    │
+│  │  │  - getLocalStream() → Uses mocked navigator.mediaDevices     │    │    │
+│  │  │  - createOffer/acceptCall() → Uses mocked RTCSessionDesc     │    │    │
+│  │  │  - startRecording() → Uses mocked MediaRecorder              │    │    │
+│  │  └─────────────────────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Best Practices
+
+1. **Mock Order Matters**: Logger → Firebase → WebRTC APIs → Module Import
+2. **Window vs Global**: Set mocks on both `global` and `global.window` for `isWebRTCSupported()` checks
+3. **Async Initialization**: Use `beforeAll(async () => { ... })` for module imports
+4. **Environment Isolation**: Save and restore `process.env` in `beforeEach`/`afterEach`
+5. **Clear Mocks**: Always call `jest.clearAllMocks()` in `beforeEach()`
+6. **Test Independence**: Each test should work in isolation without relying on other tests

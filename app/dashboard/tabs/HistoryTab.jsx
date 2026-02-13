@@ -3,12 +3,9 @@
  * Displays call history
  */
 
-import { RefreshCw } from "lucide-react";
-import CallHistory from "@/components/dashboard/CallHistory";
-import {
-  CardSkeleton,
-  TableSkeleton,
-} from "@/components/common/Loading/LoadingComponents";
+import { RefreshCw } from 'lucide-react';
+import CallHistory from '@/components/dashboard/CallHistory';
+import { CardSkeleton, TableSkeleton } from '@/components/common/Loading/LoadingComponents';
 
 export default function HistoryTab({
   callHistory,
@@ -20,12 +17,8 @@ export default function HistoryTab({
     <div className="history-tab">
       <div className="tab-header">
         <h2 className="tab-title">Call History</h2>
-        <button
-          onClick={onRefreshHistory}
-          className="refresh-btn"
-          disabled={historyLoading}
-        >
-          <RefreshCw size={16} className={historyLoading ? "spinning" : ""} />
+        <button onClick={onRefreshHistory} className="refresh-btn" disabled={historyLoading}>
+          <RefreshCw size={16} className={historyLoading ? 'spinning' : ''} />
           Refresh
         </button>
       </div>

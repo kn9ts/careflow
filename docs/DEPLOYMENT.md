@@ -187,7 +187,7 @@ docker run -p 3000:3000 careflow
      artifacts:
        baseDirectory: .next
        files:
-         - "**/*"
+         - '**/*'
      cache:
        paths:
          - node_modules/**/*
@@ -408,7 +408,7 @@ vercel logs --prod
 // Add to app/api/health/route.js
 export async function GET() {
   return Response.json({
-    status: "healthy",
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });

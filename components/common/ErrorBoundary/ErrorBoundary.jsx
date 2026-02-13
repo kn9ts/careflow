@@ -3,10 +3,10 @@
  * Catches and handles React component errors
  */
 
-import { Component } from "react";
-import { RefreshCw, AlertCircle, Home } from "lucide-react";
-import Link from "next/link";
-import styles from "./ErrorBoundary.module.css";
+import { Component } from 'react';
+import { RefreshCw, AlertCircle, Home } from 'lucide-react';
+import Link from 'next/link';
+import styles from './ErrorBoundary.module.css';
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -22,8 +22,8 @@ export default class ErrorBoundary extends Component {
     this.setState({ errorInfo });
 
     // Log to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error caught by boundary:", error, errorInfo);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error caught by boundary:', error, errorInfo);
     }
 
     // Send to error reporting service if configured
@@ -57,25 +57,22 @@ export default class ErrorBoundary extends Component {
             <h2 className={styles.errorTitle}>Something went wrong</h2>
 
             <p className={styles.errorMessage}>
-              {this.state.error?.message || "An unexpected error occurred"}
+              {this.state.error?.message || 'An unexpected error occurred'}
             </p>
 
-            {process.env.NODE_ENV === "development" && this.state.errorInfo && (
+            {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
               <details className={styles.errorDetails}>
                 <summary className={styles.errorSummary}>Error Details</summary>
                 <pre className={styles.errorStack}>
                   {this.state.error?.toString()}
-                  {"\n\n"}
+                  {'\n\n'}
                   {this.state.errorInfo.componentStack}
                 </pre>
               </details>
             )}
 
             <div className={styles.errorActions}>
-              <button
-                onClick={this.handleRetry}
-                className={styles.errorRetryBtn}
-              >
+              <button onClick={this.handleRetry} className={styles.errorRetryBtn}>
                 <RefreshCw size={16} />
                 Try Again
               </button>
@@ -97,13 +94,11 @@ export default class ErrorBoundary extends Component {
 /**
  * Simple error display component for functional components
  */
-export function ErrorDisplay({ error, onRetry, className = "" }) {
+export function ErrorDisplay({ error, onRetry, className = '' }) {
   return (
     <div className={`${styles.errorDisplay} ${className}`}>
       <AlertCircle size={24} className={styles.errorDisplayIcon} />
-      <p className={styles.errorDisplayMessage}>
-        {error?.message || "An error occurred"}
-      </p>
+      <p className={styles.errorDisplayMessage}>{error?.message || 'An error occurred'}</p>
       {onRetry && (
         <button onClick={onRetry} className={styles.errorDisplayRetry}>
           <RefreshCw size={16} />

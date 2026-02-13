@@ -1,14 +1,10 @@
-import { connectDB } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
-import User from "@/models/User";
-import {
-  successResponse,
-  errorResponse,
-  handleAuthResult,
-} from "@/lib/apiResponse";
+import { connectDB } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
+import User from '@/models/User';
+import { successResponse, errorResponse, handleAuthResult } from '@/lib/apiResponse';
 
 // Force dynamic rendering - this route uses request.headers for auth
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 // POST /api/notifications/register - Register FCM token for push notifications
 export async function POST(request) {
@@ -22,12 +18,12 @@ export async function POST(request) {
     await connectDB();
 
     const { fcmToken, deviceInfo } = await request.json();
-    const firebaseUid = auth.user.firebaseUid;
+    const { firebaseUid } = auth.user;
 
     if (!fcmToken) {
-      return errorResponse("FCM token is required", {
+      return errorResponse('FCM token is required', {
         status: 400,
-        code: "MISSING_FCM_TOKEN",
+        code: 'MISSING_FCM_TOKEN',
       });
     }
 
@@ -35,9 +31,9 @@ export async function POST(request) {
     const user = await User.findOne({ firebaseUid });
 
     if (!user) {
-      return errorResponse("User not found", {
+      return errorResponse('User not found', {
         status: 404,
-        code: "USER_NOT_FOUND",
+        code: 'USER_NOT_FOUND',
       });
     }
 
@@ -47,14 +43,12 @@ export async function POST(request) {
     }
 
     // Check if token already exists
-    const existingTokenIndex = user.notificationTokens.findIndex(
-      (t) => t.token === fcmToken,
-    );
+    const existingTokenIndex = user.notificationTokens.findIndex((t) => t.token === fcmToken);
 
     const tokenData = {
       token: fcmToken,
       deviceInfo: deviceInfo || {
-        userAgent: request.headers.get("user-agent") || "unknown",
+        userAgent: request.headers.get('user-agent') || 'unknown',
         timestamp: new Date(),
       },
       registeredAt: new Date(),
@@ -71,14 +65,14 @@ export async function POST(request) {
     await user.save();
 
     return successResponse({
-      message: "Notification token registered successfully",
+      message: 'Notification token registered successfully',
       tokenCount: user.notificationTokens.length,
     });
   } catch (error) {
-    console.error("Notification registration error:", error);
-    return errorResponse("Failed to register notification token", {
+    console.error('Notification registration error:', error);
+    return errorResponse('Failed to register notification token', {
       status: 500,
-      code: "NOTIFICATION_REGISTRATION_FAILED",
+      code: 'NOTIFICATION_REGISTRATION_FAILED',
     });
   }
 }
@@ -95,12 +89,12 @@ export async function DELETE(request) {
     await connectDB();
 
     const { fcmToken } = await request.json();
-    const firebaseUid = auth.user.firebaseUid;
+    const { firebaseUid } = auth.user;
 
     if (!fcmToken) {
-      return errorResponse("FCM token is required", {
+      return errorResponse('FCM token is required', {
         status: 400,
-        code: "MISSING_FCM_TOKEN",
+        code: 'MISSING_FCM_TOKEN',
       });
     }
 
@@ -108,28 +102,26 @@ export async function DELETE(request) {
     const user = await User.findOne({ firebaseUid });
 
     if (!user) {
-      return errorResponse("User not found", {
+      return errorResponse('User not found', {
         status: 404,
-        code: "USER_NOT_FOUND",
+        code: 'USER_NOT_FOUND',
       });
     }
 
     if (user.notificationTokens) {
-      user.notificationTokens = user.notificationTokens.filter(
-        (t) => t.token !== fcmToken,
-      );
+      user.notificationTokens = user.notificationTokens.filter((t) => t.token !== fcmToken);
       await user.save();
     }
 
     return successResponse({
-      message: "Notification token unregistered successfully",
+      message: 'Notification token unregistered successfully',
       tokenCount: user.notificationTokens?.length || 0,
     });
   } catch (error) {
-    console.error("Notification unregistration error:", error);
-    return errorResponse("Failed to unregister notification token", {
+    console.error('Notification unregistration error:', error);
+    return errorResponse('Failed to unregister notification token', {
       status: 500,
-      code: "NOTIFICATION_UNREGISTRATION_FAILED",
+      code: 'NOTIFICATION_UNREGISTRATION_FAILED',
     });
   }
 }

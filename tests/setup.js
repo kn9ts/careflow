@@ -4,8 +4,8 @@
  */
 
 // Set test environment
-process.env.NODE_ENV = "test";
-process.env.JEST_WORKER_ID = "1";
+process.env.NODE_ENV = 'test';
+process.env.JEST_WORKER_ID = '1';
 
 // Mock timers
 jest.useFakeTimers();
@@ -38,11 +38,11 @@ global.testUtils = {
    * Create mock user object
    */
   createMockUser: (overrides = {}) => ({
-    firebaseUid: "test-uid-123",
-    email: "test@example.com",
-    displayName: "Test User",
-    care4wId: "care4w-1000001",
-    role: "user",
+    firebaseUid: 'test-uid-123',
+    email: 'test@example.com',
+    displayName: 'Test User',
+    care4wId: 'care4w-1000001',
+    role: 'user',
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -54,19 +54,19 @@ global.testUtils = {
    * Create mock recording object
    */
   createMockRecording: (overrides = {}) => ({
-    _id: "rec-123",
-    firebaseUid: "test-uid-123",
-    userId: { _id: "user-123" },
-    type: "call",
-    sid: "CA123456789",
-    from: "+1234567890",
-    to: "+0987654321",
-    direction: "outbound",
-    storageKey: "recordings/CA123/1701234567-recording.webm",
-    storageBucket: "careflow-recordings",
+    _id: 'rec-123',
+    firebaseUid: 'test-uid-123',
+    userId: { _id: 'user-123' },
+    type: 'call',
+    sid: 'CA123456789',
+    from: '+1234567890',
+    to: '+0987654321',
+    direction: 'outbound',
+    storageKey: 'recordings/CA123/1701234567-recording.webm',
+    storageBucket: 'careflow-recordings',
     duration: 120,
     recordedAt: new Date(),
-    status: "active",
+    status: 'active',
     isListened: false,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -85,36 +85,32 @@ global.testUtils = {
   /**
    * Create mock error
    */
-  createMockError: (
-    message = "Test error",
-    code = "TEST_ERROR",
-    status = 500,
-  ) => ({
+  createMockError: (message = 'Test error', code = 'TEST_ERROR', status = 500) => ({
     message,
     code,
     status,
-    stack: expect.stringContaining("Test error"),
+    stack: expect.stringContaining('Test error'),
   }),
 };
 
 /**
  * Mock Next.js router
  */
-jest.mock("next/navigation", () => ({
+jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
     replace: jest.fn(),
     prefetch: jest.fn(),
     back: jest.fn(),
   }),
-  usePathname: () => "/dashboard",
+  usePathname: () => '/dashboard',
   useSearchParams: () => new URLSearchParams(),
 }));
 
 /**
  * Mock Firebase Auth
  */
-jest.mock("firebase/auth", () => ({
+jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(() => ({
     currentUser: null,
     onAuthStateChanged: jest.fn(),
@@ -131,7 +127,7 @@ jest.mock("firebase/auth", () => ({
 /**
  * Mock Firebase App
  */
-jest.mock("firebase/app", () => ({
+jest.mock('firebase/app', () => ({
   initializeApp: jest.fn(),
   getApps: jest.fn(() => []),
 }));
@@ -139,7 +135,7 @@ jest.mock("firebase/app", () => ({
 /**
  * Mock Firebase Database
  */
-jest.mock("firebase/database", () => ({
+jest.mock('firebase/database', () => ({
   getDatabase: jest.fn(),
   ref: jest.fn(),
   set: jest.fn(),
@@ -153,7 +149,7 @@ jest.mock("firebase/database", () => ({
 /**
  * Mock MongoDB
  */
-jest.mock("mongoose", () => {
+jest.mock('mongoose', () => {
   const mockConnection = {
     readyState: 1,
     collection: jest.fn(),
@@ -183,10 +179,12 @@ jest.mock("mongoose", () => {
         this.options = options;
         this.indexes = [];
       }
+
       index(fields, options) {
         this.indexes.push({ fields, options });
         return this;
       }
+
       pre(method, fn) {
         return this;
       }

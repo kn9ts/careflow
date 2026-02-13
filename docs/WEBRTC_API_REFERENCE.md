@@ -75,10 +75,10 @@ Initializes the WebRTC manager with the user's CareFlow ID and authentication to
 const manager = new WebRTCManager();
 
 try {
-  await manager.initialize("care4w-1000001", "firebase-auth-token");
-  console.log("WebRTC initialized successfully");
+  await manager.initialize('care4w-1000001', 'firebase-auth-token');
+  console.log('WebRTC initialized successfully');
 } catch (error) {
-  console.error("Initialization failed:", error.message);
+  console.error('Initialization failed:', error.message);
 }
 ```
 
@@ -113,17 +113,17 @@ Registers an event listener for WebRTC events.
 **Example:**
 
 ```javascript
-manager.on("localStream", (stream) => {
-  const audioElement = document.getElementById("audio");
+manager.on('localStream', (stream) => {
+  const audioElement = document.getElementById('audio');
   audioElement.srcObject = stream;
 });
 
-manager.on("connectionStateChange", (state) => {
-  console.log("Connection state:", state);
+manager.on('connectionStateChange', (state) => {
+  console.log('Connection state:', state);
 });
 
-manager.on("callEnded", () => {
-  console.log("Call has ended");
+manager.on('callEnded', () => {
+  console.log('Call has ended');
 });
 ```
 
@@ -138,7 +138,7 @@ Removes an event listener.
 **Example:**
 
 ```javascript
-manager.off("localStream");
+manager.off('localStream');
 ```
 
 ---
@@ -194,10 +194,10 @@ Creates and sends an offer to initiate a call.
 
 ```javascript
 try {
-  const offer = await manager.createOffer("care4w-1000002");
-  console.log("Offer created:", offer.type);
+  const offer = await manager.createOffer('care4w-1000002');
+  console.log('Offer created:', offer.type);
 } catch (error) {
-  console.error("Failed to create offer:", error.message);
+  console.error('Failed to create offer:', error.message);
 }
 ```
 
@@ -222,12 +222,12 @@ Accepts an incoming call.
 
 ```javascript
 const offer = {
-  type: "offer",
-  sdp: "v=0\r\no=- ... (SDP data)",
+  type: 'offer',
+  sdp: 'v=0\r\no=- ... (SDP data)',
 };
 
-const answer = await manager.acceptCall("room-12345", offer);
-console.log("Answer created:", answer.type);
+const answer = await manager.acceptCall('room-12345', offer);
+console.log('Answer created:', answer.type);
 ```
 
 ### `endCall()
@@ -240,7 +240,7 @@ Ends the current call and cleans up resources.
 
 ```javascript
 await manager.endCall();
-console.log("Call ended");
+console.log('Call ended');
 ```
 
 ---
@@ -261,8 +261,8 @@ Sends an ICE candidate to the remote peer.
 
 ```javascript
 const candidate = new RTCIceCandidate({
-  candidate: "candidate:1 1 udp 2113937151 192.168.1.1 54321 typ host",
-  sdpMid: "0",
+  candidate: 'candidate:1 1 udp 2113937151 192.168.1.1 54321 typ host',
+  sdpMid: '0',
   sdpMLineIndex: 0,
 });
 
@@ -295,7 +295,7 @@ Toggles the mute state of the local audio.
 
 ```javascript
 const isMuted = manager.toggleMute();
-console.log("Microphone muted:", isMuted);
+console.log('Microphone muted:', isMuted);
 ```
 
 ---
@@ -313,7 +313,7 @@ Starts recording the call audio.
 ```javascript
 const started = await manager.startRecording();
 if (started) {
-  console.log("Recording started");
+  console.log('Recording started');
 }
 ```
 
@@ -356,7 +356,7 @@ Returns the supported MIME type for MediaRecorder.
 
 ```javascript
 const mimeType = manager.getSupportedMimeType();
-console.log("Using MIME type:", mimeType);
+console.log('Using MIME type:', mimeType);
 // Possible values: "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"
 ```
 
@@ -386,8 +386,8 @@ Retrieves current connection statistics.
 
 ```javascript
 const stats = await manager.getConnectionStats();
-console.log("RTT:", stats.roundTripTime * 1000, "ms");
-console.log("Packets lost:", stats.packetsLost);
+console.log('RTT:', stats.roundTripTime * 1000, 'ms');
+console.log('Packets lost:', stats.packetsLost);
 ```
 
 ### `listenForIncomingCalls()
@@ -434,9 +434,9 @@ Attempts to restore signaling connection.
 
 ```javascript
 const ICE_SERVERS = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
 ];
 ```
 
@@ -474,25 +474,25 @@ const ICE_SERVERS = [
 const manager = new WebRTCManager();
 
 try {
-  await manager.initialize("care4w-1000001");
+  await manager.initialize('care4w-1000001');
 
-  manager.on("localStream", (stream) => {
+  manager.on('localStream', (stream) => {
     // Handle local stream
   });
 
-  manager.on("error", (error) => {
-    console.error("WebRTC error:", error);
+  manager.on('error', (error) => {
+    console.error('WebRTC error:', error);
   });
 
   await manager.getLocalStream();
-  await manager.createOffer("care4w-1000002");
+  await manager.createOffer('care4w-1000002');
 } catch (error) {
-  if (error.message.includes("Permission denied")) {
+  if (error.message.includes('Permission denied')) {
     // Handle permission error
     showPermissionRequestDialog();
   } else {
     // Handle other errors
-    console.error("WebRTC error:", error);
+    console.error('WebRTC error:', error);
   }
 }
 ```
@@ -517,7 +517,7 @@ The WebRTC connection can be in the following states:
 ## Complete Usage Example
 
 ```javascript
-import WebRTCManager from "@/lib/webrtc";
+import WebRTCManager from '@/lib/webrtc';
 
 class CallManager {
   constructor() {
@@ -526,27 +526,27 @@ class CallManager {
   }
 
   setupEventListeners() {
-    this.manager.on("localStream", (stream) => {
+    this.manager.on('localStream', (stream) => {
       this.attachLocalStream(stream);
     });
 
-    this.manager.on("remoteStream", (stream) => {
+    this.manager.on('remoteStream', (stream) => {
       this.attachRemoteStream(stream);
     });
 
-    this.manager.on("connectionStateChange", (state) => {
+    this.manager.on('connectionStateChange', (state) => {
       this.updateConnectionUI(state);
     });
 
-    this.manager.on("callEnded", () => {
+    this.manager.on('callEnded', () => {
       this.handleCallEnded();
     });
 
-    this.manager.on("incomingCall", (callInfo) => {
+    this.manager.on('incomingCall', (callInfo) => {
       this.showIncomingCallModal(callInfo);
     });
 
-    this.manager.on("recordingStopped", (recording) => {
+    this.manager.on('recordingStopped', (recording) => {
       this.saveRecording(recording);
     });
   }

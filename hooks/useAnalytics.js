@@ -4,8 +4,8 @@
  * Following separation of concerns - data fetching only
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { fetchAnalytics } from "@/lib/api/analytics";
+import { useState, useEffect, useCallback } from 'react';
+import { fetchAnalytics } from '@/lib/api/analytics';
 
 export function useAnalytics(authToken) {
   const [analytics, setAnalytics] = useState(null);
@@ -15,7 +15,7 @@ export function useAnalytics(authToken) {
   const fetch = useCallback(
     async (token = authToken) => {
       if (!token) {
-        setError("Authentication token is required");
+        setError('Authentication token is required');
         return null;
       }
 
@@ -33,7 +33,7 @@ export function useAnalytics(authToken) {
         setIsLoading(false);
       }
     },
-    [authToken],
+    [authToken]
   );
 
   // Initial fetch

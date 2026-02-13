@@ -145,10 +145,7 @@ For browser uploads, add CORS rule to bucket:
   {
     "allowedHeaders": ["*"],
     "allowedMethods": ["GET", "PUT", "POST"],
-    "allowedOrigins": [
-      "https://your-domain.vercel.app",
-      "http://localhost:3000"
-    ],
+    "allowedOrigins": ["https://your-domain.vercel.app", "http://localhost:3000"],
     "exposeHeaders": ["ETag"],
     "maxAgeSeconds": 3600
   }

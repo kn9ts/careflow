@@ -23,7 +23,7 @@ Each user is assigned a unique **CareFlow User ID** during registration:
 ```javascript
 // Example: care4w-1000001
 const generateCareFlowId = (sequenceNumber) => {
-  return `care4w-${sequenceNumber.toString().padStart(7, "0")}`;
+  return `care4w-${sequenceNumber.toString().padStart(7, '0')}`;
 };
 ```
 
@@ -242,21 +242,21 @@ class CallManager {
     );
 
     if (this.twilioAvailable) {
-      this.mode = "twilio";
+      this.mode = 'twilio';
       await this.initializeTwilio(token);
     } else {
-      this.mode = "webrtc";
+      this.mode = 'webrtc';
       await this.initializeWebRTC();
     }
   }
 
   async makeCall(number) {
-    if (this.mode === "twilio") {
+    if (this.mode === 'twilio') {
       return this.makeTwilioCall(number);
     } else {
       // Validate care4wId format
       if (!this.isValidCare4wId(number)) {
-        throw new Error("Invalid CareFlow User ID. Format: care4w-XXXXXXX");
+        throw new Error('Invalid CareFlow User ID. Format: care4w-XXXXXXX');
       }
       return this.makeWebRTCCall(number);
     }
@@ -267,19 +267,19 @@ class CallManager {
   }
 
   getModeInfo() {
-    if (this.mode === "twilio") {
+    if (this.mode === 'twilio') {
       return {
-        mode: "twilio",
-        description: "Twilio Voice - PSTN Calls",
-        placeholder: "Enter phone number (+1234567890)",
-        format: "E.164 phone format",
+        mode: 'twilio',
+        description: 'Twilio Voice - PSTN Calls',
+        placeholder: 'Enter phone number (+1234567890)',
+        format: 'E.164 phone format',
       };
     } else {
       return {
-        mode: "webrtc",
-        description: "WebRTC - CareFlow User Calls",
-        placeholder: "Enter CareFlow ID (care4w-XXXXXXX)",
-        format: "care4w- followed by 7 digits",
+        mode: 'webrtc',
+        description: 'WebRTC - CareFlow User Calls',
+        placeholder: 'Enter CareFlow ID (care4w-XXXXXXX)',
+        format: 'care4w- followed by 7 digits',
       };
     }
   }

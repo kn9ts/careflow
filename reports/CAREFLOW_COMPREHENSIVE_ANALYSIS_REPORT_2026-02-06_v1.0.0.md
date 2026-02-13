@@ -378,16 +378,11 @@ export async function POST(request) {
 }
 
 // Should include:
-import Twilio from "twilio";
+import Twilio from 'twilio';
 const twilio = new Twilio(process.env.TWILIO_AUTH_TOKEN);
 
 // Add validation before processing
-const isValid = twilio.validateRequest(
-  process.env.TWILIO_AUTH_TOKEN,
-  signature,
-  url,
-  params,
-);
+const isValid = twilio.validateRequest(process.env.TWILIO_AUTH_TOKEN, signature, url, params);
 ```
 
 #### 4.1.2 Phone Number Input Validation Missing
@@ -402,9 +397,9 @@ const isValid = twilio.validateRequest(
 
 ```javascript
 const validateTarget = (target, mode) => {
-  if (mode === "twilio") {
+  if (mode === 'twilio') {
     // E.164 validation
-    return /^\+?[1-9]\d{1,14}$/.test(target.replace(/\s+/g, ""));
+    return /^\+?[1-9]\d{1,14}$/.test(target.replace(/\s+/g, ''));
   } else {
     // care4wId validation
     return /^care4w-\d{7}$/.test(target);

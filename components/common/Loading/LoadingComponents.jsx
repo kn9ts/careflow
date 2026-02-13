@@ -3,16 +3,16 @@
  * Reusable loading states and skeletons
  */
 
-import { Loader2 } from "lucide-react";
+import { Loader2 } from 'lucide-react';
 
 /**
  * Spinner loading component
  */
-export function Spinner({ size = "md", className = "", text }) {
+export function Spinner({ size = 'md', className = '', text }) {
   const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-6 h-6",
-    lg: "w-8 h-8",
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
   };
 
   return (
@@ -28,7 +28,7 @@ export function Spinner({ size = "md", className = "", text }) {
 /**
  * Full page loading spinner
  */
-export function PageLoader({ text = "Loading...", className = "" }) {
+export function PageLoader({ text = 'Loading...', className = '' }) {
   return (
     <div className={`page-loader ${className}`}>
       <div className="page-loader-content">
@@ -42,11 +42,9 @@ export function PageLoader({ text = "Loading...", className = "" }) {
 /**
  * Button loading state
  */
-export function ButtonLoader({ className = "" }) {
+export function ButtonLoader({ className = '' }) {
   return (
-    <span
-      className={`inline-flex items-center justify-center animate-spin ${className}`}
-    >
+    <span className={`inline-flex items-center justify-center animate-spin ${className}`}>
       <Loader2 size={16} />
     </span>
   );
@@ -55,7 +53,7 @@ export function ButtonLoader({ className = "" }) {
 /**
  * Skeleton loader component
  */
-export function Skeleton({ className = "", count = 1, height, width }) {
+export function Skeleton({ className = '', count = 1, height, width }) {
   return (
     <div className={`skeleton-wrapper ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
@@ -63,8 +61,8 @@ export function Skeleton({ className = "", count = 1, height, width }) {
           key={i}
           className="skeleton-line"
           style={{
-            height: height || "1rem",
-            width: width || "100%",
+            height: height || '1rem',
+            width: width || '100%',
           }}
         />
       ))}
@@ -75,7 +73,7 @@ export function Skeleton({ className = "", count = 1, height, width }) {
 /**
  * Card skeleton for dashboard cards
  */
-export function CardSkeleton({ className = "" }) {
+export function CardSkeleton({ className = '' }) {
   return (
     <div className={`card-skeleton ${className}`}>
       <div className="card-skeleton-header">
@@ -99,7 +97,7 @@ export function CardSkeleton({ className = "" }) {
 /**
  * Table skeleton loader
  */
-export function TableSkeleton({ rows = 5, columns = 4, className = "" }) {
+export function TableSkeleton({ rows = 5, columns = 4, className = '' }) {
   return (
     <div className={`table-skeleton ${className}`}>
       <div className="table-skeleton-header">
@@ -121,13 +119,10 @@ export function TableSkeleton({ rows = 5, columns = 4, className = "" }) {
 /**
  * Inline loading bar
  */
-export function LoadingBar({ progress = 0, className = "" }) {
+export function LoadingBar({ progress = 0, className = '' }) {
   return (
     <div className={`loading-bar ${className}`}>
-      <div
-        className="loading-bar-fill"
-        style={{ width: `${Math.min(progress, 100)}%` }}
-      />
+      <div className="loading-bar-fill" style={{ width: `${Math.min(progress, 100)}%` }} />
     </div>
   );
 }
@@ -135,21 +130,18 @@ export function LoadingBar({ progress = 0, className = "" }) {
 /**
  * Dots loading animation
  */
-export function DotsLoader({ className = "", color = "#3b82f6" }) {
+export function DotsLoader({ className = '', color = '#3b82f6' }) {
   return (
     <div className={`dots-loader ${className}`}>
       <div
         className="w-2 h-2 rounded-full"
-        style={{ backgroundColor: color, animationDelay: "-0.32s" }}
+        style={{ backgroundColor: color, animationDelay: '-0.32s' }}
       />
       <div
         className="w-2 h-2 rounded-full"
-        style={{ backgroundColor: color, animationDelay: "-0.16s" }}
+        style={{ backgroundColor: color, animationDelay: '-0.16s' }}
       />
-      <div
-        className="w-2 h-2 rounded-full"
-        style={{ backgroundColor: color }}
-      />
+      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
     </div>
   );
 }

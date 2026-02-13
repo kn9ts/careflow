@@ -143,7 +143,7 @@ Website: https://siproute.com
 
 ```javascript
 // lib/pstn/twilio.js
-const twilio = require("twilio");
+const twilio = require('twilio');
 
 class TwilioTrunk {
   constructor(config) {
@@ -155,14 +155,14 @@ class TwilioTrunk {
   // Buy a DID number
   async buyPhoneNumber() {
     const number = await this.client
-      .availablePhoneNumbers("US")
+      .availablePhoneNumbers('US')
       .phoneNumbers.list({ limit: 1, capabilities: { voice: true } })[0];
 
     const purchased = await this.client.incomingPhoneNumbers.create({
       phoneNumber: number.phoneNumber,
-      friendlyName: "CareFlow Main Number",
-      voiceUrl: "https://your-domain.com/api/twilio/voice",
-      statusCallback: "https://your-domain.com/api/twilio/status",
+      friendlyName: 'CareFlow Main Number',
+      voiceUrl: 'https://your-domain.com/api/twilio/voice',
+      statusCallback: 'https://your-domain.com/api/twilio/status',
     });
 
     return purchased;
@@ -171,10 +171,10 @@ class TwilioTrunk {
   // Configure SIP trunk
   async configureSipDomain() {
     const domain = await this.client.sip.domains.create({
-      friendlyName: "careflow-sip",
-      domainName: "careflow.sip.twilio.com",
-      voiceUrl: "https://your-domain.com/api/twilio/voice",
-      fallbackUrl: "https://your-domain.com/api/twilio/fallback",
+      friendlyName: 'careflow-sip',
+      domainName: 'careflow.sip.twilio.com',
+      voiceUrl: 'https://your-domain.com/api/twilio/voice',
+      fallbackUrl: 'https://your-domain.com/api/twilio/fallback',
     });
 
     return domain;

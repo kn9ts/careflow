@@ -1,6 +1,6 @@
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { successResponse, errorResponse } from "@/lib/apiResponse";
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { successResponse, errorResponse } from '@/lib/apiResponse';
 
 export async function POST(request) {
   try {
@@ -8,13 +8,13 @@ export async function POST(request) {
     await signOut(auth);
 
     return successResponse({
-      message: "Logout successful",
+      message: 'Logout successful',
     });
   } catch (error) {
-    console.error("Logout error:", error);
-    return errorResponse("Failed to logout", {
+    console.error('Logout error:', error);
+    return errorResponse('Failed to logout', {
       status: 500,
-      code: "AUTH_LOGOUT_FAILED",
+      code: 'AUTH_LOGOUT_FAILED',
     });
   }
 }

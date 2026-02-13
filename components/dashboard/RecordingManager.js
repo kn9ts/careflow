@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import RecordingPlayer from "./RecordingPlayer";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import RecordingPlayer from './RecordingPlayer';
 
 /**
  * Recording Manager Component
@@ -31,9 +31,9 @@ export default function RecordingManager({
   const [selectedRecording, setSelectedRecording] = useState(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [filters, setFilters] = useState({
-    type: "",
-    direction: "",
-    status: "",
+    type: '',
+    direction: '',
+    status: '',
     page: 1,
     limit: 20,
   });
@@ -45,8 +45,7 @@ export default function RecordingManager({
   });
 
   // Use prop recordings if provided, otherwise use internal state
-  const effectiveRecordings =
-    propRecordings !== undefined ? propRecordings : recordings;
+  const effectiveRecordings = propRecordings !== undefined ? propRecordings : recordings;
   const effectiveLoading = propLoading !== undefined ? propLoading : loading;
 
   // Update internal state from props
@@ -71,11 +70,11 @@ export default function RecordingManager({
 
     try {
       const params = new URLSearchParams();
-      if (filters.type) params.append("type", filters.type);
-      if (filters.direction) params.append("direction", filters.direction);
-      if (filters.status) params.append("status", filters.status);
-      params.append("page", filters.page);
-      params.append("limit", filters.limit);
+      if (filters.type) params.append('type', filters.type);
+      if (filters.direction) params.append('direction', filters.direction);
+      if (filters.status) params.append('status', filters.status);
+      params.append('page', filters.page);
+      params.append('limit', filters.limit);
 
       const response = await fetch(`/api/recordings?${params}`, {
         headers: {
@@ -88,10 +87,10 @@ export default function RecordingManager({
       if (!response.ok) {
         // Handle unauthorized - redirect to login
         if (response.status === 401) {
-          router.push("/login");
+          router.push('/login');
           return;
         }
-        throw new Error(data.error || "Failed to fetch recordings");
+        throw new Error(data.error || 'Failed to fetch recordings');
       }
 
       setRecordings(data.data.recordings || []);
@@ -101,10 +100,10 @@ export default function RecordingManager({
           totalPages: 0,
           hasNextPage: false,
           hasPrevPage: false,
-        },
+        }
       );
     } catch (err) {
-      console.error("Error fetching recordings:", err);
+      console.error('Error fetching recordings:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -117,27 +116,27 @@ export default function RecordingManager({
 
   // Handle delete recording
   const handleDelete = async (recordingId) => {
-    if (!confirm("Are you sure you want to delete this recording?")) {
+    if (!confirm('Are you sure you want to delete this recording?')) {
       return;
     }
 
     try {
       const response = await fetch(`/api/recordings/${recordingId}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete recording");
+        throw new Error('Failed to delete recording');
       }
 
       // Refresh list
       fetchRecordings();
     } catch (err) {
-      console.error("Error deleting recording:", err);
-      alert("Failed to delete recording: " + err.message);
+      console.error('Error deleting recording:', err);
+      alert(`Failed to delete recording: ${err.message}`);
     }
   };
 
@@ -145,24 +144,21 @@ export default function RecordingManager({
   const handleDownload = async (recording) => {
     try {
       // Get signed URL for download
-      const response = await fetch(
-        `/api/recordings/${recording.id}?includeUrl=true`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`/api/recordings/${recording.id}?includeUrl=true`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error("Failed to get download URL");
+        throw new Error('Failed to get download URL');
       }
 
       // Download the file
       if (data.data.recording.downloadUrl) {
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = data.data.recording.downloadUrl;
         link.download = `recording-${recording.id}.webm`;
         document.body.appendChild(link);
@@ -170,8 +166,8 @@ export default function RecordingManager({
         document.body.removeChild(link);
       }
     } catch (err) {
-      console.error("Error downloading recording:", err);
-      alert("Failed to download recording: " + err.message);
+      console.error('Error downloading recording:', err);
+      alert(`Failed to download recording: ${err.message}`);
     }
   };
 
@@ -179,22 +175,18 @@ export default function RecordingManager({
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Format date
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
+  const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
   return (
     <div className="bg-background-card rounded-xl border border-white/10 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-white">Recordings</h2>
-          <p className="text-sm text-gray-400">
-            Manage your WebRTC call recordings
-          </p>
+          <p className="text-sm text-gray-400">Manage your WebRTC call recordings</p>
         </div>
         <button
           onClick={fetchRecordings}
@@ -208,9 +200,7 @@ export default function RecordingManager({
       <div className="flex flex-wrap gap-3 mb-6">
         <select
           value={filters.type}
-          onChange={(e) =>
-            setFilters({ ...filters, type: e.target.value, page: 1 })
-          }
+          onChange={(e) => setFilters({ ...filters, type: e.target.value, page: 1 })}
           className="px-4 py-2 bg-background-input border border-white/10 rounded-lg text-white"
         >
           <option value="">All Types</option>
@@ -220,9 +210,7 @@ export default function RecordingManager({
 
         <select
           value={filters.direction}
-          onChange={(e) =>
-            setFilters({ ...filters, direction: e.target.value, page: 1 })
-          }
+          onChange={(e) => setFilters({ ...filters, direction: e.target.value, page: 1 })}
           className="px-4 py-2 bg-background-input border border-white/10 rounded-lg text-white"
         >
           <option value="">All Directions</option>
@@ -232,9 +220,7 @@ export default function RecordingManager({
 
         <select
           value={filters.status}
-          onChange={(e) =>
-            setFilters({ ...filters, status: e.target.value, page: 1 })
-          }
+          onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
           className="px-4 py-2 bg-background-input border border-white/10 rounded-lg text-white"
         >
           <option value="">All Status</option>
@@ -255,12 +241,10 @@ export default function RecordingManager({
       <div className="space-y-4">
         {effectiveLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-red"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-red" />
           </div>
         ) : effectiveRecordings.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            No recordings found
-          </div>
+          <div className="text-center py-12 text-gray-400">No recordings found</div>
         ) : (
           effectiveRecordings.map((recording) => (
             <div
@@ -271,16 +255,14 @@ export default function RecordingManager({
                 <div className="flex items-center gap-3 mb-1">
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
-                      recording.direction === "inbound"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-green-100 text-green-800"
+                      recording.direction === 'inbound'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-green-100 text-green-800'
                     }`}
                   >
-                    {recording.direction === "inbound" ? "Inbound" : "Outbound"}
+                    {recording.direction === 'inbound' ? 'Inbound' : 'Outbound'}
                   </span>
-                  <span className="text-sm text-gray-400">
-                    {formatDate(recording.recordedAt)}
-                  </span>
+                  <span className="text-sm text-gray-400">{formatDate(recording.recordedAt)}</span>
                   {recording.isListened && (
                     <span className="text-xs text-gray-500">(Listened)</span>
                   )}
@@ -293,8 +275,8 @@ export default function RecordingManager({
                   {recording.to}
                 </div>
                 <div className="text-sm text-gray-400 mt-1">
-                  Duration: {formatDuration(recording.duration)} | Size:{" "}
-                  {(recording.fileSize / 1024 / 1024).toFixed(2)} MB | Format:{" "}
+                  Duration: {formatDuration(recording.duration)} | Size:{' '}
+                  {(recording.fileSize / 1024 / 1024).toFixed(2)} MB | Format:{' '}
                   {recording.format.toUpperCase()}
                 </div>
               </div>

@@ -2,8 +2,8 @@
  * Common Components Barrel Export
  */
 
-export { default as ErrorBoundary } from "./ErrorBoundary/ErrorBoundary";
-export { ErrorDisplay } from "./ErrorBoundary/ErrorBoundary";
+export { default as ErrorBoundary } from './ErrorBoundary/ErrorBoundary';
+export { ErrorDisplay } from './ErrorBoundary/ErrorBoundary';
 
 export {
   Spinner,
@@ -14,4 +14,4 @@ export {
   TableSkeleton,
   LoadingBar,
   DotsLoader,
-} from "./Loading/LoadingComponents";
+} from './Loading/LoadingComponents';

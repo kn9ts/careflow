@@ -5,11 +5,11 @@
  * It includes automatic trace and screenshot capture on failure for debugging.
  */
 
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   // Test directory
-  testDir: "./tests/e2e",
+  testDir: './tests/e2e',
 
   // Run tests in parallel
   fullyParallel: true,
@@ -27,21 +27,21 @@ export default defineConfig({
   reporter: [
     // HTML reporter for detailed test reports
     [
-      "html",
+      'html',
       {
-        outputFolder: "playwright-report",
-        open: process.env.CI ? "never" : "on-failure",
+        outputFolder: 'playwright-report',
+        open: process.env.CI ? 'never' : 'on-failure',
       },
     ],
     // List reporter for console output
-    ["list"],
+    ['list'],
     // JUnit reporter for CI/CD integration (optional)
     ...(process.env.CI
       ? [
           [
-            "junit",
+            'junit',
             {
-              outputFile: "test-results/junit.xml",
+              outputFile: 'test-results/junit.xml',
             },
           ],
         ]
@@ -51,16 +51,16 @@ export default defineConfig({
   // Global test settings
   use: {
     // Base URL for all tests
-    baseURL: "http://localhost:3001",
+    baseURL: 'http://localhost:3001',
 
     // Capture trace on first retry (for debugging)
-    trace: "on-first-retry",
+    trace: 'on-first-retry',
 
     // Capture screenshot on failure
-    screenshot: "only-on-failure",
+    screenshot: 'only-on-failure',
 
     // Capture video on failure (useful for debugging)
-    video: "retain-on-failure",
+    video: 'retain-on-failure',
 
     // Browser context options
     contextOptions: {
@@ -86,16 +86,16 @@ export default defineConfig({
   // Browser projects
   projects: [
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
     },
     {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
     // Mobile viewports (optional)
     // {
@@ -110,14 +110,14 @@ export default defineConfig({
 
   // Development server configuration
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3001",
+    command: 'npm run dev',
+    url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-    stdout: "ignore",
-    stderr: "pipe",
+    stdout: 'ignore',
+    stderr: 'pipe',
   },
 
   // Output directory for test artifacts
-  outputDir: "test-results/artifacts",
+  outputDir: 'test-results/artifacts',
 });

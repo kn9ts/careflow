@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export default function Analytics({ data, onRefresh }) {
   if (!data) {
@@ -15,10 +15,7 @@ export default function Analytics({ data, onRefresh }) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="bg-background-input rounded-lg p-6 animate-pulse"
-            >
+            <div key={index} className="bg-background-input rounded-lg p-6 animate-pulse">
               <div className="h-3 w-20 bg-white/10 rounded mb-3" />
               <div className="h-6 w-14 bg-white/10 rounded" />
             </div>
@@ -35,9 +32,7 @@ export default function Analytics({ data, onRefresh }) {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-white">Analytics</h2>
-          <p className="text-sm text-gray-400">
-            Updated from server-side aggregates
-          </p>
+          <p className="text-sm text-gray-400">Updated from server-side aggregates</p>
         </div>
         <button
           onClick={onRefresh}
@@ -53,9 +48,7 @@ export default function Analytics({ data, onRefresh }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Calls</p>
-              <p className="text-2xl font-bold text-white">
-                {analytics.totalCalls}
-              </p>
+              <p className="text-2xl font-bold text-white">{analytics.totalCalls}</p>
             </div>
             <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
               <svg
@@ -79,9 +72,7 @@ export default function Analytics({ data, onRefresh }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Voicemails</p>
-              <p className="text-2xl font-bold text-white">
-                {analytics.totalVoicemails}
-              </p>
+              <p className="text-2xl font-bold text-white">{analytics.totalVoicemails}</p>
             </div>
             <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
               <svg
@@ -131,9 +122,7 @@ export default function Analytics({ data, onRefresh }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Success Rate</p>
-              <p className="text-2xl font-bold text-white">
-                {analytics.successRate}%
-              </p>
+              <p className="text-2xl font-bold text-white">{analytics.successRate}%</p>
             </div>
             <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
               <svg
@@ -157,22 +146,14 @@ export default function Analytics({ data, onRefresh }) {
       {/* Today's Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-background-input rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Today's Calls
-          </h3>
-          <div className="text-3xl font-bold text-white">
-            {analytics.todayCalls}
-          </div>
+          <h3 className="text-lg font-semibold text-white mb-4">Today's Calls</h3>
+          <div className="text-3xl font-bold text-white">{analytics.todayCalls}</div>
           <p className="text-gray-400 text-sm mt-2">Calls made today</p>
         </div>
 
         <div className="bg-background-input rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Average Duration
-          </h3>
-          <div className="text-3xl font-bold text-white">
-            {analytics.averageCallDuration} sec
-          </div>
+          <h3 className="text-lg font-semibold text-white mb-4">Average Duration</h3>
+          <div className="text-3xl font-bold text-white">{analytics.averageCallDuration} sec</div>
           <p className="text-gray-400 text-sm mt-2">Per call average</p>
         </div>
       </div>
@@ -180,9 +161,7 @@ export default function Analytics({ data, onRefresh }) {
       {/* Recent Calls */}
       {analytics.recentCalls && analytics.recentCalls.length > 0 ? (
         <div className="bg-background-input rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Recent Calls
-          </h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Recent Calls</h3>
           <div className="space-y-3">
             {analytics.recentCalls.slice(0, 5).map((call, index) => (
               <div
@@ -192,7 +171,7 @@ export default function Analytics({ data, onRefresh }) {
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-primary-red rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
-                      {call.direction === "inbound" ? "IN" : "OUT"}
+                      {call.direction === 'inbound' ? 'IN' : 'OUT'}
                     </span>
                   </div>
                   <div>
@@ -207,11 +186,10 @@ export default function Analytics({ data, onRefresh }) {
                 <div className="text-right">
                   <div className="text-white font-medium">
                     {Math.floor(call.duration / 60)}:
-                    {(call.duration % 60).toString().padStart(2, "0")}
+                    {(call.duration % 60).toString().padStart(2, '0')}
                   </div>
                   <div className="text-gray-400 text-sm capitalize">
-                    {call.callStatus ||
-                      (call.duration > 0 ? "completed" : "missed")}
+                    {call.callStatus || (call.duration > 0 ? 'completed' : 'missed')}
                   </div>
                 </div>
               </div>
@@ -219,9 +197,7 @@ export default function Analytics({ data, onRefresh }) {
           </div>
         </div>
       ) : (
-        <div className="bg-background-input rounded-lg p-6 text-gray-400">
-          No recent calls yet.
-        </div>
+        <div className="bg-background-input rounded-lg p-6 text-gray-400">No recent calls yet.</div>
       )}
     </div>
   );

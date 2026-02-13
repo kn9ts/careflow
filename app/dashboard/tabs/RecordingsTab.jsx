@@ -3,9 +3,9 @@
  * Displays and manages recordings
  */
 
-import { RefreshCw } from "lucide-react";
-import RecordingManager from "@/components/dashboard/RecordingManager";
-import { CardSkeleton } from "@/components/common/Loading/LoadingComponents";
+import { RefreshCw } from 'lucide-react';
+import RecordingManager from '@/components/dashboard/RecordingManager';
+import { CardSkeleton } from '@/components/common/Loading/LoadingComponents';
 
 export default function RecordingsTab({
   recordings,
@@ -18,22 +18,13 @@ export default function RecordingsTab({
     <div className="recordings-tab">
       <div className="tab-header">
         <h2 className="tab-title">Recordings</h2>
-        <button
-          onClick={onRefreshRecordings}
-          className="refresh-btn"
-          disabled={recordingsLoading}
-        >
-          <RefreshCw
-            size={16}
-            className={recordingsLoading ? "spinning" : ""}
-          />
+        <button onClick={onRefreshRecordings} className="refresh-btn" disabled={recordingsLoading}>
+          <RefreshCw size={16} className={recordingsLoading ? 'spinning' : ''} />
           Refresh
         </button>
       </div>
 
-      {recordingsError && (
-        <div className="error-message">{recordingsError}</div>
-      )}
+      {recordingsError && <div className="error-message">{recordingsError}</div>}
 
       {recordingsLoading ? (
         <div className="loading-state">

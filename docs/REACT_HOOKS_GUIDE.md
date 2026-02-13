@@ -201,9 +201,7 @@ function UserProfile({ userId }) {
 function SearchList({ items, filter }) {
   // This function is memoized and won't be recreated on every render
   const filteredItems = useCallback(() => {
-    return items.filter((item) =>
-      item.name.toLowerCase().includes(filter.toLowerCase()),
-    );
+    return items.filter((item) => item.name.toLowerCase().includes(filter.toLowerCase()));
   }, [items, filter]);
 
   return <List items={filteredItems()} />;

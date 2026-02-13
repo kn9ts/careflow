@@ -1,13 +1,19 @@
 /**
  * Dialer Tab Component
  * Pure presentation component for the dialer functionality
+ *
+ * IMPROVEMENTS:
+ * - Added connection state display
+ * - Added retry functionality for failed initialization
+ * - Better loading states
+ * - Added care4Id display with copy-to-clipboard
  */
 
-import { useCallback, useState } from "react";
-import CallStatus from "@/components/dashboard/CallStatus";
-import CallControls from "@/components/dashboard/CallControls";
-import DialPad from "@/components/dashboard/DialPad";
-import { CardSkeleton } from "@/components/common/Loading/LoadingComponents";
+import { useCallback, useState } from 'react';
+import CallStatus, { ConnectionStatusBadge } from '@/components/dashboard/CallStatus';
+import CallControls from '@/components/dashboard/CallControls';
+import DialPad from '@/components/dashboard/DialPad';
+import { CardSkeleton } from '@/components/common/Loading/LoadingComponents';
 
 export default function DialerTab({
   callManager,
@@ -16,22 +22,30 @@ export default function DialerTab({
   analyticsError,
   analyticsLoading,
 }) {
-  const { callStatus, callDuration, phoneNumber, callError, isMuted } =
-    callManager;
+  const {
+    callStatus,
+    callDuration,
+    phoneNumber,
+    callError,
+    isMuted,
+    connectionState,
+    retryInitialization,
+    care4wId,
+  } = callManager;
 
   // Local state for dialed number - controls the DialPad input
-  const [dialedNumber, setDialedNumber] = useState("");
+  const [dialedNumber, setDialedNumber] = useState('');
 
   const handleMakeCall = useCallback(
     (number) => {
       callManager.makeCall(number || dialedNumber);
     },
-    [callManager, dialedNumber],
+    [callManager, dialedNumber]
   );
 
   const handleHangup = useCallback(() => {
     callManager.hangupCall();
-    setDialedNumber("");
+    setDialedNumber('');
   }, [callManager]);
 
   const handleAccept = useCallback(() => {
@@ -46,6 +60,13 @@ export default function DialerTab({
     callManager.toggleMute();
   }, [callManager]);
 
+  const handleDTMF = useCallback(
+    (digit) => {
+      callManager.sendDigits(digit);
+    },
+    [callManager]
+  );
+
   const handleStartRecording = useCallback(async () => {
     await audioRecorder.startRecording();
   }, [audioRecorder]);
@@ -54,11 +75,53 @@ export default function DialerTab({
     await audioRecorder.stopRecording();
   }, [audioRecorder]);
 
+  const handleRetry = useCallback(() => {
+    if (retryInitialization) {
+      retryInitialization();
+    }
+  }, [retryInitialization]);
+
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Show loading state during initialization
+  if (connectionState?.isInitializing && !analyticsLoading) {
+    return (
+      <div className="dialer-tab">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            {/* Initialization Status */}
+            <div className="bg-background-card rounded-xl border border-white/10 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary-red" />
+                <h2 className="text-xl font-semibold text-white">Initializing Call System</h2>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">
+                {connectionState.message || 'Please wait while we set up the call system...'}
+              </p>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-primary-red h-2 rounded-full animate-pulse"
+                  style={{ width: '60%' }}
+                />
+              </div>
+            </div>
+            <CardSkeleton />
+          </div>
+          <CardSkeleton />
+        </div>
+
+        <style jsx>{`
+          .dialer-tab {
+            padding: 1rem;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   if (analyticsLoading) {
     return (
@@ -86,19 +149,29 @@ export default function DialerTab({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column - Call Controls */}
         <div className="space-y-6">
+          {/* Connection Status Badge (for failed/initializing states) */}
+          {connectionState && connectionState.state !== 'ready' && (
+            <div className="mb-2">
+              <ConnectionStatusBadge connectionState={connectionState} />
+            </div>
+          )}
+
           {/* Call Status */}
           <CallStatus
             status={callStatus}
             duration={callDuration}
             phoneNumber={phoneNumber}
             error={callError}
+            connectionState={connectionState}
+            onRetry={handleRetry}
+            care4Id={care4wId}
           />
 
           {/* Dial Pad */}
           <DialPad
             phoneNumber={dialedNumber}
             setPhoneNumber={setDialedNumber}
-            disabled={callStatus === "connected"}
+            disabled={callStatus === 'connected' || connectionState?.state === 'initializing'}
           />
 
           {/* Call Controls */}
@@ -109,12 +182,14 @@ export default function DialerTab({
             onAccept={handleAccept}
             onReject={handleReject}
             onMute={handleMute}
+            onDTMF={handleDTMF}
             isMuted={isMuted}
             isRecording={audioRecorder.isRecording}
             isRecordingSupported={audioRecorder.recordingSupported}
             recordingDuration={audioRecorder.recordingDuration}
             onStartRecording={handleStartRecording}
             onStopRecording={handleStopRecording}
+            disabled={connectionState?.state === 'initializing'}
           />
         </div>
 
@@ -139,15 +214,34 @@ export default function DialerTab({
                 </div>
                 <div className="stat-item">
                   <p className="stat-label">Success Rate</p>
-                  <p className="stat-value success">
-                    {analytics.successRate || 0}%
-                  </p>
+                  <p className="stat-value success">{analytics.successRate || 0}%</p>
                 </div>
                 <div className="stat-item">
                   <p className="stat-label">Today's Calls</p>
                   <p className="stat-value">{analytics.todayCalls || 0}</p>
                 </div>
               </div>
+
+              {/* Call Mode Info */}
+              {connectionState && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <p className="text-gray-400 text-sm mb-2">Call Mode</p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        connectionState.state === 'ready'
+                          ? 'bg-green-400'
+                          : connectionState.state === 'failed'
+                            ? 'bg-red-400'
+                            : 'bg-yellow-400'
+                      }`}
+                    />
+                    <span className="text-white text-sm capitalize">
+                      {connectionState.state === 'ready' ? 'Ready' : connectionState.state}
+                    </span>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-gray-400">Loading stats...</div>
