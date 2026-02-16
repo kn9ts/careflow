@@ -104,7 +104,7 @@ export default function RecordingManager({
       );
     } catch (err) {
       console.error('Error fetching recordings:', err);
-      setError(err.message);
+      setError(err?.message || err || 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -136,7 +136,7 @@ export default function RecordingManager({
       fetchRecordings();
     } catch (err) {
       console.error('Error deleting recording:', err);
-      alert(`Failed to delete recording: ${err.message}`);
+      alert(`Failed to delete recording: ${err?.message || err || 'Unknown error'}`);
     }
   };
 
@@ -167,7 +167,7 @@ export default function RecordingManager({
       }
     } catch (err) {
       console.error('Error downloading recording:', err);
-      alert(`Failed to download recording: ${err.message}`);
+      alert(`Failed to download recording: ${err?.message || err || 'Unknown error'}`);
     }
   };
 

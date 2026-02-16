@@ -93,7 +93,7 @@ export function SettingsProvider({ children }) {
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
-      setError(err.message);
+      setError(err?.message || err || 'Unknown error');
 
       // Try to load from localStorage as fallback
       if (typeof window !== 'undefined') {
@@ -173,7 +173,7 @@ export function SettingsProvider({ children }) {
         return { success: true };
       } catch (err) {
         console.error('Error updating setting:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err?.message || err || 'Unknown error' };
       }
     },
     [settings, token]
@@ -222,7 +222,7 @@ export function SettingsProvider({ children }) {
         return { success: true };
       } catch (err) {
         console.error('Error updating category:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err?.message || err || 'Unknown error' };
       }
     },
     [settings, token]
@@ -260,7 +260,7 @@ export function SettingsProvider({ children }) {
         return { success: true };
       } catch (err) {
         console.error('Error updating all settings:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err?.message || err || 'Unknown error' };
       }
     },
     [token]
@@ -295,7 +295,7 @@ export function SettingsProvider({ children }) {
         return { success: true };
       } catch (err) {
         console.error('Error resetting settings:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err?.message || err || 'Unknown error' };
       }
     },
     [token]

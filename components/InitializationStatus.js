@@ -26,7 +26,7 @@ export default function InitializationStatus({ showDetails = false, className = 
           setTimeout(checkStatus, 1000);
         }
       } catch (err) {
-        setError(err.message);
+        setError(err?.message || err || 'Unknown error');
       }
     };
 
@@ -153,7 +153,7 @@ export function InitializationProvider({ children, fallback = null }) {
 
         setIsReady(true);
       } catch (err) {
-        setError(err.message);
+        setError(err?.message || err || 'Unknown error');
       }
     };
 

@@ -27,7 +27,7 @@ export function useAnalytics(authToken) {
         setAnalytics(data);
         return data;
       } catch (err) {
-        setError(err.message);
+        setError(err?.message || err || 'Unknown error');
         return null;
       } finally {
         setIsLoading(false);

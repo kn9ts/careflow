@@ -28,7 +28,7 @@ export function useCallHistory(authToken) {
         setCallHistory(calls);
         return calls;
       } catch (err) {
-        setError(err.message);
+        setError(err?.message || err || 'Unknown error');
         return [];
       } finally {
         setIsLoading(false);

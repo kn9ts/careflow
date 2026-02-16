@@ -28,7 +28,7 @@ export function useRecordings(authToken) {
         setRecordings(data);
         return data;
       } catch (err) {
-        setError(err.message);
+        setError(err?.message || err || 'Unknown error');
         return [];
       } finally {
         setIsLoading(false);
@@ -50,7 +50,7 @@ export function useRecordings(authToken) {
         setRecordings((prev) => prev.filter((r) => r._id !== recordingId));
         return true;
       } catch (err) {
-        setError(err.message);
+        setError(err?.message || err || 'Unknown error');
         return false;
       }
     },

@@ -63,7 +63,7 @@ export default function NotificationPermission({ onTokenRegistered }) {
       }
     } catch (err) {
       console.error('Notification permission error:', err);
-      setError(err.message || 'Failed to enable notifications');
+      setError(err?.message || err || 'Unknown error' || 'Failed to enable notifications');
     } finally {
       setLoading(false);
     }

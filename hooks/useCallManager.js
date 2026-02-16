@@ -205,11 +205,12 @@ export function useCallManager() {
         setIncoming(callData.from || callData.targetCare4wId);
       },
       handleError: (error) => {
-        logger.error('useCallManager', `Call manager error: ${error.message}`);
-        setCallError(error.message || 'An error occurred');
+        const errorMessage = error?.message || error || 'An error occurred';
+        logger.error('useCallManager', `Call manager error: ${errorMessage}`);
+        setCallError(errorMessage);
         updateConnectionState({
           state: 'failed',
-          message: error.message,
+          message: errorMessage,
           error,
         });
       },
@@ -454,16 +455,17 @@ export function useCallManager() {
       // Show browser notification for successful retry
       showInitializationNotification(callMode);
     } catch (error) {
-      setCallError(error.message);
+      const errorMessage = error?.message || error || 'Failed to retry initialization';
+      setCallError(errorMessage);
 
       updateConnectionState({
         state: 'failed',
-        message: error.message,
+        message: errorMessage,
         error,
       });
 
       // Show browser notification for retry failure
-      showInitializationErrorNotification(error.message);
+      showInitializationErrorNotification(errorMessage);
     }
   }, [token, user, setMode, setCare4wId, setModeInfo, setCallError, updateConnectionState]);
 
@@ -483,7 +485,8 @@ export function useCallManager() {
         try {
           await callManager._initializationPromise;
         } catch (initError) {
-          setCallError(`Cannot make call: ${initError.message}`);
+          const initErrorMsg = initError?.message || initError || 'Unknown initialization error';
+          setCallError(`Cannot make call: ${initErrorMsg}`);
           setCallStatus('idle');
           return;
         }
@@ -500,7 +503,7 @@ export function useCallManager() {
         await callManager.makeCall(number);
       } catch (error) {
         console.error('Call failed:', error);
-        setCallError(error.message);
+        setCallError(error?.message || error || 'Call failed');
         setCallStatus('idle');
         throw error;
       }
@@ -525,8 +528,9 @@ export function useCallManager() {
         logger.callConnect('useCallManager');
         return;
       } catch (error) {
-        logger.error('useCallManager', `WebRTC accept failed: ${error.message}`);
-        setCallError(error.message);
+        const errorMsg = error?.message || error || 'WebRTC accept failed';
+        logger.error('useCallManager', `WebRTC accept failed: ${errorMsg}`);
+        setCallError(errorMsg);
         resetCallState();
         throw error;
       }
@@ -538,8 +542,9 @@ export function useCallManager() {
       logger.loading('useCallManager', 'Accepting call...');
       await callManager.acceptCall();
     } catch (error) {
-      logger.error('useCallManager', `Accept failed: ${error.message}`);
-      setCallError(error.message);
+      const errorMsg = error?.message || error || 'Accept failed';
+      logger.error('useCallManager', `Accept failed: ${errorMsg}`);
+      setCallError(errorMsg);
       resetCallState();
       throw error;
     }
@@ -553,7 +558,7 @@ export function useCallManager() {
       setPendingWebRTCCall(null);
     } catch (error) {
       console.error('Failed to accept WebRTC call:', error);
-      setCallError(error.message);
+      setCallError(error?.message || error || 'Failed to accept WebRTC call');
       resetCallState();
       throw error;
     }
@@ -642,9 +647,10 @@ export function useOutgoingCall() {
         await callManager.makeCall(number);
         return { success: true };
       } catch (error) {
-        setCallError(error.message);
+        const errorMsg = error?.message || error || 'Call failed';
+        setCallError(errorMsg);
         setCallStatus('idle');
-        return { success: false, error: error.message };
+        return { success: false, error: errorMsg };
       }
     },
     [setPhoneNumber, setCallStatus, setCallError]
