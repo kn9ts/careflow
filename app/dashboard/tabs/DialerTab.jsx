@@ -7,6 +7,8 @@
  * - Added retry functionality for failed initialization
  * - Better loading states
  * - Added care4Id display with copy-to-clipboard
+ * - Added authentication status display
+ * - Added WebRTC/Twilio service status indicators
  */
 
 import { useCallback, useState } from 'react';
@@ -21,6 +23,9 @@ export default function DialerTab({
   analytics,
   analyticsError,
   analyticsLoading,
+  // Auth state props
+  user,
+  authLoading,
 }) {
   const {
     callStatus,
@@ -32,6 +37,23 @@ export default function DialerTab({
     retryInitialization,
     care4wId,
   } = callManager;
+
+  // Determine authentication status
+  const isAuthenticated = !!user;
+  const authLoadingState = authLoading && !user;
+
+  // Build service status object for the CallStatus component
+  const serviceStatus = connectionState
+    ? {
+        mode: connectionState.message?.includes('twilio')
+          ? 'twilio'
+          : connectionState.message?.includes('webrtc')
+            ? 'webrtc'
+            : callManager.mode || 'unknown',
+        status: connectionState.state,
+        message: connectionState.message,
+      }
+    : null;
 
   // Local state for dialed number - controls the DialPad input
   const [dialedNumber, setDialedNumber] = useState('');
@@ -165,6 +187,9 @@ export default function DialerTab({
             connectionState={connectionState}
             onRetry={handleRetry}
             care4Id={care4wId}
+            isAuthenticated={isAuthenticated}
+            authLoading={authLoadingState}
+            serviceStatus={serviceStatus}
           />
 
           {/* Dial Pad */}

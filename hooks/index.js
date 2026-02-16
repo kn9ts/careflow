@@ -27,3 +27,14 @@ export { useAudioRecorder } from './useAudioRecorder';
 
 // Third-party hooks
 export { useNotifications } from './useNotifications';
+
+// Settings Management
+export {
+  useSettings,
+  useNotificationSettings,
+  useAudioSettings,
+  useDisplaySettings,
+  SettingsProvider,
+  SettingsContext,
+  DEFAULT_SETTINGS,
+} from './useSettings';

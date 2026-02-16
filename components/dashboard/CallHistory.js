@@ -3,10 +3,20 @@
 import React, { useState } from 'react';
 import { Play, Trash2, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { formatDateTime, formatDuration as formatDurationUtil } from '@/lib/settingsUtils';
 import RecordingPlayer from './RecordingPlayer';
 
-export default function CallHistory({ calls, onRefresh }) {
+// Default display settings fallback
+const DEFAULT_DISPLAY_SETTINGS = {
+  timezone: 'UTC',
+  dateFormat: 'MM/DD/YYYY',
+  timeFormat: '12h',
+};
+
+export default function CallHistory({ calls, onRefresh, displaySettings }) {
   const { token } = useAuth();
+  const settings = displaySettings || DEFAULT_DISPLAY_SETTINGS;
+
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState('all');
   const [sortConfig, setSortConfig] = useState({
@@ -62,14 +72,9 @@ export default function CallHistory({ calls, onRefresh }) {
   const endIndex = startIndex + itemsPerPage;
   const currentCalls = sortedCalls.slice(startIndex, endIndex);
 
-  const formatDuration = (seconds) => {
-    if (!seconds) return '00:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  const formatDuration = (seconds) => formatDurationUtil(seconds || 0);
 
-  const formatDate = (date) => new Date(date).toLocaleString();
+  const formatDate = (date) => formatDateTime(date, settings);
 
   const getStatusBadge = (call) => {
     // Derive call status from duration and existing status

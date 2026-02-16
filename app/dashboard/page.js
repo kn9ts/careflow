@@ -16,6 +16,7 @@ import { useState, useCallback } from 'react';
 // Context Providers
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CallStateProvider, useCallState } from '@/hooks/useCallState';
+import { SettingsProvider, useSettings } from '@/hooks/useSettings';
 
 // Components
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
@@ -40,6 +41,7 @@ import DialerTab from './tabs/DialerTab';
 import HistoryTab from './tabs/HistoryTab';
 import AnalyticsTab from './tabs/AnalyticsTab';
 import RecordingsTab from './tabs/RecordingsTab';
+import SettingsTab from './tabs/SettingsTab';
 
 // Tab configurations
 const TABS = [
@@ -47,13 +49,17 @@ const TABS = [
   { id: 'history', label: 'Call History', component: HistoryTab },
   { id: 'analytics', label: 'Analytics', component: AnalyticsTab },
   { id: 'recordings', label: 'Recordings', component: RecordingsTab },
+  { id: 'settings', label: 'Settings', component: SettingsTab },
 ];
 
 // Dashboard content component
 function DashboardContent() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dialer');
   const [isDialPadOpen, setIsDialPadOpen] = useState(false);
+
+  // Get settings from context
+  const { settings } = useSettings();
 
   // Call state from useCallState hook
   const { phoneNumber, callStatus, callDuration, callError, isMuted, setPhoneNumber } =
@@ -82,12 +88,13 @@ function DashboardContent() {
   // Call manager hook (handles initialization, events, actions)
   const callManager = useCallManager();
 
-  // Audio recorder hook
-  const audioRecorder = useAudioRecorder(token);
+  // Audio recorder hook - pass audio settings from context
+  const audioRecorder = useAudioRecorder(token, { audioSettings: settings.audio });
 
-  // Notifications hook
+  // Notifications hook - pass notification settings from context
   const notifications = useNotifications({
     token,
+    notificationSettings: settings.notifications,
     onIncomingCall: (callData) => {
       console.log('Incoming call notification:', callData);
     },
@@ -134,6 +141,7 @@ function DashboardContent() {
                 // Common props
                 user={user}
                 token={token}
+                authLoading={authLoading}
                 // Call manager props
                 callManager={callManager}
                 // Audio recorder props
@@ -154,6 +162,8 @@ function DashboardContent() {
                 onRefreshRecordings={refreshRecordings}
                 onRefreshAnalytics={refreshAnalytics}
                 onRefreshHistory={refreshHistory}
+                // Display settings for formatting
+                displaySettings={settings.display}
               />
             )}
           </SidebarTabContent>
@@ -188,17 +198,19 @@ export default function DashboardPage() {
   return (
     <AuthProvider>
       <CallStateProvider>
-        <ErrorBoundary
-          fallback={(error, retry) => (
-            <div className="error-page">
-              <ErrorDisplay error={error} onRetry={retry} />
-            </div>
-          )}
-        >
-          <ProtectedRoute>
-            <DashboardContent />
-          </ProtectedRoute>
-        </ErrorBoundary>
+        <SettingsProvider>
+          <ErrorBoundary
+            fallback={(error, retry) => (
+              <div className="error-page">
+                <ErrorDisplay error={error} onRetry={retry} />
+              </div>
+            )}
+          >
+            <ProtectedRoute>
+              <DashboardContent />
+            </ProtectedRoute>
+          </ErrorBoundary>
+        </SettingsProvider>
       </CallStateProvider>
     </AuthProvider>
   );

@@ -79,12 +79,38 @@ const userSchema = new mongoose.Schema({
     immutable: true, // Cannot be changed after creation
   },
 
-  // Notification Preferences
+  // Notification Preferences (Phase 1 - Extended)
   notifications: {
     incomingCalls: { type: Boolean, default: true },
     missedCalls: { type: Boolean, default: true },
     voicemails: { type: Boolean, default: true },
     email: { type: Boolean, default: false },
+    soundEnabled: { type: Boolean, default: true },
+    soundVolume: { type: Number, default: 80, min: 0, max: 100 },
+  },
+
+  // Audio Settings (Phase 1)
+  audio: {
+    inputDevice: { type: String, default: 'default' },
+    outputDevice: { type: String, default: 'default' },
+    echoCancellation: { type: Boolean, default: true },
+    noiseSuppression: { type: Boolean, default: true },
+    autoGainControl: { type: Boolean, default: true },
+  },
+
+  // Display Settings (Phase 1)
+  display: {
+    timezone: { type: String, default: 'UTC' },
+    dateFormat: {
+      type: String,
+      default: 'MM/DD/YYYY',
+      enum: ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'],
+    },
+    timeFormat: {
+      type: String,
+      default: '12h',
+      enum: ['12h', '24h'],
+    },
   },
 
   // Push Notification Tokens (FCM)

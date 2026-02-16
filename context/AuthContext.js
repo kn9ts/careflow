@@ -1,6 +1,13 @@
+/**
+ * Authentication Context
+ *
+ * FIXED: Added proper loading state resolution in all error paths
+ * to prevent perpetual loading state during initialization.
+ */
+
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -10,12 +17,16 @@ import {
   updateProfile,
   getIdToken,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { getAuthInstance, isConfigured as isFirebaseConfigured } from '@/lib/firebase';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
 
 export function AuthProvider({ children }) {
@@ -23,168 +34,288 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize authentication state
   useEffect(() => {
-    // Skip if auth is not available (SSR case)
-    if (!auth) {
+    let unsubscribe = null;
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Check if Firebase is configured
+        if (!isFirebaseConfigured) {
+          console.warn('Firebase not configured - skipping auth initialization');
+          if (isMounted) {
+            setLoading(false);
+            setIsInitialized(true);
+          }
+          return;
+        }
+
+        // Get auth instance (may be null on SSR)
+        const auth = getAuthInstance();
+
+        if (!auth) {
+          // SSR or auth not available
+          if (isMounted) {
+            setLoading(false);
+            setIsInitialized(true);
+          }
+          return;
+        }
+
+        // Set up auth state listener
+        unsubscribe = onAuthStateChanged(
+          auth,
+          async (user) => {
+            if (!isMounted) return;
+
+            setLoading(true);
+            setError(null);
+
+            if (user) {
+              try {
+                // Get fresh token
+                const idToken = await getIdToken(user, true);
+
+                if (!isMounted) return;
+
+                setCurrentUser({
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: user.displayName,
+                  photoURL: user.photoURL,
+                  emailVerified: user.emailVerified,
+                  phoneNumber: user.phoneNumber,
+                });
+                setToken(idToken);
+
+                // Store token in sessionStorage (more secure than localStorage)
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('careflow_token', idToken);
+                }
+              } catch (tokenError) {
+                console.error('Error fetching user token:', tokenError);
+                if (isMounted) {
+                  setError('Failed to load user session');
+                  setCurrentUser(null);
+                  setToken(null);
+                  // CRITICAL FIX: Ensure loading is set to false on error
+                  setLoading(false);
+                  setIsInitialized(true);
+                }
+                return;
+              }
+            } else {
+              if (isMounted) {
+                setCurrentUser(null);
+                setToken(null);
+                if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('careflow_token');
+                }
+              }
+            }
+
+            if (isMounted) {
+              setLoading(false);
+              setIsInitialized(true);
+            }
+          },
+          (authError) => {
+            // Handle onAuthStateChanged error callback
+            console.error('Auth state change error:', authError);
+            if (isMounted) {
+              setError('Authentication initialization failed');
+              // CRITICAL FIX: Ensure loading is set to false on auth error
+              setLoading(false);
+              setIsInitialized(true);
+            }
+          }
+        );
+      } catch (initError) {
+        console.error('Auth initialization error:', initError);
+        if (isMounted) {
+          setError('Failed to initialize authentication');
+          // CRITICAL FIX: Ensure loading is set to false on init error
+          setLoading(false);
+          setIsInitialized(true);
+        }
+      }
+    };
+
+    // Initialize with a small delay to ensure client-side hydration
+    if (typeof window !== 'undefined') {
+      // Use requestAnimationFrame for better hydration
+      requestAnimationFrame(() => {
+        initializeAuth();
+      });
+    } else {
+      // SSR: Set loading to false immediately
       setLoading(false);
-      return;
+      setIsInitialized(true);
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
-      setError(null);
-
-      if (user) {
-        try {
-          // Get fresh token
-          const idToken = await getIdToken(user, true);
-
-          // Fetch additional user data if needed
-          setCurrentUser({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            emailVerified: user.emailVerified,
-            phoneNumber: user.phoneNumber,
-          });
-          setToken(idToken);
-
-          // Store token in localStorage for persistence
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('careflow_token', idToken);
-          }
-
-          // Set up token refresh every 50 minutes
-          const tokenRefresh = setInterval(
-            async () => {
-              try {
-                const newToken = await getIdToken(user, true);
-                setToken(newToken);
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('careflow_token', newToken);
-                }
-              } catch (err) {
-                console.error('Token refresh failed:', err);
-                await logout();
-              }
-            },
-            50 * 60 * 1000
-          );
-
-          return function () {
-            clearInterval(tokenRefresh);
-          };
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          setError('Failed to load user data');
-          setCurrentUser(null);
-          setToken(null);
-        }
-      } else {
-        setCurrentUser(null);
-        setToken(null);
-      }
-
-      setLoading(false);
-    });
-
-    return function () {
+    // Cleanup
+    return () => {
+      isMounted = false;
       if (unsubscribe && typeof unsubscribe === 'function') {
         unsubscribe();
       }
     };
   }, []);
 
-  async function login(email, password) {
+  // Token refresh effect (separate from initialization)
+  useEffect(() => {
+    if (!currentUser || !token) return;
+
+    let refreshInterval = null;
+
+    // Set up token refresh every 50 minutes
+    refreshInterval = setInterval(
+      async () => {
+        try {
+          const auth = getAuthInstance();
+          if (auth?.currentUser) {
+            const newToken = await getIdToken(auth.currentUser, true);
+            setToken(newToken);
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('careflow_token', newToken);
+            }
+          }
+        } catch (err) {
+          console.error('Token refresh failed:', err);
+          // Don't logout on refresh failure, let the next API call handle it
+        }
+      },
+      50 * 60 * 1000
+    );
+
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [currentUser, token]);
+
+  const login = useCallback(async (email, password) => {
     try {
       setError(null);
+      const auth = getAuthInstance();
+      if (!auth) {
+        throw new Error('Authentication not available');
+      }
       const result = await signInWithEmailAndPassword(auth, email, password);
       return { success: true, user: result.user };
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-  }
+  }, []);
 
-  async function signup(email, password, displayName) {
+  const signup = useCallback(async (email, password, displayName) => {
     try {
       setError(null);
+      const auth = getAuthInstance();
+      if (!auth) {
+        throw new Error('Authentication not available');
+      }
       const result = await createUserWithEmailAndPassword(auth, email, password);
 
-      if (displayName) {
+      if (displayName && result.user) {
         await updateProfile(result.user, { displayName });
       }
 
       return { success: true, user: result.user };
-    } catch (error) {
-      console.error('Signup error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-  }
+  }, []);
 
-  async function logout() {
+  const logout = useCallback(async () => {
     try {
       setError(null);
-      await signOut(auth);
+      const auth = getAuthInstance();
+      if (auth) {
+        await signOut(auth);
+      }
       setCurrentUser(null);
       setToken(null);
 
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('careflow_token');
+        sessionStorage.removeItem('careflow_token');
       }
 
       return { success: true };
-    } catch (error) {
-      console.error('Logout error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-  }
+  }, []);
 
-  async function resetPassword(email) {
+  const resetPassword = useCallback(async (email) => {
     try {
       setError(null);
+      const auth = getAuthInstance();
+      if (!auth) {
+        throw new Error('Authentication not available');
+      }
       await sendPasswordResetEmail(auth, email);
       return { success: true };
-    } catch (error) {
-      console.error('Password reset error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
+    } catch (err) {
+      console.error('Password reset error:', err);
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-  }
+  }, []);
 
-  async function updateUserProfile(data) {
-    try {
-      setError(null);
-      if (currentUser && auth.currentUser) {
-        await updateProfile(auth.currentUser, data);
-
-        setCurrentUser({ ...currentUser, ...data });
-        return { success: true };
+  const updateUserProfile = useCallback(
+    async (data) => {
+      try {
+        setError(null);
+        const auth = getAuthInstance();
+        if (currentUser && auth?.currentUser) {
+          await updateProfile(auth.currentUser, data);
+          setCurrentUser({ ...currentUser, ...data });
+          return { success: true };
+        }
+        return { success: false, error: 'No user logged in' };
+      } catch (err) {
+        console.error('Profile update error:', err);
+        setError(err.message);
+        return { success: false, error: err.message };
       }
-      return { success: false, error: 'No user logged in' };
-    } catch (error) {
-      console.error('Profile update error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
-    }
-  }
+    },
+    [currentUser]
+  );
+
+  // Update user's care4wId in local state (called from callManager)
+  const updateUserCare4wId = useCallback(
+    (care4wId) => {
+      if (currentUser && care4wId) {
+        setCurrentUser({ ...currentUser, care4wId });
+      }
+    },
+    [currentUser]
+  );
 
   const value = {
     currentUser,
+    user: currentUser, // Alias for convenience
     token,
     loading,
     error,
+    isInitialized,
     login,
     signup,
     logout,
     resetPassword,
     updateUserProfile,
+    updateUserCare4wId,
     setError,
   };
 

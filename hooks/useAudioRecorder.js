@@ -2,12 +2,29 @@
  * useAudioRecorder Hook
  * Manages audio recording functionality
  * Following separation of concerns - side effects and business logic
+ *
+ * Now integrates with user audio settings for device selection and processing
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AudioProcessor, RecordingUploader } from '@/lib/audioProcessor';
 import { logger } from '@/lib/logger';
 
+// Default audio settings fallback
+const DEFAULT_AUDIO_SETTINGS = {
+  inputDevice: 'default',
+  outputDevice: 'default',
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+};
+
+/**
+ * useAudioRecorder hook
+ * @param {string} authToken - Authentication token
+ * @param {Object} options - Options object
+ * @param {Object} options.audioSettings - Audio settings from user preferences
+ */
 export function useAudioRecorder(authToken, options = {}) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -15,11 +32,34 @@ export function useAudioRecorder(authToken, options = {}) {
   const [recordingError, setRecordingError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [audioDevices, setAudioDevices] = useState({ inputs: [], outputs: [] });
 
   const audioProcessorRef = useRef(null);
   const recordingTimerRef = useRef(null);
   const recordingUploaderRef = useRef(null);
   const initializedRef = useRef(false);
+  const mediaStreamRef = useRef(null);
+
+  // Get audio settings from options (passed from parent component via SettingsContext)
+  // This avoids circular dependency issues with direct context import
+  const audioSettings = options.audioSettings || DEFAULT_AUDIO_SETTINGS;
+
+  // Enumerate audio devices
+  const enumerateDevices = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputs = devices.filter((d) => d.kind === 'audioinput');
+      const outputs = devices.filter((d) => d.kind === 'audiooutput');
+
+      setAudioDevices({ inputs, outputs });
+      logger.debug('useAudioRecorder', `Found ${inputs.length} inputs, ${outputs.length} outputs`);
+    } catch (error) {
+      logger.warn('useAudioRecorder', 'Could not enumerate devices:', error.message);
+    }
+  }, []);
 
   // Initialize audio processor
   useEffect(() => {
@@ -93,23 +133,34 @@ export function useAudioRecorder(authToken, options = {}) {
       },
     });
 
-    // Check recording support
+    // Check recording support and enumerate devices
     checkRecordingSupport();
+    enumerateDevices();
 
     return () => {
       if (audioProcessorRef.current) {
         logger.loading('useAudioRecorder', 'Cleaning up...');
         audioProcessorRef.current.destroy();
       }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
       stopRecordingTimer();
       initializedRef.current = false;
       logger.complete('useAudioRecorder');
     };
-  }, [authToken]);
+  }, [authToken, enumerateDevices]);
 
   const checkRecordingSupport = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: audioSettings.inputDevice !== 'default' ? audioSettings.inputDevice : undefined,
+          echoCancellation: audioSettings.echoCancellation,
+          noiseSuppression: audioSettings.noiseSuppression,
+          autoGainControl: audioSettings.autoGainControl,
+        },
+      });
       stream.getTracks().forEach((track) => track.stop());
       logger.success('useAudioRecorder', 'Recording is supported');
       setRecordingSupported(true);
@@ -117,7 +168,7 @@ export function useAudioRecorder(authToken, options = {}) {
       logger.warn('useAudioRecorder', 'Recording not supported');
       setRecordingSupported(false);
     }
-  }, []);
+  }, [audioSettings]);
 
   const startRecordingTimer = useCallback(() => {
     logger.debug('useAudioRecorder', 'Starting timer');
@@ -165,14 +216,28 @@ export function useAudioRecorder(authToken, options = {}) {
 
     try {
       logger.loading('useAudioRecorder', 'Starting recording...');
-      await audioProcessorRef.current.startRecording();
+
+      // Use audio settings for recording
+      const constraints = {
+        audio: {
+          deviceId:
+            audioSettings.inputDevice !== 'default'
+              ? { exact: audioSettings.inputDevice }
+              : undefined,
+          echoCancellation: audioSettings.echoCancellation,
+          noiseSuppression: audioSettings.noiseSuppression,
+          autoGainControl: audioSettings.autoGainControl,
+        },
+      };
+
+      await audioProcessorRef.current.startRecording(constraints);
       return true;
     } catch (error) {
       logger.error('useAudioRecorder', `Failed to start: ${error.message}`);
       setRecordingError(`Failed to start recording: ${error.message}`);
       return false;
     }
-  }, []);
+  }, [audioSettings]);
 
   const stopRecording = useCallback(async () => {
     if (!audioProcessorRef.current) {
@@ -216,6 +281,8 @@ export function useAudioRecorder(authToken, options = {}) {
     recordingError,
     uploadProgress,
     isUploading,
+    audioDevices,
+    audioSettings,
 
     // Actions
     startRecording,
@@ -223,6 +290,7 @@ export function useAudioRecorder(authToken, options = {}) {
     uploadRecording,
     resetRecording,
     checkRecordingSupport,
+    enumerateDevices,
 
     // Utilities
     formatDuration,

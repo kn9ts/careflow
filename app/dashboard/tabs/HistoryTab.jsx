@@ -12,6 +12,7 @@ export default function HistoryTab({
   historyLoading,
   historyError,
   onRefreshHistory,
+  displaySettings,
 }) {
   return (
     <div className="history-tab">
@@ -30,7 +31,11 @@ export default function HistoryTab({
           <TableSkeleton rows={10} columns={4} />
         </div>
       ) : (
-        <CallHistory calls={callHistory} onRefresh={onRefreshHistory} />
+        <CallHistory
+          calls={callHistory}
+          onRefresh={onRefreshHistory}
+          displaySettings={displaySettings}
+        />
       )}
 
       <style jsx>{`

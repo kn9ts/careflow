@@ -18,9 +18,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Copy, Check, X, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
 
 // Maximum auto-retry attempts before showing persistent error
-const MAX_RETRY_ATTEMPTS = 5;
+const MAX_RETRY_ATTEMPTS = 3;
 // Polling interval for auto-recovery (in milliseconds)
-const RECOVERY_POLL_INTERVAL = 4000;
+const RECOVERY_POLL_INTERVAL = 6000;
 
 /**
  * Get status text based on call/connection status
@@ -348,6 +348,11 @@ export default function CallStatus({
   onRetry,
   care4Id,
   onContactSupport,
+  // Auth state props
+  isAuthenticated,
+  authLoading,
+  // Service status props
+  serviceStatus,
 }) {
   const [retryCount, setRetryCount] = useState(0);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -360,6 +365,19 @@ export default function CallStatus({
   const statusIcon = getStatusIcon(status, connectionState);
   const isLoading = shouldShowLoading(status, connectionState);
   const isFailed = connectionState?.state === 'failed' || status === 'failed';
+
+  // Determine auth status display
+  const authStatusText = authLoading
+    ? 'Loading...'
+    : isAuthenticated
+      ? 'Authenticated'
+      : 'Not authenticated';
+  const authStatusColor = authLoading
+    ? 'text-yellow-400'
+    : isAuthenticated
+      ? 'text-green-400'
+      : 'text-red-400';
+  const authStatusIcon = authLoading ? '⏳' : isAuthenticated ? '✅' : '❌';
 
   // Show success toast when connection becomes ready
   useEffect(() => {
@@ -453,9 +471,58 @@ export default function CallStatus({
         <h2 className="card-title mb-4">Call Status</h2>
 
         <div className="space-y-4">
-          {/* Main Status */}
+          {/* Authentication Status */}
           <div className="flex items-center justify-between py-2">
-            <span className="text-gray-400 text-sm">Status</span>
+            <span className="text-gray-400 text-sm">Authentication</span>
+            <div className="flex items-center gap-2">
+              {authLoading && (
+                <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-yellow-400" />
+              )}
+              <span className={`text-sm font-medium ${authStatusColor}`}>
+                {authStatusIcon} {authStatusText}
+              </span>
+            </div>
+          </div>
+
+          {/* Service Status (WebRTC/Twilio) */}
+          {serviceStatus && (
+            <div className="flex items-center justify-between py-2 border-t border-white/5">
+              <span className="text-gray-400 text-sm">Service</span>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    serviceStatus.status === 'ready'
+                      ? 'bg-green-400'
+                      : serviceStatus.status === 'initializing'
+                        ? 'bg-yellow-400 animate-pulse'
+                        : serviceStatus.status === 'failed'
+                          ? 'bg-red-400'
+                          : 'bg-gray-400'
+                  }`}
+                />
+                <span className="text-sm text-white">
+                  {serviceStatus.mode === 'twilio' ? 'Twilio Voice' : 'WebRTC'}
+                </span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded ${
+                    serviceStatus.status === 'ready'
+                      ? 'bg-green-600/20 text-green-400'
+                      : serviceStatus.status === 'initializing'
+                        ? 'bg-yellow-600/20 text-yellow-400'
+                        : serviceStatus.status === 'failed'
+                          ? 'bg-red-600/20 text-red-400'
+                          : 'bg-gray-600/20 text-gray-400'
+                  }`}
+                >
+                  {serviceStatus.status}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Main Status */}
+          <div className="flex items-center justify-between py-2 border-t border-white/5">
+            <span className="text-gray-400 text-sm">Call Status</span>
             <div className="flex items-center gap-2">
               {isLoading && (
                 <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary-red" />

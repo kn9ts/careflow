@@ -11,10 +11,9 @@
  * - Detailed logging for debugging
  */
 
-import { Twilio } from 'twilio';
+import AccessToken from 'twilio/lib/jwt/AccessToken';
 import { requireAuth } from '@/lib/auth';
 import { successResponse, errorResponse, handleAuthResult } from '@/lib/apiResponse';
-import { lookupCare4wId } from '@/lib/careFlowIdGenerator';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { logger } from '@/lib/logger';
@@ -76,14 +75,15 @@ function validateTwilioCredentials(credentials) {
 function generateTwilioToken(options) {
   const { accountSid, apiKey, apiSecret, twimlAppSid, identity } = options;
 
-  const client = new Twilio(apiKey, apiSecret, { accountSid });
-
-  const token = new client.jwt.AccessToken(accountSid, apiKey, apiSecret, {
+  // Create AccessToken directly using the imported class
+  const token = new AccessToken(accountSid, apiKey, apiSecret, {
     identity,
     ttl: 3600, // 1 hour
   });
 
-  const voiceGrant = new client.jwt.AccessToken.VoiceGrant({
+  // Create Voice grant
+  const VoiceGrant = AccessToken.VoiceGrant;
+  const voiceGrant = new VoiceGrant({
     outgoingApplicationSid: twimlAppSid,
     incomingAllow: true,
   });
@@ -136,7 +136,19 @@ export async function GET(request) {
       if (care4wId) {
         logger.success('TokenAPI', `[${requestId}] Found care4wId: ${care4wId}`);
       } else {
-        logger.warn('TokenAPI', `[${requestId}] No care4wId found for user`);
+        // Generate care4wId if not exists
+        logger.warn('TokenAPI', `[${requestId}] No care4wId found, generating one...`);
+        const { generateCare4wId } = await import('@/lib/careFlowIdGenerator');
+        const generated = await generateCare4wId();
+        care4wId = generated.care4wId;
+
+        // Update user with new care4wId
+        if (user) {
+          user.care4wId = care4wId;
+          user.sequenceNumber = generated.sequenceNumber;
+          await user.save();
+          logger.success('TokenAPI', `[${requestId}] Generated and saved care4wId: ${care4wId}`);
+        }
       }
     } catch (dbError) {
       logger.error('TokenAPI', `[${requestId}] Database error: ${dbError.message}`);

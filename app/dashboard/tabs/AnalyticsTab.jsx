@@ -12,6 +12,7 @@ export default function AnalyticsTab({
   analyticsLoading,
   analyticsError,
   onRefreshAnalytics,
+  displaySettings,
 }) {
   return (
     <div className="analytics-tab">
@@ -31,7 +32,11 @@ export default function AnalyticsTab({
           <CardSkeleton />
         </div>
       ) : (
-        <Analytics data={analytics} onRefresh={onRefreshAnalytics} />
+        <Analytics
+          data={analytics}
+          onRefresh={onRefreshAnalytics}
+          displaySettings={displaySettings}
+        />
       )}
 
       <style jsx>{`

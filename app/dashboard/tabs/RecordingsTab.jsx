@@ -5,7 +5,6 @@
 
 import { RefreshCw } from 'lucide-react';
 import RecordingManager from '@/components/dashboard/RecordingManager';
-import { CardSkeleton } from '@/components/common/Loading/LoadingComponents';
 
 export default function RecordingsTab({
   recordings,
@@ -26,19 +25,13 @@ export default function RecordingsTab({
 
       {recordingsError && <div className="error-message">{recordingsError}</div>}
 
-      {recordingsLoading ? (
-        <div className="loading-state">
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-      ) : (
-        <RecordingManager
-          recordings={recordings || []}
-          currentRecording={null}
-          isRecording={audioRecorder?.isRecording || false}
-          onRefresh={onRefreshRecordings}
-        />
-      )}
+      <RecordingManager
+        recordings={recordings || []}
+        recordingsLoading={recordingsLoading}
+        currentRecording={null}
+        isRecording={audioRecorder?.isRecording || false}
+        onRefresh={onRefreshRecordings}
+      />
 
       <style jsx>{`
         .recordings-tab {

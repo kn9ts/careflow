@@ -18,7 +18,7 @@ import { callManager } from '@/lib/callManager';
 import { logger } from '@/lib/logger';
 
 // Initialization timeout in milliseconds
-const INIT_TIMEOUT = 35000; // 35 seconds (slightly longer than CallManager's internal timeout)
+const INIT_TIMEOUT = 50000; // 50 seconds (slightly longer than CallManager's internal timeout)
 
 /**
  * Show browser notification for initialization status
@@ -109,7 +109,7 @@ const showInitializationErrorNotification = (errorMessage) => {
  * @returns {Object} Call manager actions and state
  */
 export function useCallManager() {
-  const { token, user } = useAuth();
+  const { token, user, updateUserCare4wId } = useAuth();
   const {
     setCallStatus,
     setMode,
@@ -228,6 +228,14 @@ export function useCallManager() {
             state: 'ready',
             message: `Ready - ${initInfo.mode} mode`,
           });
+          // Update care4wId if provided from token response
+          if (initInfo.care4wId) {
+            setCare4wId(initInfo.care4wId);
+            // Also update the global auth state with care4wId
+            if (updateUserCare4wId) {
+              updateUserCare4wId(initInfo.care4wId);
+            }
+          }
         } else if (initInfo.error) {
           updateConnectionState({
             state: 'failed',
@@ -246,6 +254,8 @@ export function useCallManager() {
       startCallTimer,
       stopCallTimer,
       updateConnectionState,
+      setCare4wId,
+      updateUserCare4wId,
     ]
   );
 

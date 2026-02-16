@@ -1,6 +1,16 @@
 import React from 'react';
+import { formatDateTime } from '@/lib/settingsUtils';
 
-export default function Analytics({ data, onRefresh }) {
+// Default display settings fallback
+const DEFAULT_DISPLAY_SETTINGS = {
+  timezone: 'UTC',
+  dateFormat: 'MM/DD/YYYY',
+  timeFormat: '12h',
+};
+
+export default function Analytics({ data, onRefresh, displaySettings }) {
+  const settings = displaySettings || DEFAULT_DISPLAY_SETTINGS;
+
   if (!data) {
     return (
       <div className="bg-background-card rounded-xl border border-white/10 p-6">
@@ -26,6 +36,9 @@ export default function Analytics({ data, onRefresh }) {
   }
 
   const analytics = data.analytics || data;
+
+  // Format date using display settings
+  const formatAnalyticsDate = (dateString) => formatDateTime(dateString, settings);
 
   return (
     <div className="bg-background-card rounded-xl border border-white/10 p-6">
@@ -179,7 +192,7 @@ export default function Analytics({ data, onRefresh }) {
                       {call.from} → {call.to}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {new Date(call.recordedAt).toLocaleString()}
+                      {formatAnalyticsDate(call.recordedAt)}
                     </div>
                   </div>
                 </div>

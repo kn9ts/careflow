@@ -1,11 +1,73 @@
 import { useEffect, useState, useCallback } from 'react';
 import { requestNotificationPermission, getFCMToken, onMessageListener } from '@/lib/firebase';
 
-export function useNotifications({ token, onIncomingCall, onNotification }) {
+// Default notification settings fallback
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  incomingCalls: true,
+  missedCalls: true,
+  voicemails: true,
+  email: false,
+  soundEnabled: true,
+  soundVolume: 80,
+};
+
+/**
+ * Play a notification sound
+ * @param {number} volume - Volume level (0-100)
+ */
+function playNotificationSound(volume = 80) {
+  try {
+    // Create audio context for notification sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Set volume (convert 0-100 to 0-1)
+    gainNode.gain.value = (volume / 100) * 0.3;
+
+    // Play a pleasant notification tone
+    oscillator.frequency.value = 880; // A5 note
+    oscillator.type = 'sine';
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.15);
+
+    // Play a second tone
+    setTimeout(() => {
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      gain2.gain.value = (volume / 100) * 0.3;
+      osc2.frequency.value = 1100; // C#6 note
+      osc2.type = 'sine';
+      osc2.start();
+      osc2.stop(audioContext.currentTime + 0.15);
+    }, 150);
+  } catch (error) {
+    console.warn('Could not play notification sound:', error);
+  }
+}
+
+/**
+ * useNotifications hook
+ * @param {Object} options - Options object
+ * @param {string} options.token - Authentication token
+ * @param {Function} options.onIncomingCall - Callback for incoming calls
+ * @param {Function} options.onNotification - Callback for notifications
+ * @param {Object} options.notificationSettings - Notification settings from user preferences
+ */
+export function useNotifications({ token, onIncomingCall, onNotification, notificationSettings }) {
   const [permission, setPermission] = useState('default');
   const [fcmToken, setFcmToken] = useState(null);
   const [isSupported, setIsSupported] = useState(false);
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
+
+  // Use provided notification settings or defaults
+  const settings = notificationSettings || DEFAULT_NOTIFICATION_SETTINGS;
 
   // Check if notifications are supported
   useEffect(() => {
@@ -71,9 +133,9 @@ export function useNotifications({ token, onIncomingCall, onNotification }) {
 
       // Get FCM token
       const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-      const token = await getFCMToken(vapidKey);
+      const fcmTokenResult = await getFCMToken(vapidKey);
 
-      if (!token) {
+      if (!fcmTokenResult) {
         throw new Error('Failed to get FCM token');
       }
 
@@ -85,7 +147,7 @@ export function useNotifications({ token, onIncomingCall, onNotification }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          fcmToken: token,
+          fcmToken: fcmTokenResult,
           deviceInfo: {
             userAgent: navigator.userAgent,
             platform: navigator.platform,
@@ -98,9 +160,9 @@ export function useNotifications({ token, onIncomingCall, onNotification }) {
         throw new Error('Failed to register token with backend');
       }
 
-      setFcmToken(token);
+      setFcmToken(fcmTokenResult);
       console.log('FCM token registered successfully');
-      return token;
+      return fcmTokenResult;
     } catch (error) {
       console.error('Token registration error:', error);
       return null;
@@ -111,48 +173,79 @@ export function useNotifications({ token, onIncomingCall, onNotification }) {
   useEffect(() => {
     if (!isSupported || permission !== 'granted') return;
 
-    const unsubscribe = onMessageListener((payload) => {
-      console.log('Foreground message received:', payload);
+    let unsubscribe = null;
 
-      const notificationData = payload.data || {};
-      const notificationType = notificationData.type;
+    const setupListener = async () => {
+      try {
+        // onMessageListener is async and returns a Promise that resolves to unsubscribe function
+        unsubscribe = await onMessageListener((payload) => {
+          console.log('Foreground message received:', payload);
 
-      // Handle different notification types
-      if (notificationType === 'incoming_call' && onIncomingCall) {
-        onIncomingCall({
-          callSid: notificationData.callSid,
-          from: notificationData.from,
-          to: notificationData.to,
-          timestamp: notificationData.timestamp,
+          const notificationData = payload.data || {};
+          const notificationType = notificationData.type;
+
+          // Check if this notification type is enabled in settings
+          let isNotificationEnabled = true;
+          if (notificationType === 'incoming_call') {
+            isNotificationEnabled = settings.incomingCalls;
+          } else if (notificationType === 'missed_call') {
+            isNotificationEnabled = settings.missedCalls;
+          } else if (notificationType === 'voicemail') {
+            isNotificationEnabled = settings.voicemails;
+          }
+
+          // Handle different notification types
+          if (notificationType === 'incoming_call' && onIncomingCall && isNotificationEnabled) {
+            onIncomingCall({
+              callSid: notificationData.callSid,
+              from: notificationData.from,
+              to: notificationData.to,
+              timestamp: notificationData.timestamp,
+            });
+          }
+
+          // Show browser notification for foreground messages if enabled
+          if (payload.notification && 'Notification' in window && isNotificationEnabled) {
+            const notification = new Notification(payload.notification.title || 'CareFlow', {
+              body: payload.notification.body,
+              icon: payload.notification.icon || '/icon-192.png',
+              badge: payload.notification.badge || '/badge-72.png',
+              tag:
+                notificationData.callSid ||
+                notificationData.recordingSid ||
+                'careflow-notification',
+              requireInteraction: true,
+              data: notificationData,
+            });
+
+            notification.onclick = () => {
+              window.focus();
+              notification.close();
+            };
+
+            // Play notification sound if enabled
+            if (settings.soundEnabled) {
+              playNotificationSound(settings.soundVolume);
+            }
+          }
+
+          if (onNotification) {
+            onNotification(payload);
+          }
         });
+      } catch (error) {
+        console.error('Failed to setup message listener:', error);
       }
+    };
 
-      // Show browser notification for foreground messages
-      if (payload.notification && 'Notification' in window) {
-        const notification = new Notification(payload.notification.title || 'CareFlow', {
-          body: payload.notification.body,
-          icon: payload.notification.icon || '/icon-192.png',
-          badge: payload.notification.badge || '/badge-72.png',
-          tag: notificationData.callSid || notificationData.recordingSid || 'careflow-notification',
-          requireInteraction: true,
-          data: notificationData,
-        });
-
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-      }
-
-      if (onNotification) {
-        onNotification(payload);
-      }
-    });
+    setupListener();
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
-  }, [isSupported, permission, onIncomingCall, onNotification]);
+  }, [isSupported, permission, onIncomingCall, onNotification, settings]);
 
   // Unregister token on logout
   const unregisterToken = useCallback(async () => {
@@ -182,5 +275,6 @@ export function useNotifications({ token, onIncomingCall, onNotification }) {
     serviceWorkerReady,
     registerToken,
     unregisterToken,
+    notificationSettings: settings,
   };
 }
