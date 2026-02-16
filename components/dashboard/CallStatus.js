@@ -599,7 +599,7 @@ export default function CallStatus({
           {isFailed && !error && connectionState?.error && !isRecovering && !persistentError && (
             <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
               <p className="text-red-400 text-sm">
-                {connectionState.error.message || connectionState.message}
+                {(connectionState.error && (connectionState.error.message || connectionState.error)) || connectionState.message || 'Unknown error'}
               </p>
               {onRetry && (
                 <button

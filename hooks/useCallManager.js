@@ -131,6 +131,13 @@ export function useCallManager() {
   const timerIntervalRef = useRef(null);
   const eventListenersRef = useRef(null);
   const initTimeoutRef = useRef(null);
+  // Store updateUserCare4wId in ref to avoid re-initialization on user state changes
+  const updateUserCare4wIdRef = useRef(updateUserCare4wId);
+
+  // Update ref when function changes
+  useEffect(() => {
+    updateUserCare4wIdRef.current = updateUserCare4wId;
+  }, [updateUserCare4wId]);
 
   // Connection state for UI feedback
   const [connectionState, setConnectionState] = useState({
@@ -231,10 +238,6 @@ export function useCallManager() {
           // Update care4wId if provided from token response
           if (initInfo.care4wId) {
             setCare4wId(initInfo.care4wId);
-            // Also update the global auth state with care4wId
-            if (updateUserCare4wId) {
-              updateUserCare4wId(initInfo.care4wId);
-            }
           }
         } else if (initInfo.error) {
           updateConnectionState({
@@ -255,7 +258,6 @@ export function useCallManager() {
       stopCallTimer,
       updateConnectionState,
       setCare4wId,
-      updateUserCare4wId,
     ]
   );
 
@@ -313,6 +315,12 @@ export function useCallManager() {
 
         setMode(callMode);
         setCare4wId(cfId);
+
+        // Update global auth state with care4wId (use ref to avoid re-initialization)
+        if (cfId && updateUserCare4wIdRef.current) {
+          updateUserCare4wIdRef.current(cfId);
+        }
+
         setModeInfo(callManager.getModeInfo());
 
         // Register event listeners with memoized handlers
@@ -346,7 +354,8 @@ export function useCallManager() {
         // Show browser notification for successful initialization
         showInitializationNotification(callMode);
       } catch (error) {
-        logger.error('useCallManager', `Failed to initialize: ${error.message}`);
+        const errorMessage = error?.message || 'Failed to initialize call system';
+        logger.error('useCallManager', `Failed to initialize: ${errorMessage}`);
 
         // Clear timeout on error
         if (initTimeoutRef.current) {
@@ -354,16 +363,16 @@ export function useCallManager() {
           initTimeoutRef.current = null;
         }
 
-        setCallError(error.message || 'Failed to initialize call system');
+        setCallError(errorMessage);
 
         updateConnectionState({
           state: 'failed',
-          message: error.message,
+          message: errorMessage,
           error,
         });
 
         // Show browser notification for initialization failure
-        showInitializationErrorNotification(error.message);
+        showInitializationErrorNotification(errorMessage);
       }
     };
 
@@ -392,6 +401,7 @@ export function useCallManager() {
         logger.complete('useCallManager');
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     token,
     user,
@@ -402,7 +412,6 @@ export function useCallManager() {
     setCallError,
     setPendingWebRTCCall,
     setIncoming,
-    eventHandlers,
     setCallStatus,
     stopCallTimer,
     updateConnectionState,
