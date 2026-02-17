@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -8,8 +8,8 @@ export default function TestAuthPage() {
   const router = useRouter();
   const { currentUser, token, loading, error, login, logout, resetPassword } = useAuth();
   const [testResults, setTestResults] = useState([]);
-  const [testEmail, setTestEmail] = useState('test@example.com');
-  const [testPassword, setTestPassword] = useState('test123');
+  const [testEmail] = useState('test@example.com');
+  const [testPassword] = useState('test123');
 
   const addTestResult = (test, success, message) => {
     setTestResults((prev) => [

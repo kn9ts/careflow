@@ -13,7 +13,7 @@ export async function POST(request) {
     const formData = await request.formData();
     const callSid = formData.get('CallSid');
     const recordingSid = formData.get('RecordingSid');
-    const recordingUrl = formData.get('RecordingUrl');
+    const _recordingUrl = formData.get('RecordingUrl');
     const recordingDuration = formData.get('RecordingDuration');
     const from = formData.get('From');
     const to = formData.get('To');

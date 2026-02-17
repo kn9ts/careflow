@@ -47,7 +47,7 @@ function checkTwilioCredentials() {
  * @returns {{valid: boolean, error?: string}}
  */
 function validateTwilioCredentials(credentials) {
-  const { accountSid, apiKey, apiSecret, twimlAppSid } = credentials;
+  const { accountSid, apiKey, _apiSecret, twimlAppSid } = credentials;
 
   // Validate Account SID format
   if (accountSid && !accountSid.startsWith('AC')) {

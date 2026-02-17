@@ -24,7 +24,6 @@ import {
   CircleDot,
   Grid3X3,
   X,
-  PhoneForwarded,
   Pause,
 } from 'lucide-react';
 import styles from './CallControls.module.css';

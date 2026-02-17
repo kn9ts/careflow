@@ -17,3 +17,5 @@ export {
 } from './Loading/LoadingComponents';
 
 export { AuthError, AuthErrorInline, AuthErrorToast } from './AuthError';
+
+export { ErrorToast } from './ErrorToast';

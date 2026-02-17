@@ -40,7 +40,7 @@ const TIME_FORMATS = [
   { value: '24h', label: '24-hour (14:30)' },
 ];
 
-export default function DisplaySettingsPanel({ settings, onUpdate, onUpdateAll }) {
+export default function DisplaySettingsPanel({ settings, onUpdate, _onUpdateAll }) {
   // Get current time in selected timezone for preview
   const getCurrentTimePreview = () => {
     try {

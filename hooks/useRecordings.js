@@ -84,7 +84,7 @@ export function useRecordings(authToken) {
  * useRecordingUpload Hook
  * Manages recording upload state and operations
  */
-export function useRecordingUpload(authToken) {
+export function useRecordingUpload(_authToken) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);

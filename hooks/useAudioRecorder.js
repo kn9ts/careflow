@@ -136,7 +136,7 @@ export function useAudioRecorder(authToken, options = {}) {
         setRecordingError(error?.message || error || 'Unknown error');
         setIsUploading(false);
       },
-      onSuccess: (data) => {
+      onSuccess: (_data) => {
         logger.success('useAudioRecorder', 'Upload successful!');
         setIsUploading(false);
         setUploadProgress(100);
@@ -147,19 +147,30 @@ export function useAudioRecorder(authToken, options = {}) {
     checkRecordingSupport();
     enumerateDevices();
 
+    // eslint-disable-next-line consistent-return
     return () => {
       if (audioProcessorRef.current) {
         logger.loading('useAudioRecorder', 'Cleaning up...');
         audioProcessorRef.current.destroy();
       }
       if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
       }
       stopRecordingTimer();
       initializedRef.current = false;
       logger.complete('useAudioRecorder');
+      return undefined;
     };
-  }, [authToken, enumerateDevices]);
+  }, [
+    authToken,
+    enumerateDevices,
+    checkRecordingSupport,
+    startRecordingTimer,
+    stopRecordingTimer,
+    uploadRecording,
+  ]);
 
   const checkRecordingSupport = useCallback(async () => {
     try {
@@ -171,7 +182,10 @@ export function useAudioRecorder(authToken, options = {}) {
           autoGainControl: audioSettings.autoGainControl,
         },
       });
-      stream.getTracks().forEach((track) => track.stop());
+      // Stop tracks immediately; we only needed permission / device info
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
       logger.success('useAudioRecorder', 'Recording is supported');
       setRecordingSupported(true);
     } catch (error) {
@@ -197,7 +211,7 @@ export function useAudioRecorder(authToken, options = {}) {
   }, []);
 
   const uploadRecording = useCallback(async (recording) => {
-    if (!recordingUploaderRef.current) return;
+    if (!recordingUploaderRef.current) return false;
 
     logger.loading('useAudioRecorder', 'Uploading recording...');
     setIsUploading(true);

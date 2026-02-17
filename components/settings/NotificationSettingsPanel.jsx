@@ -6,9 +6,9 @@
 
 'use client';
 
-import { Bell, BellOff, Volume2, VolumeX, Mail } from 'lucide-react';
+import { Bell, Volume2, VolumeX, Mail } from 'lucide-react';
 
-export default function NotificationSettingsPanel({ settings, onUpdate, onUpdateAll }) {
+export default function NotificationSettingsPanel({ settings, onUpdate, _onUpdateAll }) {
   return (
     <div className="notification-settings">
       <div className="settings-section">

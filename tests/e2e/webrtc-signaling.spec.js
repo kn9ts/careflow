@@ -332,9 +332,12 @@ test.describe('ICE Candidate Gathering', () => {
   test('should complete ICE gathering state transitions', async () => {
     // Track ICE gathering state
     await callerPage.evaluate(() => {
+      // eslint-disable-next-line no-new
       window.__iceGatheringStates = [];
       const originalRTCPeerConnection = window.RTCPeerConnection;
+      // eslint-disable-next-line new-cap
       window.RTCPeerConnection = function (...args) {
+        // eslint-disable-next-line new-cap
         const pc = new originalRTCPeerConnection(...args);
         pc.addEventListener('icegatheringstatechange', () => {
           window.__iceGatheringStates.push(pc.iceGatheringState);

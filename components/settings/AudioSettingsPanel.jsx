@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mic, Speaker, Waves, VolumeX } from 'lucide-react';
+import { Mic, Waves, VolumeX } from 'lucide-react';
 
 export default function AudioSettingsPanel({ settings, onUpdate, onUpdateAll }) {
   const [devices, setDevices] = useState({ inputs: [], outputs: [] });

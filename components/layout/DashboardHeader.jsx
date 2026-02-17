@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Phone as PhoneIcon,
@@ -162,9 +163,11 @@ export default function DashboardHeader({ onOpenDialPad, className = '', onToggl
             aria-expanded={showUserMenu}
           >
             {user?.photoURL ? (
-              <img
+              <Image
                 src={user.photoURL}
                 alt={user.displayName || 'User'}
+                width={32}
+                height={32}
                 className={styles.userAvatar}
               />
             ) : (
@@ -187,10 +190,12 @@ export default function DashboardHeader({ onOpenDialPad, className = '', onToggl
               <div className={styles.dropdownHeader}>
                 <div className="flex items-center gap-3">
                   {user?.photoURL ? (
-                    <img
+                    <Image
                       src={user.photoURL}
                       alt=""
-                      className="w-10 h-10 rounded-full object-cover"
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
                     />
                   ) : (
                     <div className={styles.userAvatarPlaceholder}>

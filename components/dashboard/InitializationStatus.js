@@ -1,12 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  InitState,
-  InitStageLabels,
-  getInitErrorInfo,
-  ServiceState,
-} from '@/lib/initializationStateManager';
+import { InitState, getInitErrorInfo, ServiceState } from '@/lib/initializationStateManager';
 import styles from './InitializationStatus.module.css';
 
 /**
@@ -162,11 +157,11 @@ const Icons = {
  */
 export default function InitializationStatus({
   state,
-  stage,
+  _stage,
   stageLabel,
   mode,
   errorCode,
-  error,
+  _error,
   retryCount = 0,
   canRetry = false,
   isRetrying = false,
@@ -180,7 +175,7 @@ export default function InitializationStatus({
   twilioError,
   webrtcReady,
   twilioReady,
-  activeModes = [],
+  _activeModes = [],
 }) {
   // Get error info if applicable
   const errorInfo = errorCode ? getInitErrorInfo(errorCode) : null;
@@ -422,7 +417,7 @@ export default function InitializationStatus({
  *
  * A minimal inline status indicator for compact spaces.
  */
-export function InitializationStatusInline({ state, mode, error }) {
+export function InitializationStatusInline({ state, mode, _error }) {
   const statusClass =
     {
       [InitState.IDLE]: styles.inlineIdle,

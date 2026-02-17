@@ -8,7 +8,6 @@
 
 import { connectDB } from '@/lib/db';
 import Recording from '@/models/Recording';
-import backblazeStorage from '@/lib/backblaze';
 import { requireAuth } from '@/lib/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
 

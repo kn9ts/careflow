@@ -2,7 +2,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
 
-export async function POST(request) {
+export async function POST(_request) {
   try {
     // Sign out from Firebase
     await signOut(auth);

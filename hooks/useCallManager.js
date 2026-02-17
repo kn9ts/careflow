@@ -627,10 +627,10 @@ export function useCallManager() {
  * Handles outgoing call logic
  */
 export function useOutgoingCall() {
-  const { token } = useAuth();
+  const { _token } = useAuth();
   const { phoneNumber, setPhoneNumber, callStatus, setCallStatus, setCallError } = useCallState();
 
-  const callManagerRef = useRef(null);
+  const _callManagerRef = useRef(null);
 
   const dial = useCallback(
     async (number) => {

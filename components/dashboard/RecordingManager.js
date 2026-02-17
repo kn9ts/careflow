@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import RecordingPlayer from './RecordingPlayer';
+import { ErrorToast } from '@/components/common';
 
 /**
  * Recording Manager Component
@@ -18,13 +19,13 @@ import RecordingPlayer from './RecordingPlayer';
 
 export default function RecordingManager({
   recordings: propRecordings,
-  currentRecording,
-  isRecording,
-  onRefresh,
+  _currentRecording,
+  _isRecording,
+  _onRefresh,
   recordingsLoading: propLoading,
 }) {
   const router = useRouter();
-  const { token, currentUser } = useAuth();
+  const { token } = useAuth();
   const [recordings, setRecordings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,6 +44,7 @@ export default function RecordingManager({
     hasNextPage: false,
     hasPrevPage: false,
   });
+  const [toast, setToast] = useState({ visible: false, message: '' });
 
   // Use prop recordings if provided, otherwise use internal state
   const effectiveRecordings = propRecordings !== undefined ? propRecordings : recordings;
@@ -136,7 +138,10 @@ export default function RecordingManager({
       fetchRecordings();
     } catch (err) {
       console.error('Error deleting recording:', err);
-      alert(`Failed to delete recording: ${err?.message || err || 'Unknown error'}`);
+      setToast({
+        visible: true,
+        message: `Failed to delete recording: ${err?.message || err || 'Unknown error'}`,
+      });
     }
   };
 
@@ -167,7 +172,10 @@ export default function RecordingManager({
       }
     } catch (err) {
       console.error('Error downloading recording:', err);
-      alert(`Failed to download recording: ${err?.message || err || 'Unknown error'}`);
+      setToast({
+        visible: true,
+        message: `Failed to download recording: ${err?.message || err || 'Unknown error'}`,
+      });
     }
   };
 
@@ -346,6 +354,13 @@ export default function RecordingManager({
         }}
         onDelete={handleDelete}
         onDownload={handleDownload}
+      />
+
+      {/* Error Toast Notification */}
+      <ErrorToast
+        message={toast.message}
+        visible={toast.visible}
+        onDismiss={() => setToast({ visible: false, message: '' })}
       />
     </div>
   );

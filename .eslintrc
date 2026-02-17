@@ -97,6 +97,7 @@
     "no-shadow": "off",
     "no-throw-literal": "off",
     "no-undef": "error",
+    "no-underscore-dangle": "off",
     "no-unused-vars": [
       "warn",
       {

@@ -5,7 +5,7 @@
 
 import { RefreshCw, History, Phone, Clock, TrendingUp } from 'lucide-react';
 import CallHistory from '@/components/dashboard/CallHistory';
-import { CardSkeleton, TableSkeleton } from '@/components/common/Loading/LoadingComponents';
+import { TableSkeleton } from '@/components/common/Loading/LoadingComponents';
 import styles from './HistoryTab.module.css';
 
 export default function HistoryTab({

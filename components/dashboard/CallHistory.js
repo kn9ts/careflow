@@ -5,6 +5,7 @@ import { Play, Trash2, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatDateTime, formatDuration as formatDurationUtil } from '@/lib/settingsUtils';
 import RecordingPlayer from './RecordingPlayer';
+import { ErrorToast } from '@/components/common';
 
 // Default display settings fallback
 const DEFAULT_DISPLAY_SETTINGS = {
@@ -26,6 +27,7 @@ export default function CallHistory({ calls, onRefresh, displaySettings }) {
   const [selectedRecording, setSelectedRecording] = useState(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [toast, setToast] = useState({ visible: false, message: '' });
   const itemsPerPage = 10;
   const totalCalls = calls.length;
 
@@ -160,7 +162,7 @@ export default function CallHistory({ calls, onRefresh, displaySettings }) {
       onRefresh();
     } catch (error) {
       console.error('Error deleting recording:', error);
-      alert('Failed to delete recording. Please try again.');
+      setToast({ visible: true, message: 'Failed to delete recording. Please try again.' });
     } finally {
       setDeletingId(null);
     }
@@ -198,7 +200,7 @@ export default function CallHistory({ calls, onRefresh, displaySettings }) {
       })
       .catch((error) => {
         console.error('Error downloading recording:', error);
-        alert('Failed to download recording. Please try again.');
+        setToast({ visible: true, message: 'Failed to download recording. Please try again.' });
       });
   };
 
@@ -385,6 +387,13 @@ export default function CallHistory({ calls, onRefresh, displaySettings }) {
         onClose={closeRecording}
         onDelete={handleDeleteRecording}
         onDownload={handleDownloadRecording}
+      />
+
+      {/* Error Toast Notification */}
+      <ErrorToast
+        message={toast.message}
+        visible={toast.visible}
+        onDismiss={() => setToast({ visible: false, message: '' })}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -51,10 +52,11 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
 
         {/* Scenery Background Image */}
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
           alt=""
-          className="w-full h-full object-cover opacity-30"
+          fill
+          className="object-cover opacity-30"
         />
 
         {/* Dark overlay for readability */}
@@ -216,8 +218,9 @@ export default function LoginPage() {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer">
                 <input
+                  id="remember-me"
                   type="checkbox"
                   className="checkbox w-4 h-4 rounded border-navy-500 bg-white/5 text-secondary-500 focus:ring-secondary-400/50"
                 />

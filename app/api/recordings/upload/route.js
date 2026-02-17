@@ -66,7 +66,7 @@ export async function POST(request) {
     }
 
     // Generate unique recording ID
-    const recordingId = uuidv4();
+    const _recordingId = uuidv4();
     const filename = `${direction}-${callId}-${Date.now()}.webm`;
 
     // Convert file to buffer

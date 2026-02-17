@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -31,10 +32,11 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-diagonal flex items-center justify-center px-4 relative overflow-hidden">
       {/* Scenery Background Image */}
       <div className="absolute inset-0 z-0">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
           alt="Beautiful mountain landscape"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
         {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-navy-900/80" />
