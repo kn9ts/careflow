@@ -21,14 +21,14 @@ export default function HomePage() {
 
   if (loading || !mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background-dark via-primary-blue/10 to-background-dark flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-diagonal flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background-dark via-primary-blue/10 to-background-dark flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-diagonal flex items-center justify-center px-4 relative overflow-hidden">
       {/* Scenery Background Image */}
       <div className="absolute inset-0 z-0">
         <img
@@ -37,31 +37,25 @@ export default function HomePage() {
           className="w-full h-full object-cover"
         />
         {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background-dark/90 via-background-dark/80 to-background-dark/90" />
+        <div className="absolute inset-0 bg-navy-900/80" />
       </div>
 
       <div className="w-full max-w-2xl text-center relative z-10">
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">CareFlow</h1>
-        <p className="text-xl md:text-2xl text-gray-300 mb-8">
+        <p className="text-xl md:text-2xl text-navy-300 mb-8">
           Browser-based calling powered by Twilio Voice
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/login"
-            className="px-8 py-4 bg-gradient-to-r from-primary-red to-primary-blue text-white font-medium rounded-lg hover:opacity-90 transition-all"
-          >
+          <a href="/login" className="btn-primary px-8 py-4 text-base font-semibold">
             Sign In
           </a>
-          <a
-            href="/signup"
-            className="px-8 py-4 bg-white/10 backdrop-blur-lg border border-white/20 text-white font-medium rounded-lg hover:bg-white/20 transition-all"
-          >
+          <a href="/signup" className="btn-ghost px-8 py-4 text-base font-semibold">
             Create Account
           </a>
         </div>
 
-        <p className="mt-8 text-gray-400 text-sm">Secure. Reliable. Browser-based calling.</p>
+        <p className="mt-8 text-navy-400 text-sm">Secure. Reliable. Browser-based calling.</p>
       </div>
     </div>
   );

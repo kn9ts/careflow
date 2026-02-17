@@ -57,7 +57,11 @@ export function useAudioRecorder(authToken, options = {}) {
       setAudioDevices({ inputs, outputs });
       logger.debug('useAudioRecorder', `Found ${inputs.length} inputs, ${outputs.length} outputs`);
     } catch (error) {
-      logger.warn('useAudioRecorder', 'Could not enumerate devices:', error?.message || error || 'Unknown error');
+      logger.warn(
+        'useAudioRecorder',
+        'Could not enumerate devices:',
+        error?.message || error || 'Unknown error'
+      );
     }
   }, []);
 
@@ -109,7 +113,10 @@ export function useAudioRecorder(authToken, options = {}) {
         }
       },
       onError: (error) => {
-        logger.error('useAudioRecorder', `Processor error: ${error?.message || error || 'Unknown error'}`);
+        logger.error(
+          'useAudioRecorder',
+          `Processor error: ${error?.message || error || 'Unknown error'}`
+        );
         setRecordingError(error?.message || error || 'Unknown error');
         setIsRecording(false);
       },
@@ -122,7 +129,10 @@ export function useAudioRecorder(authToken, options = {}) {
         setUploadProgress(progress);
       },
       onError: (error) => {
-        logger.error('useAudioRecorder', `Upload error: ${error?.message || error || 'Unknown error'}`);
+        logger.error(
+          'useAudioRecorder',
+          `Upload error: ${error?.message || error || 'Unknown error'}`
+        );
         setRecordingError(error?.message || error || 'Unknown error');
         setIsUploading(false);
       },
@@ -199,7 +209,10 @@ export function useAudioRecorder(authToken, options = {}) {
       });
       return true;
     } catch (error) {
-      logger.error('useAudioRecorder', `Upload failed: ${error?.message || error || 'Unknown error'}`);
+      logger.error(
+        'useAudioRecorder',
+        `Upload failed: ${error?.message || error || 'Unknown error'}`
+      );
       setRecordingError('Recording upload failed');
       return false;
     } finally {
@@ -233,7 +246,10 @@ export function useAudioRecorder(authToken, options = {}) {
       await audioProcessorRef.current.startRecording(constraints);
       return true;
     } catch (error) {
-      logger.error('useAudioRecorder', `Failed to start: ${error?.message || error || 'Unknown error'}`);
+      logger.error(
+        'useAudioRecorder',
+        `Failed to start: ${error?.message || error || 'Unknown error'}`
+      );
       setRecordingError(`Failed to start recording: ${error?.message || error || 'Unknown error'}`);
       return false;
     }
@@ -250,7 +266,10 @@ export function useAudioRecorder(authToken, options = {}) {
       logger.success('useAudioRecorder', 'Recording stopped');
       return recording;
     } catch (error) {
-      logger.error('useAudioRecorder', `Failed to stop: ${error?.message || error || 'Unknown error'}`);
+      logger.error(
+        'useAudioRecorder',
+        `Failed to stop: ${error?.message || error || 'Unknown error'}`
+      );
       setRecordingError('Failed to stop recording');
       return null;
     }

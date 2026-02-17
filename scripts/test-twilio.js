@@ -135,7 +135,7 @@ function checkEnvironmentVariables() {
       // Mask the value for security
       const masked =
         value.length > 8
-          ? value.substring(0, 4) + '****' + value.substring(value.length - 4)
+          ? `${value.substring(0, 4)}****${value.substring(value.length - 4)}`
           : '****';
       print(ICONS.success, `${varName}: ${masked}`, 'success');
       results.passed++;

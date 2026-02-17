@@ -4,18 +4,17 @@
  * Displays the current call status with proper connection state handling.
  * Shows initialization state, connection progress, and error states.
  *
- * IMPROVEMENTS:
- * - Added connection state display
- * - Added initialization progress indicator
- * - Added retry button for failed states
- * - Better error display with actionable messages
- * - Added automatic recovery monitoring
- * - Added care4Id display with copy-to-clipboard
- * - Added success toast notification
+ * REFACTORED: Aligned with Design System v2.0
+ * - Uses CSS module for component-specific styles
+ * - Uses design system color tokens (success, warning, error, secondary, navy)
+ * - Consistent spacing and typography with other dashboard components
+ * - Removed arbitrary values and inline styles
+ * - Better semantic structure and accessibility
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Copy, Check, X, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
+import styles from './CallStatus.module.css';
 
 // Maximum auto-retry attempts before showing persistent error
 const MAX_RETRY_ATTEMPTS = 3;
@@ -66,19 +65,19 @@ function getStatusText(status, connectionState, retryCount) {
 }
 
 /**
- * Get status color class based on status
+ * Get status color class based on status - using design system tokens
  */
-function getStatusColor(status, connectionState) {
+function getStatusColorClass(status, connectionState) {
   // Handle connection states first
   if (connectionState) {
     switch (connectionState.state) {
       case 'initializing':
       case 'recovering':
-        return 'text-yellow-400';
+        return styles.statusConnecting;
       case 'failed':
-        return 'text-red-400';
+        return styles.statusFailed;
       case 'ready':
-        return 'text-green-400';
+        return styles.statusReady;
       default:
         break;
     }
@@ -88,60 +87,54 @@ function getStatusColor(status, connectionState) {
   switch (status) {
     case 'idle':
     case 'ready':
-      return 'text-green-400';
+      return styles.statusReady;
     case 'connecting':
     case 'ringing':
-      return 'text-yellow-400';
+      return styles.statusConnecting;
     case 'connected':
-      return 'text-green-400';
+      return styles.statusConnected;
     case 'disconnected':
-      return 'text-gray-400';
+      return styles.statusDisconnected;
     case 'incoming':
-      return 'text-blue-400';
+      return styles.statusIncoming;
     case 'failed':
-      return 'text-red-400';
+      return styles.statusFailed;
     default:
-      return 'text-gray-400';
+      return styles.statusUnknown;
   }
 }
 
 /**
- * Get status icon based on status
+ * Get status dot class based on status
  */
-function getStatusIcon(status, connectionState) {
-  // Handle connection states
+function getStatusDotClass(status, connectionState) {
   if (connectionState) {
     switch (connectionState.state) {
       case 'initializing':
       case 'recovering':
-        return '⏳';
+        return styles.statusDotConnecting;
       case 'failed':
-        return '❌';
+        return styles.statusDotFailed;
       case 'ready':
-        return '✅';
+        return styles.statusDotReady;
       default:
         break;
     }
   }
 
-  // Handle call states
   switch (status) {
     case 'idle':
     case 'ready':
-      return '✅';
+    case 'connected':
+      return styles.statusDotReady;
     case 'connecting':
     case 'ringing':
-      return '📞';
-    case 'connected':
-      return '🎙️';
-    case 'disconnected':
-      return '👋';
     case 'incoming':
-      return '📲';
+      return styles.statusDotConnecting;
     case 'failed':
-      return '❌';
+      return styles.statusDotFailed;
     default:
-      return '❓';
+      return styles.statusDotUnknown;
   }
 }
 
@@ -182,32 +175,31 @@ function SuccessToast({ message, onDismiss, showCare4Id, care4Id }) {
   }, [care4Id]);
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-slide-in">
-      <div className="bg-green-600/90 backdrop-blur-sm border border-green-400/40 rounded-lg shadow-lg p-4 max-w-sm">
-        <div className="flex items-start gap-3">
-          <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0 mt-0.5" />
+    <div className={styles.successToast}>
+      <div className={styles.successToastContent}>
+        <div className={styles.successToastInner}>
+          <CheckCircle className={styles.successToastIcon} />
           <div className="flex-1">
-            <p className="text-white font-medium">{message}</p>
+            <p className={styles.successToastMessage}>{message}</p>
             {showCare4Id && care4Id && (
-              <div className="mt-2">
-                <p className="text-green-200 text-xs mb-1">Your CareFlow ID:</p>
-                <div className="flex items-center gap-2 bg-green-700/50 rounded px-2 py-1">
-                  <code className="text-green-100 text-sm font-mono flex-1 truncate">
-                    {care4Id}
-                  </code>
+              <div className={styles.successToastCare4Id}>
+                <p className={styles.successToastCare4IdLabel}>Your CareFlow ID:</p>
+                <div className={styles.successToastCare4IdValue}>
+                  <code className={styles.successToastCare4IdCode}>{care4Id}</code>
                   <button
                     onClick={handleCopy}
-                    className="p-1 hover:bg-green-600/50 rounded transition-colors"
+                    className={styles.successToastCopyBtn}
                     title="Copy to clipboard"
+                    aria-label="Copy CareFlow ID to clipboard"
                   >
                     {copied ? (
-                      <Check className="w-4 h-4 text-green-300" />
+                      <Check className="w-4 h-4 text-success-300" />
                     ) : (
-                      <Copy className="w-4 h-4 text-green-300" />
+                      <Copy className="w-4 h-4 text-success-300" />
                     )}
                   </button>
                 </div>
-                <p className="text-green-200/70 text-xs mt-1">
+                <p className={styles.successToastHint}>
                   Share this ID with friends to receive calls
                 </p>
               </div>
@@ -215,9 +207,10 @@ function SuccessToast({ message, onDismiss, showCare4Id, care4Id }) {
           </div>
           <button
             onClick={onDismiss}
-            className="p-1 hover:bg-green-500/30 rounded transition-colors"
+            className={styles.successToastDismiss}
+            aria-label="Dismiss notification"
           >
-            <X className="w-4 h-4 text-green-200" />
+            <X className="w-4 h-4 text-success-200" />
           </button>
         </div>
       </div>
@@ -246,13 +239,14 @@ function Care4IdDisplay({ care4Id }) {
   if (!care4Id) return null;
 
   return (
-    <div className="mt-4 p-3 bg-blue-600/10 border border-blue-400/30 rounded-lg">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-blue-300 text-sm font-medium">Your CareFlow ID</span>
+    <div className={styles.care4IdDisplay}>
+      <div className={styles.care4IdHeader}>
+        <span className={styles.care4IdLabel}>Your CareFlow ID</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 rounded transition-colors"
+          className={styles.care4IdCopyBtn}
           title="Copy to clipboard"
+          aria-label="Copy CareFlow ID to clipboard"
         >
           {copied ? (
             <>
@@ -267,10 +261,8 @@ function Care4IdDisplay({ care4Id }) {
           )}
         </button>
       </div>
-      <code className="text-white font-mono text-sm block truncate">{care4Id}</code>
-      <p className="text-blue-300/60 text-xs mt-1">
-        Share this ID with friends so they can call you
-      </p>
+      <code className={styles.care4IdValue}>{care4Id}</code>
+      <p className={styles.care4IdHint}>Share this ID with friends so they can call you</p>
     </div>
   );
 }
@@ -280,27 +272,21 @@ function Care4IdDisplay({ care4Id }) {
  */
 function PersistentErrorState({ error, onRetry, onContactSupport }) {
   return (
-    <div className="mt-4 p-4 bg-red-600/20 border border-red-400/40 rounded-lg">
+    <div className={styles.persistentErrorContainer}>
       <div className="flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+        <AlertCircle className="w-5 h-5 text-error-400 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-red-400 font-medium">Unable to initialize call system</p>
-          <p className="text-red-300/70 text-sm mt-1">
+          <p className={styles.persistentErrorTitle}>Unable to initialize call system</p>
+          <p className={styles.persistentErrorText}>
             {error || 'The call system could not be initialized after multiple attempts.'}
           </p>
-          <div className="flex gap-2 mt-3">
-            <button
-              onClick={onRetry}
-              className="px-3 py-1.5 bg-red-600/30 hover:bg-red-600/50 text-red-200 text-sm rounded transition-colors flex items-center gap-1"
-            >
+          <div className={styles.persistentErrorActions}>
+            <button onClick={onRetry} className={styles.persistentErrorRetryBtn}>
               <RefreshCw className="w-3 h-3" />
               Retry Manually
             </button>
             {onContactSupport && (
-              <button
-                onClick={onContactSupport}
-                className="px-3 py-1.5 bg-gray-600/30 hover:bg-gray-600/50 text-gray-200 text-sm rounded transition-colors"
-              >
+              <button onClick={onContactSupport} className={styles.persistentErrorSupportBtn}>
                 Contact Support
               </button>
             )}
@@ -318,20 +304,17 @@ function RecoveryProgress({ retryCount, maxRetries }) {
   const progress = (retryCount / maxRetries) * 100;
 
   return (
-    <div className="mt-4 p-3 bg-yellow-600/20 border border-yellow-400/40 rounded-lg">
-      <div className="flex items-center gap-2 mb-2">
-        <RefreshCw className="w-4 h-4 text-yellow-400 animate-spin" />
-        <span className="text-yellow-400 text-sm font-medium">
+    <div className={styles.recoveryContainer}>
+      <div className={styles.recoveryHeader}>
+        <RefreshCw className="w-4 h-4 text-warning-400 animate-spin" />
+        <span className={styles.recoveryText}>
           Attempting to recover... ({retryCount}/{maxRetries})
         </span>
       </div>
-      <div className="w-full bg-yellow-600/20 rounded-full h-1.5">
-        <div
-          className="bg-yellow-400 h-1.5 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
+      <div className={styles.recoveryProgressBar}>
+        <div className={styles.recoveryProgressFill} style={{ width: `${progress}%` }} />
       </div>
-      <p className="text-yellow-300/60 text-xs mt-2">Checking call system availability...</p>
+      <p className={styles.recoveryHint}>Checking call system availability...</p>
     </div>
   );
 }
@@ -361,8 +344,8 @@ export default function CallStatus({
   const [persistentError, setPersistentError] = useState(false);
 
   const statusText = getStatusText(status, connectionState, retryCount);
-  const statusColor = getStatusColor(status, connectionState);
-  const statusIcon = getStatusIcon(status, connectionState);
+  const statusColorClass = getStatusColorClass(status, connectionState);
+  const statusDotClass = getStatusDotClass(status, connectionState);
   const isLoading = shouldShowLoading(status, connectionState);
   const isFailed = connectionState?.state === 'failed' || status === 'failed';
 
@@ -372,12 +355,16 @@ export default function CallStatus({
     : isAuthenticated
       ? 'Authenticated'
       : 'Not authenticated';
-  const authStatusColor = authLoading
-    ? 'text-yellow-400'
+  const authStatusColorClass = authLoading
+    ? styles.statusConnecting
     : isAuthenticated
-      ? 'text-green-400'
-      : 'text-red-400';
-  const authStatusIcon = authLoading ? '⏳' : isAuthenticated ? '✅' : '❌';
+      ? styles.statusReady
+      : styles.statusFailed;
+  const authStatusDotClass = authLoading
+    ? styles.statusDotConnecting
+    : isAuthenticated
+      ? styles.statusDotReady
+      : styles.statusDotFailed;
 
   // Show success toast when connection becomes ready
   useEffect(() => {
@@ -455,6 +442,20 @@ export default function CallStatus({
     setShowSuccessToast(false);
   }, []);
 
+  // Get service status badge class
+  const getServiceStatusClass = (serviceStatusState) => {
+    switch (serviceStatusState) {
+      case 'ready':
+        return styles.serviceStatusReady;
+      case 'initializing':
+        return styles.serviceStatusInitializing;
+      case 'failed':
+        return styles.serviceStatusFailed;
+      default:
+        return styles.serviceStatusUnknown;
+    }
+  };
+
   return (
     <>
       {/* Success Toast */}
@@ -467,53 +468,34 @@ export default function CallStatus({
         />
       )}
 
-      <div className="card">
-        <h2 className="card-title mb-4">Call Status</h2>
+      <div className={styles.callStatusCard}>
+        <div className={styles.callStatusHeader}>
+          <h2 className={styles.callStatusTitle}>Call Status</h2>
+        </div>
 
         <div className="space-y-4">
           {/* Authentication Status */}
-          <div className="flex items-center justify-between py-2">
-            <span className="text-gray-400 text-sm">Authentication</span>
-            <div className="flex items-center gap-2">
-              {authLoading && (
-                <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-yellow-400" />
-              )}
-              <span className={`text-sm font-medium ${authStatusColor}`}>
-                {authStatusIcon} {authStatusText}
+          <div className={styles.statusRow}>
+            <span className={styles.statusLabel}>Authentication</span>
+            <div className={styles.statusValue}>
+              {authLoading && <div className={styles.loadingSpinnerSm} />}
+              <span className={`${statusDotClass} ${authStatusDotClass}`} />
+              <span className={`text-sm font-medium ${authStatusColorClass}`}>
+                {authStatusText}
               </span>
             </div>
           </div>
 
           {/* Service Status (WebRTC/Twilio) */}
           {serviceStatus && (
-            <div className="flex items-center justify-between py-2 border-t border-white/5">
-              <span className="text-gray-400 text-sm">Service</span>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    serviceStatus.status === 'ready'
-                      ? 'bg-green-400'
-                      : serviceStatus.status === 'initializing'
-                        ? 'bg-yellow-400 animate-pulse'
-                        : serviceStatus.status === 'failed'
-                          ? 'bg-red-400'
-                          : 'bg-gray-400'
-                  }`}
-                />
-                <span className="text-sm text-white">
+            <div className={`${styles.statusRow} ${styles.statusRowBorder}`}>
+              <span className={styles.statusLabel}>Service</span>
+              <div className={styles.statusValue}>
+                <span className={statusDotClass} />
+                <span className={styles.serviceBadge}>
                   {serviceStatus.mode === 'twilio' ? 'Twilio Voice' : 'WebRTC'}
                 </span>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded ${
-                    serviceStatus.status === 'ready'
-                      ? 'bg-green-600/20 text-green-400'
-                      : serviceStatus.status === 'initializing'
-                        ? 'bg-yellow-600/20 text-yellow-400'
-                        : serviceStatus.status === 'failed'
-                          ? 'bg-red-600/20 text-red-400'
-                          : 'bg-gray-600/20 text-gray-400'
-                  }`}
-                >
+                <span className={getServiceStatusClass(serviceStatus.status)}>
                   {serviceStatus.status}
                 </span>
               </div>
@@ -521,23 +503,20 @@ export default function CallStatus({
           )}
 
           {/* Main Status */}
-          <div className="flex items-center justify-between py-2 border-t border-white/5">
-            <span className="text-gray-400 text-sm">Call Status</span>
-            <div className="flex items-center gap-2">
-              {isLoading && (
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary-red" />
-              )}
-              <span className={`font-medium ${statusColor}`}>
-                {statusIcon} {statusText}
-              </span>
+          <div className={`${styles.statusRow} ${styles.statusRowBorder}`}>
+            <span className={styles.statusLabel}>Call Status</span>
+            <div className={styles.statusValue}>
+              {isLoading && <div className={styles.loadingSpinnerMd} />}
+              <span className={statusDotClass} />
+              <span className={`font-medium ${statusColorClass}`}>{statusText}</span>
             </div>
           </div>
 
           {/* Connection State Message */}
           {connectionState?.message && connectionState.state !== 'ready' && !isRecovering && (
-            <div className="flex items-center justify-between py-2 border-t border-white/5">
-              <span className="text-gray-400 text-sm">Details</span>
-              <span className="text-sm text-gray-300 max-w-[200px] text-right">
+            <div className={`${styles.statusRow} ${styles.statusRowBorder}`}>
+              <span className={styles.statusLabel}>Details</span>
+              <span className="text-sm text-navy-300 max-w-xs text-right">
                 {connectionState.message}
               </span>
             </div>
@@ -545,21 +524,19 @@ export default function CallStatus({
 
           {/* Phone Number / Call Target */}
           {phoneNumber && (
-            <div className="flex items-center justify-between py-2 border-t border-white/5">
-              <span className="text-gray-400 text-sm">
+            <div className={`${styles.statusRow} ${styles.statusRowBorder}`}>
+              <span className={styles.statusLabel}>
                 {phoneNumber.startsWith('care4w-') ? 'CareFlow ID' : 'Phone Number'}
               </span>
-              <span className="font-medium text-white font-mono">{phoneNumber}</span>
+              <span className={styles.phoneNumber}>{phoneNumber}</span>
             </div>
           )}
 
           {/* Call Duration */}
           {status === 'connected' && (
-            <div className="flex items-center justify-between py-2 border-t border-white/5">
-              <span className="text-gray-400 text-sm">Duration</span>
-              <span className="font-medium text-white font-mono text-lg">
-                {formatDuration(duration)}
-              </span>
+            <div className={`${styles.statusRow} ${styles.statusRowBorder}`}>
+              <span className={styles.statusLabel}>Duration</span>
+              <span className={styles.duration}>{formatDuration(duration)}</span>
             </div>
           )}
 
@@ -573,13 +550,10 @@ export default function CallStatus({
 
           {/* Error Display (non-persistent) */}
           {error && !persistentError && !isRecovering && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <p className="text-red-400 text-sm">{error}</p>
+            <div className={styles.errorContainer}>
+              <p className={styles.errorText}>{error}</p>
               {onRetry && isFailed && (
-                <button
-                  onClick={handleManualRetry}
-                  className="mt-3 px-4 py-2 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-sm rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                >
+                <button onClick={handleManualRetry} className={styles.errorRetryBtn}>
                   Retry
                 </button>
               )}
@@ -597,15 +571,15 @@ export default function CallStatus({
 
           {/* Initialization Failed State (without auto-recovery) */}
           {isFailed && !error && connectionState?.error && !isRecovering && !persistentError && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <p className="text-red-400 text-sm">
-                {(connectionState.error && (connectionState.error.message || connectionState.error)) || connectionState.message || 'Unknown error'}
+            <div className={styles.errorContainer}>
+              <p className={styles.errorText}>
+                {(connectionState.error &&
+                  (connectionState.error.message || connectionState.error)) ||
+                  connectionState.message ||
+                  'Unknown error'}
               </p>
               {onRetry && (
-                <button
-                  onClick={handleManualRetry}
-                  className="mt-3 px-4 py-2 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-sm rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                >
+                <button onClick={handleManualRetry} className={styles.errorRetryBtn}>
                   Retry Initialization
                 </button>
               )}
@@ -614,15 +588,12 @@ export default function CallStatus({
 
           {/* Initializing State */}
           {connectionState?.state === 'initializing' && !isRecovering && (
-            <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-              <p className="text-yellow-400 text-sm">
+            <div className={styles.initializingContainer}>
+              <p className={styles.initializingText}>
                 Please wait while the call system initializes...
               </p>
-              <div className="mt-3 w-full bg-yellow-500/20 rounded-full h-1.5">
-                <div
-                  className="bg-yellow-400 h-1.5 rounded-full animate-pulse"
-                  style={{ width: '60%' }}
-                />
+              <div className={styles.initializingProgressBar}>
+                <div className={styles.initializingProgressFill} style={{ width: '60%' }} />
               </div>
             </div>
           )}
@@ -639,35 +610,46 @@ export default function CallStatus({
 export function ConnectionStatusBadge({ connectionState, className = '' }) {
   if (!connectionState) return null;
 
-  const badgeClasses = {
-    initializing: 'badge-warning',
-    ready: 'badge-success',
-    failed: 'badge-error',
-    connecting: 'badge-info',
-    connected: 'badge-success',
-    disconnected: 'badge-neutral',
-    recovering: 'badge-warning',
+  const getBadgeClass = (state) => {
+    switch (state) {
+      case 'ready':
+      case 'connected':
+        return styles.connectionBadgeReady;
+      case 'initializing':
+      case 'recovering':
+        return styles.connectionBadgeInitializing;
+      case 'failed':
+        return styles.connectionBadgeFailed;
+      case 'connecting':
+        return styles.connectionBadgeConnecting;
+      case 'disconnected':
+        return styles.connectionBadgeDisconnected;
+      default:
+        return styles.connectionBadgeDisconnected;
+    }
   };
 
-  const badgeIcons = {
-    initializing: '⏳',
-    ready: '✅',
-    failed: '❌',
-    connecting: '📞',
-    connected: '🎙️',
-    disconnected: '👋',
-    recovering: '🔄',
+  const getIcon = (state) => {
+    switch (state) {
+      case 'initializing':
+      case 'recovering':
+        return <RefreshCw className="w-3 h-3 animate-spin" />;
+      case 'ready':
+        return <CheckCircle className="w-3 h-3" />;
+      case 'failed':
+        return <AlertCircle className="w-3 h-3" />;
+      case 'connecting':
+        return <RefreshCw className="w-3 h-3 animate-spin" />;
+      default:
+        return null;
+    }
   };
 
-  const badgeClass = badgeClasses[connectionState.state] || badgeClasses.disconnected;
-  const icon = badgeIcons[connectionState.state] || '❓';
+  const badgeClass = getBadgeClass(connectionState.state);
 
   return (
-    <span className={`badge ${badgeClass} ${className}`}>
-      {(connectionState.state === 'initializing' || connectionState.state === 'recovering') && (
-        <span className="animate-spin">⏳</span>
-      )}
-      {connectionState.state !== 'initializing' && connectionState.state !== 'recovering' && icon}
+    <span className={`${badgeClass} ${className}`}>
+      {getIcon(connectionState.state)}
       <span className="capitalize">{connectionState.state}</span>
     </span>
   );

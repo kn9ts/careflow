@@ -1,0 +1,289 @@
+/* CallControls.module.css */
+/* Call Controls Component Styles - Aligned with Design System */
+
+/* Main Card */
+.callControlsCard {
+  @apply relative overflow-hidden
+         bg-gradient-to-br from-navy-800 to-navy-900
+         border border-white/10
+         rounded-xl p-5
+         shadow-card hover:shadow-card-hover
+         transition-all duration-300;
+}
+
+.callControlsCard::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-br from-secondary-500/5 to-purple-500/5 pointer-events-none;
+}
+
+/* Header */
+.callControlsHeader {
+  @apply flex items-center justify-between mb-4;
+}
+
+.callControlsTitle {
+  @apply text-lg font-semibold text-white;
+}
+
+/* Recording Indicator */
+.recordingIndicator {
+  @apply flex items-center gap-2 px-3 py-1.5
+         bg-error-500/20 border border-error-500/40
+         rounded-full animate-pulse;
+}
+
+.recordingIndicatorIcon {
+  @apply w-4 h-4 text-error-500;
+}
+
+.recordingIndicatorText {
+  @apply text-sm text-error-400 font-medium;
+}
+
+/* Section Headers */
+.sectionHeader {
+  @apply text-sm font-semibold text-navy-400
+         uppercase tracking-wider mb-3;
+}
+
+/* Main Call Button Row */
+.mainCallRow {
+  @apply mb-4;
+}
+
+.mainCallButton {
+  @apply flex items-center justify-center gap-2
+         w-full px-4 py-4 h-14
+         bg-gradient-to-r from-secondary-500 to-secondary-400
+         hover:from-secondary-400 hover:to-secondary-500
+         text-white font-semibold text-base
+         rounded-xl
+         transition-all duration-300
+         shadow-glow-secondary
+         active:scale-[0.98]
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.mainCallButtonEnd {
+  @apply flex items-center justify-center gap-2
+         w-full px-4 py-4 h-14
+         bg-gradient-to-r from-error-500 to-error-400
+         hover:from-error-400 hover:to-error-500
+         text-white font-semibold text-base
+         rounded-xl
+         transition-all duration-300
+         shadow-glow-primary
+         active:scale-[0.98]
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-error-400/50;
+}
+
+.mainCallButtonAccept {
+  @apply flex items-center justify-center gap-2
+         w-full px-4 py-4 h-14
+         bg-gradient-to-r from-success-500 to-success-400
+         hover:from-success-400 hover:to-success-500
+         text-white font-semibold text-base
+         rounded-xl
+         transition-all duration-300
+         shadow-glow-success
+         active:scale-[0.98]
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-success-400/50;
+}
+
+/* Help Text */
+.helpText {
+  @apply text-xs text-navy-400 leading-relaxed mt-2 text-center;
+}
+
+/* Feature Buttons Row */
+.featureRow {
+  @apply mt-4 pt-4 border-t border-white/10;
+}
+
+.featureRowTitle {
+  @apply text-xs font-semibold text-navy-500
+         uppercase tracking-wider mb-3 text-center;
+}
+
+.featureButtonsGrid {
+  @apply grid grid-cols-4 gap-2;
+}
+
+/* Feature Button with Tooltip */
+.featureButtonWrapper {
+  @apply relative flex flex-col items-center;
+}
+
+.featureButton {
+  @apply flex flex-col items-center justify-center gap-1
+         w-full px-2 py-3 h-16
+         text-white font-medium text-xs
+         rounded-xl
+         transition-all duration-300
+         active:scale-[0.98]
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Mute Button */
+.featureButtonMute {
+  @apply bg-navy-600/50 hover:bg-navy-600;
+}
+
+.featureButtonMuteActive {
+  @apply bg-warning-500/80 hover:bg-warning-500;
+}
+
+/* Hold Button */
+.featureButtonHold {
+  @apply bg-purple-500/30 hover:bg-purple-500/50 text-navy-300;
+}
+
+/* Record Button */
+.featureButtonRecord {
+  @apply bg-purple-500/80 hover:bg-purple-500;
+}
+
+.featureButtonRecordStop {
+  @apply bg-error-500/80 hover:bg-error-500;
+}
+
+.featureButtonDisabled {
+  @apply bg-navy-600/30 text-navy-400 cursor-not-allowed;
+}
+
+/* Keypad Button */
+.featureButtonKeypad {
+  @apply bg-secondary-500/80 hover:bg-secondary-500;
+}
+
+.featureButtonKeypadActive {
+  @apply bg-secondary-500;
+}
+
+/* Tooltip */
+.tooltip {
+  @apply absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+         px-2 py-1.5
+         bg-navy-700 text-white text-xs font-medium
+         rounded-lg whitespace-nowrap
+         shadow-lg
+         opacity-0 invisible
+         transition-all duration-200
+         pointer-events-none
+         z-50;
+}
+
+.tooltipVisible {
+  @apply opacity-100 visible;
+}
+
+.tooltip::after {
+  content: '';
+  @apply absolute top-full left-1/2 -translate-x-1/2
+         border-4 border-transparent
+         border-t-navy-700;
+}
+
+/* DTMF Keypad */
+.dtmfKeypad {
+  @apply mt-3 p-4
+         bg-navy-700/50 border border-white/10
+         rounded-xl;
+}
+
+.dtmfHint {
+  @apply text-xs text-navy-400 mb-3 text-center;
+}
+
+.dtmfGrid {
+  @apply grid grid-cols-3 gap-2;
+}
+
+.dtmfButton {
+  @apply aspect-square rounded-xl
+         flex items-center justify-center
+         bg-navy-600 hover:bg-navy-500 active:bg-navy-400
+         text-white text-lg font-bold
+         transition-all duration-150
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50;
+}
+
+/* Status Indicators */
+.statusIndicators {
+  @apply mt-6 pt-4 border-t border-white/10;
+}
+
+.statusIndicatorsRow {
+  @apply flex flex-wrap items-center justify-center gap-x-6 gap-y-2
+         text-sm text-navy-400;
+}
+
+.statusIndicator {
+  @apply flex items-center gap-2;
+}
+
+.statusDot {
+  @apply w-2.5 h-2.5 rounded-full transition-all duration-300;
+}
+
+.statusDotActive {
+  @apply statusDot bg-success-400;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.statusDotInactive {
+  @apply statusDot bg-navy-500;
+}
+
+.statusDotWarning {
+  @apply statusDot bg-warning-400;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.statusDotInfo {
+  @apply statusDot bg-secondary-400;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+.statusDotRecording {
+  @apply statusDot bg-error-500 animate-pulse;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.statusRecordingText {
+  @apply text-error-400 font-medium;
+}
+
+/* Recording Progress */
+.recordingProgress {
+  @apply mt-4;
+}
+
+.recordingProgressBar {
+  @apply h-1.5 bg-error-500/20 rounded-full overflow-hidden;
+}
+
+.recordingProgressFill {
+  @apply h-full bg-error-500 animate-pulse;
+}
+
+.recordingProgressText {
+  @apply text-xs text-center text-error-400 mt-2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .callControlsCard {
+    @apply p-4;
+  }
+
+  .featureButtonsGrid {
+    @apply grid-cols-2;
+  }
+
+  .statusIndicatorsRow {
+    @apply gap-x-4;
+  }
+}

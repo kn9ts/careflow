@@ -1,0 +1,377 @@
+/* CallStatus.module.css */
+/* Call Status Component Styles - Aligned with Design System */
+
+/* Main Card */
+.callStatusCard {
+  @apply relative overflow-hidden
+         bg-gradient-to-br from-navy-800 to-navy-900
+         border border-white/10
+         rounded-xl p-5
+         shadow-card hover:shadow-card-hover
+         transition-all duration-300;
+}
+
+.callStatusCard::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-br from-secondary-500/5 to-purple-500/5 pointer-events-none;
+}
+
+/* Header */
+.callStatusHeader {
+  @apply flex items-center justify-between mb-4;
+}
+
+.callStatusTitle {
+  @apply text-lg font-semibold text-white;
+}
+
+/* Status Rows */
+.statusRow {
+  @apply flex items-center justify-between py-2;
+}
+
+.statusRowBorder {
+  @apply border-t border-white/5;
+}
+
+.statusLabel {
+  @apply text-navy-400 text-sm;
+}
+
+.statusValue {
+  @apply flex items-center gap-2;
+}
+
+/* Status Colors - Using Design System Tokens */
+.statusReady {
+  @apply text-success-400;
+}
+
+.statusConnecting {
+  @apply text-warning-400;
+}
+
+.statusConnected {
+  @apply text-success-400;
+}
+
+.statusDisconnected {
+  @apply text-navy-400;
+}
+
+.statusIncoming {
+  @apply text-secondary-400;
+}
+
+.statusFailed {
+  @apply text-error-400;
+}
+
+.statusUnknown {
+  @apply text-navy-400;
+}
+
+/* Status Dot Indicator */
+.statusDot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.statusDotReady {
+  @apply statusDot bg-success-400;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.statusDotConnecting {
+  @apply statusDot bg-warning-400 animate-pulse;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.statusDotFailed {
+  @apply statusDot bg-error-400;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
+}
+
+.statusDotUnknown {
+  @apply statusDot bg-navy-400;
+}
+
+/* Loading Spinner */
+.loadingSpinner {
+  @apply animate-spin rounded-full border-t-2 border-b-2 border-secondary-400;
+}
+
+.loadingSpinnerSm {
+  @apply loadingSpinner h-3 w-3;
+}
+
+.loadingSpinnerMd {
+  @apply loadingSpinner h-4 w-4;
+}
+
+/* Service Badge */
+.serviceBadge {
+  @apply text-sm text-white;
+}
+
+.serviceStatusBadge {
+  @apply text-xs px-2 py-0.5 rounded;
+}
+
+.serviceStatusReady {
+  @apply serviceStatusBadge bg-success-500/20 text-success-400;
+}
+
+.serviceStatusInitializing {
+  @apply serviceStatusBadge bg-warning-500/20 text-warning-400;
+}
+
+.serviceStatusFailed {
+  @apply serviceStatusBadge bg-error-500/20 text-error-400;
+}
+
+.serviceStatusUnknown {
+  @apply serviceStatusBadge bg-navy-500/20 text-navy-400;
+}
+
+/* Phone Number Display */
+.phoneNumber {
+  @apply font-medium text-white font-mono;
+}
+
+/* Duration Display */
+.duration {
+  @apply font-medium text-white font-mono text-lg;
+}
+
+/* Care4Id Display */
+.care4IdDisplay {
+  @apply mt-4 p-3
+         bg-secondary-500/10 border border-secondary-400/30
+         rounded-xl;
+}
+
+.care4IdHeader {
+  @apply flex items-center justify-between mb-1;
+}
+
+.care4IdLabel {
+  @apply text-secondary-300 text-sm font-medium;
+}
+
+.care4IdCopyBtn {
+  @apply flex items-center gap-1 px-2 py-1 text-xs
+         bg-secondary-500/30 hover:bg-secondary-500/50
+         text-secondary-200 rounded-lg
+         transition-colors duration-300
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50;
+}
+
+.care4IdValue {
+  @apply text-white font-mono text-sm block truncate;
+}
+
+.care4IdHint {
+  @apply text-secondary-300/60 text-xs mt-1;
+}
+
+/* Error State */
+.errorContainer {
+  @apply mt-4 p-4
+         bg-error-500/10 border border-error-500/30
+         rounded-xl;
+}
+
+.errorText {
+  @apply text-error-400 text-sm;
+}
+
+.errorRetryBtn {
+  @apply mt-3 px-4 py-2 h-11
+         bg-error-500/30 hover:bg-error-500/50
+         text-error-300 text-sm font-medium
+         rounded-xl
+         transition-all duration-300
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-error-400/50;
+}
+
+/* Persistent Error State */
+.persistentErrorContainer {
+  @apply mt-4 p-4
+         bg-error-500/20 border border-error-400/40
+         rounded-xl;
+}
+
+.persistentErrorTitle {
+  @apply text-error-400 font-medium;
+}
+
+.persistentErrorText {
+  @apply text-error-300/70 text-sm mt-1;
+}
+
+.persistentErrorActions {
+  @apply flex gap-2 mt-3;
+}
+
+.persistentErrorRetryBtn {
+  @apply px-3 py-1.5 h-11
+         bg-error-500/30 hover:bg-error-500/50
+         text-error-200 text-sm font-medium
+         rounded-xl
+         transition-all duration-300
+         flex items-center gap-1
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-error-400/50;
+}
+
+.persistentErrorSupportBtn {
+  @apply px-3 py-1.5 h-11
+         bg-navy-600/30 hover:bg-navy-600/50
+         text-navy-200 text-sm font-medium
+         rounded-xl
+         transition-all duration-300
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50;
+}
+
+/* Recovery Progress */
+.recoveryContainer {
+  @apply mt-4 p-3
+         bg-warning-500/20 border border-warning-400/40
+         rounded-xl;
+}
+
+.recoveryHeader {
+  @apply flex items-center gap-2 mb-2;
+}
+
+.recoveryText {
+  @apply text-warning-400 text-sm font-medium;
+}
+
+.recoveryProgressBar {
+  @apply w-full bg-warning-500/20 rounded-full h-1.5;
+}
+
+.recoveryProgressFill {
+  @apply bg-warning-400 h-1.5 rounded-full transition-all duration-300;
+}
+
+.recoveryHint {
+  @apply text-warning-300/60 text-xs mt-2;
+}
+
+/* Initializing State */
+.initializingContainer {
+  @apply mt-4 p-4
+         bg-warning-500/10 border border-warning-500/30
+         rounded-xl;
+}
+
+.initializingText {
+  @apply text-warning-400 text-sm;
+}
+
+.initializingProgressBar {
+  @apply mt-3 w-full bg-warning-500/20 rounded-full h-1.5;
+}
+
+.initializingProgressFill {
+  @apply bg-warning-400 h-1.5 rounded-full animate-pulse;
+}
+
+/* Success Toast */
+.successToast {
+  @apply fixed top-4 right-4 z-50;
+}
+
+.successToastContent {
+  @apply bg-success-500/90 backdrop-blur-sm
+         border border-success-400/40
+         rounded-xl shadow-lg p-4 max-w-sm;
+}
+
+.successToastInner {
+  @apply flex items-start gap-3;
+}
+
+.successToastIcon {
+  @apply w-5 h-5 text-success-300 flex-shrink-0 mt-0.5;
+}
+
+.successToastMessage {
+  @apply text-white font-medium;
+}
+
+.successToastCare4Id {
+  @apply mt-2;
+}
+
+.successToastCare4IdLabel {
+  @apply text-success-200 text-xs mb-1;
+}
+
+.successToastCare4IdValue {
+  @apply flex items-center gap-2 bg-success-500/50 rounded-lg px-2 py-1;
+}
+
+.successToastCare4IdCode {
+  @apply text-success-100 text-sm font-mono flex-1 truncate;
+}
+
+.successToastCopyBtn {
+  @apply p-1 hover:bg-success-400/50 rounded transition-colors
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-success-300/50;
+}
+
+.successToastHint {
+  @apply text-success-200/70 text-xs mt-1;
+}
+
+.successToastDismiss {
+  @apply p-1 hover:bg-success-400/30 rounded transition-colors
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-success-300/50;
+}
+
+/* Connection Status Badge */
+.connectionBadge {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1
+         text-xs font-medium rounded-full;
+}
+
+.connectionBadgeReady {
+  @apply connectionBadge bg-success-500/20 text-success-400 border border-success-500/30;
+}
+
+.connectionBadgeInitializing {
+  @apply connectionBadge bg-warning-500/20 text-warning-400 border border-warning-500/30;
+}
+
+.connectionBadgeFailed {
+  @apply connectionBadge bg-error-500/20 text-error-400 border border-error-500/30;
+}
+
+.connectionBadgeConnecting {
+  @apply connectionBadge bg-secondary-500/20 text-secondary-400 border border-secondary-500/30;
+}
+
+.connectionBadgeDisconnected {
+  @apply connectionBadge bg-navy-500/20 text-navy-400 border border-navy-500/30;
+}
+
+.connectionBadgeRecovering {
+  @apply connectionBadge bg-warning-500/20 text-warning-400 border border-warning-500/30;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .callStatusCard {
+    @apply p-4;
+  }
+
+  .persistentErrorActions {
+    @apply flex-col;
+  }
+
+  .successToastContent {
+    @apply max-w-[calc(100vw-2rem)];
+  }
+}

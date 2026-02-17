@@ -1,0 +1,166 @@
+/* AnalyticsTab.module.css */
+/* Analytics Tab Component Styles */
+
+.analyticsTab {
+  @apply flex flex-col gap-6 p-4 md:p-6 min-h-full;
+}
+
+.tabHeader {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+}
+
+.tabTitle {
+  @apply text-xl md:text-2xl font-semibold text-white;
+}
+
+.tabDescription {
+  @apply text-sm text-navy-400 mt-1;
+}
+
+.refreshBtn {
+  @apply flex items-center gap-2 px-4 py-2.5 h-11
+         bg-navy-700/50 hover:bg-navy-700
+         border border-white/10 hover:border-white/20
+         rounded-xl text-sm font-medium text-navy-200 hover:text-white
+         transition-all duration-300
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.spinning {
+  @apply animate-spin;
+}
+
+.errorMessage {
+  @apply p-4
+         bg-error-500/10 border border-error-500/30
+         rounded-xl text-error-300 text-sm
+         flex items-start gap-3
+         animate-slide-down;
+}
+
+.errorIcon {
+  @apply w-5 h-5 text-error-400 flex-shrink-0 mt-0.5;
+}
+
+.loadingState {
+  @apply flex flex-col gap-6;
+}
+
+/* Overview Cards */
+.overviewGrid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.overviewCard {
+  @apply relative overflow-hidden
+         bg-gradient-to-br from-navy-800 to-navy-900
+         border border-white/10
+         rounded-xl p-5
+         transition-all duration-300
+         hover:border-white/15 hover:shadow-card-hover;
+}
+
+.overviewCardIcon {
+  @apply flex items-center justify-center w-12 h-12 rounded-xl mb-4;
+}
+
+.overviewCardValue {
+  @apply text-2xl md:text-3xl font-bold text-white mb-1;
+}
+
+.overviewCardLabel {
+  @apply text-sm text-navy-400;
+}
+
+.overviewCardTrend {
+  @apply absolute top-4 right-4 flex items-center gap-1
+         text-xs font-medium px-2 py-1 rounded-full;
+}
+
+.trendUp {
+  @apply bg-success-500/20 text-success-400;
+}
+
+.trendDown {
+  @apply bg-error-500/20 text-error-400;
+}
+
+/* Charts Section */
+.chartsGrid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.chartCard {
+  @apply bg-navy-800/50 border border-white/10
+         rounded-xl p-5
+         shadow-card;
+}
+
+.chartHeader {
+  @apply flex items-center justify-between mb-4;
+}
+
+.chartTitle {
+  @apply text-base font-semibold text-white;
+}
+
+.chartContainer {
+  @apply h-64 flex items-center justify-center;
+}
+
+/* Period selector */
+.periodSelector {
+  @apply flex items-center gap-2 mb-6;
+}
+
+.periodBtn {
+  @apply px-3 py-1.5 text-sm font-medium
+         bg-navy-700/30 text-navy-300
+         border border-white/5 rounded-lg
+         transition-all duration-300
+         hover:bg-navy-700/50 hover:text-white
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50;
+}
+
+.periodBtnActive {
+  @apply periodBtn bg-secondary-500/20 text-secondary-300 border-secondary-500/30;
+}
+
+/* Empty state */
+.emptyState {
+  @apply flex flex-col items-center justify-center py-16 px-4
+         bg-navy-800/30 border border-white/5
+         rounded-xl text-center;
+}
+
+.emptyIcon {
+  @apply w-16 h-16 text-navy-600 mb-4;
+}
+
+.emptyTitle {
+  @apply text-lg font-medium text-navy-300 mb-2;
+}
+
+.emptyDescription {
+  @apply text-sm text-navy-500 max-w-sm;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .tabHeader {
+    @apply flex-col items-start;
+  }
+
+  .refreshBtn {
+    @apply w-full justify-center;
+  }
+
+  .overviewGrid {
+    @apply grid-cols-2;
+  }
+
+  .chartsGrid {
+    @apply grid-cols-1;
+  }
+}

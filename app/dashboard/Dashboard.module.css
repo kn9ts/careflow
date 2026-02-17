@@ -3,7 +3,8 @@
 /* Page-specific styles that extend Tailwind */
 
 .dashboardLayout {
-  @apply flex flex-col min-h-screen bg-background-dark;
+  @apply flex flex-col min-h-screen;
+  background: linear-gradient(135deg, #0f2744 0%, #1e3a5f 30%, #134e4a 70%, #042f2e 100%);
 }
 
 .dashboardBody {
@@ -15,5 +16,6 @@
 }
 
 .errorPage {
-  @apply flex items-center justify-center min-h-screen bg-background-dark;
+  @apply flex items-center justify-center min-h-screen;
+  background: linear-gradient(135deg, #0f2744 0%, #1e3a5f 30%, #134e4a 70%, #042f2e 100%);
 }

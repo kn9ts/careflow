@@ -70,7 +70,6 @@
       },
     ],
     "no-alert": "warn",
-    "no-array-index-key": "warn",
     "no-await-in-loop": "off",
     "no-case-declarations": "off",
     "no-console": [

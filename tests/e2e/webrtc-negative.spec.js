@@ -68,8 +68,10 @@ async function waitForWebRTCState(page, expectedState, timeout = 10000) {
 // =====================================================
 
 test.describe('Network Interruptions', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext({
@@ -319,8 +321,10 @@ test.describe('Network Interruptions', () => {
 // =====================================================
 
 test.describe('ICE Connection Failures', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext({
@@ -382,9 +386,9 @@ test.describe('ICE Connection Failures', () => {
     await callerPage.waitForTimeout(5000);
 
     // Should still attempt connection (may succeed with host candidates)
-    const iceState = await callerPage.evaluate(() => {
-      return window.__iceConnectionStates?.slice(-1)[0] || 'unknown';
-    });
+    const iceState = await callerPage.evaluate(
+      () => window.__iceConnectionStates?.slice(-1)[0] || 'unknown'
+    );
 
     // Connection may succeed with host candidates or fail
     expect(['new', 'checking', 'connected', 'failed', 'disconnected']).toContain(iceState);
@@ -410,9 +414,9 @@ test.describe('ICE Connection Failures', () => {
     await callerPage.waitForTimeout(5000);
 
     // Verify connection state
-    const iceState = await callerPage.evaluate(() => {
-      return window.__iceConnectionStates?.slice(-1)[0] || 'unknown';
-    });
+    const iceState = await callerPage.evaluate(
+      () => window.__iceConnectionStates?.slice(-1)[0] || 'unknown'
+    );
 
     // Should handle TURN failure gracefully
     expect(['new', 'checking', 'connected', 'failed']).toContain(iceState);
@@ -518,8 +522,10 @@ test.describe('ICE Connection Failures', () => {
 // =====================================================
 
 test.describe('Signaling Timeouts', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext({
@@ -744,8 +750,10 @@ test.describe('Signaling Timeouts', () => {
 // =====================================================
 
 test.describe('Media Device Errors', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext();
@@ -912,8 +920,10 @@ test.describe('Media Device Errors', () => {
 // =====================================================
 
 test.describe('Error Recovery', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext({

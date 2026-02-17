@@ -416,15 +416,11 @@ function createMockSnapshot(value, key = null) {
         });
       }
     }),
-    hasChild: jest.fn((childPath) => {
-      return value?.hasOwnProperty?.(childPath) ?? false;
-    }),
-    hasChildren: jest.fn(() => {
-      return value && typeof value === 'object' && Object.keys(value).length > 0;
-    }),
-    numChildren: jest.fn(() => {
-      return value && typeof value === 'object' ? Object.keys(value).length : 0;
-    }),
+    hasChild: jest.fn((childPath) => value?.hasOwnProperty?.(childPath) ?? false),
+    hasChildren: jest.fn(() => value && typeof value === 'object' && Object.keys(value).length > 0),
+    numChildren: jest.fn(() =>
+      value && typeof value === 'object' ? Object.keys(value).length : 0
+    ),
     toJSON: jest.fn(() => value),
   };
 }

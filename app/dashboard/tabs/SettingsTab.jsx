@@ -11,11 +11,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, Volume2, Monitor, RotateCcw, Save, Check } from 'lucide-react';
+import { Bell, Volume2, Monitor, RotateCcw, Save, Check, AlertCircle } from 'lucide-react';
 import { useSettings, DEFAULT_SETTINGS } from '@/hooks/useSettings';
 import NotificationSettingsPanel from '@/components/settings/NotificationSettingsPanel';
 import AudioSettingsPanel from '@/components/settings/AudioSettingsPanel';
 import DisplaySettingsPanel from '@/components/settings/DisplaySettingsPanel';
+import styles from './SettingsTab.module.css';
 
 // Tab configuration
 const SETTINGS_TABS = [
@@ -136,38 +137,57 @@ export default function SettingsTab() {
   const activeTabInfo = SETTINGS_TABS.find((t) => t.id === activeTab);
 
   return (
-    <div className="settings-tab">
+    <div className={styles.settingsTab}>
       {/* Header */}
-      <div className="settings-header">
+      <div className={styles.settingsHeader}>
         <div>
-          <h2 className="settings-title">Settings</h2>
-          <p className="settings-subtitle">
+          <h2 className={styles.settingsTitle}>Settings</h2>
+          <p className={styles.settingsSubtitle}>
             {activeTabInfo?.description || 'Manage your preferences'}
           </p>
         </div>
-        <div className="settings-actions">
+        <div className={styles.settingsActions}>
+          {/* Unsaved changes indicator */}
+          {hasChanges && !saveSuccess && (
+            <div className={styles.unsavedIndicator}>
+              <AlertCircle className="w-4 h-4" />
+              <span>Unsaved changes</span>
+            </div>
+          )}
+
+          {/* Success indicator */}
+          {saveSuccess && (
+            <div className={styles.successIndicator}>
+              <Check className="w-4 h-4" />
+              <span>Saved!</span>
+            </div>
+          )}
+
           <button
             onClick={handleReset}
             disabled={isSaving || isLoading}
-            className="btn btn-secondary"
+            className={styles.btnSecondary}
+            aria-label="Reset to defaults"
           >
             <RotateCcw size={16} />
-            Reset to Defaults
+            <span className="hidden sm:inline">Reset</span>
           </button>
+
           <button
             onClick={handleSave}
             disabled={!hasChanges || isSaving || isLoading}
-            className={`btn ${saveSuccess ? 'btn-success' : 'btn-primary'}`}
+            className={saveSuccess ? styles.btnSuccess : styles.btnPrimary}
+            aria-label="Save changes"
           >
             {saveSuccess ? (
               <>
                 <Check size={16} />
-                Saved!
+                <span>Saved!</span>
               </>
             ) : (
               <>
                 <Save size={16} />
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                <span>{isSaving ? 'Saving...' : 'Save'}</span>
               </>
             )}
           </button>
@@ -175,15 +195,26 @@ export default function SettingsTab() {
       </div>
 
       {/* Error Display */}
-      {(error || settingsError) && <div className="error-message">{error || settingsError}</div>}
+      {(error || settingsError) && (
+        <div className={styles.errorMessage}>
+          <AlertCircle className={styles.errorIcon} />
+          <div>
+            <p className="font-medium">Error</p>
+            <p className="text-error-400/80 text-sm mt-1">{error || settingsError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Horizontal Tabs */}
-      <div className="settings-tabs">
+      <div className={styles.settingsTabs} role="tablist">
         {SETTINGS_TABS.map((tab) => (
           <button
             key={tab.id}
-            className={`settings-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+            className={`${styles.settingsTabBtn} ${activeTab === tab.id ? styles.settingsTabBtnActive : ''}`}
             onClick={() => setActiveTab(tab.id)}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`${tab.id}-panel`}
           >
             <tab.icon size={18} />
             <span>{tab.label}</span>
@@ -192,10 +223,15 @@ export default function SettingsTab() {
       </div>
 
       {/* Tab Content */}
-      <div className="settings-content">
+      <div
+        className={styles.settingsContent}
+        role="tabpanel"
+        id={`${activeTab}-panel`}
+        aria-labelledby={activeTab}
+      >
         {isLoading ? (
-          <div className="loading-state">
-            <div className="spinner" />
+          <div className={styles.loadingState}>
+            <div className={styles.spinner} />
             <p>Loading settings...</p>
           </div>
         ) : (
@@ -224,158 +260,6 @@ export default function SettingsTab() {
           </>
         )}
       </div>
-
-      <style jsx>{`
-        .settings-tab {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-          padding: 1rem;
-        }
-
-        .settings-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
-
-        .settings-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #f8fafc;
-          margin: 0;
-        }
-
-        .settings-subtitle {
-          font-size: 0.875rem;
-          color: #94a3b8;
-          margin: 0.25rem 0 0 0;
-        }
-
-        .settings-actions {
-          display: flex;
-          gap: 0.75rem;
-        }
-
-        .btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.625rem 1rem;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: none;
-        }
-
-        .btn-primary {
-          background: #3b82f6;
-          color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          background: #2563eb;
-        }
-
-        .btn-secondary {
-          background: #334155;
-          color: #f8fafc;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-          background: #475569;
-        }
-
-        .btn-success {
-          background: #22c55e;
-          color: white;
-        }
-
-        .btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .error-message {
-          padding: 1rem;
-          background: rgba(239, 68, 68, 0.1);
-          border: 1px solid rgba(239, 68, 68, 0.3);
-          border-radius: 0.5rem;
-          color: #f87171;
-          font-size: 0.875rem;
-        }
-
-        .settings-tabs {
-          display: flex;
-          gap: 0.5rem;
-          border-bottom: 1px solid #334155;
-          padding-bottom: 0;
-          overflow-x: auto;
-        }
-
-        .settings-tab-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.25rem;
-          background: transparent;
-          border: none;
-          border-bottom: 2px solid transparent;
-          color: #94a3b8;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          white-space: nowrap;
-        }
-
-        .settings-tab-btn:hover {
-          color: #f8fafc;
-          background: rgba(255, 255, 255, 0.05);
-        }
-
-        .settings-tab-btn.active {
-          color: #3b82f6;
-          border-bottom-color: #3b82f6;
-        }
-
-        .settings-content {
-          background: #1e293b;
-          border: 1px solid #334155;
-          border-radius: 0.75rem;
-          padding: 1.5rem;
-          min-height: 300px;
-        }
-
-        .loading-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 3rem;
-          color: #94a3b8;
-          gap: 1rem;
-        }
-
-        .spinner {
-          width: 2rem;
-          height: 2rem;
-          border: 2px solid #334155;
-          border-top-color: #3b82f6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 }

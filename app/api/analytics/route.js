@@ -18,6 +18,10 @@ export async function GET(request) {
 
     const { firebaseUid } = auth.user;
 
+    // Get today's date range
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
     // Get basic statistics
     const totalCalls = await Recording.countDocuments({
       firebaseUid,
@@ -48,13 +52,66 @@ export async function GET(request) {
     const totalDurationSeconds = totalDuration[0]?.totalDuration || 0;
 
     // Get today's calls
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
     const todayCalls = await Recording.countDocuments({
       firebaseUid,
       type: 'call',
       recordedAt: { $gte: todayStart },
     });
+
+    // Get today's inbound calls (received calls)
+    const todayReceivedCalls = await Recording.countDocuments({
+      firebaseUid,
+      type: 'call',
+      direction: 'inbound',
+      recordedAt: { $gte: todayStart },
+    });
+
+    // Get today's missed calls (inbound calls with 0 duration)
+    const todayMissedCalls = await Recording.countDocuments({
+      firebaseUid,
+      type: 'call',
+      direction: 'inbound',
+      duration: { $eq: 0 },
+      recordedAt: { $gte: todayStart },
+    });
+
+    // Get today's total duration
+    const todayDuration = await Recording.aggregate([
+      {
+        $match: {
+          firebaseUid,
+          type: 'call',
+          duration: { $gt: 0 },
+          recordedAt: { $gte: todayStart },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalDuration: { $sum: '$duration' },
+        },
+      },
+    ]);
+
+    const todayDurationSeconds = todayDuration[0]?.totalDuration || 0;
+
+    // Calculate total storage used (sum of all file sizes)
+    const storageUsed = await Recording.aggregate([
+      {
+        $match: {
+          firebaseUid,
+          fileSize: { $gt: 0 },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSize: { $sum: '$fileSize' },
+        },
+      },
+    ]);
+
+    const totalStorageUsed = storageUsed[0]?.totalSize || 0;
 
     // Calculate success rate (calls with duration > 0)
     const successfulCalls = await Recording.countDocuments({
@@ -86,7 +143,11 @@ export async function GET(request) {
         totalDuration: totalDurationSeconds,
         averageCallDuration: totalCalls > 0 ? Math.round(totalDurationSeconds / totalCalls) : 0,
         todayCalls,
+        todayReceivedCalls,
+        todayMissedCalls,
+        todayDuration: todayDurationSeconds,
         successRate,
+        storageUsed: totalStorageUsed,
         recentCalls: recentCallsWithStatus,
       },
     });

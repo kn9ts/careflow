@@ -25,6 +25,9 @@ export {
 export { useCallManager, useOutgoingCall } from './useCallManager';
 export { useAudioRecorder } from './useAudioRecorder';
 
+// Initialization State Management
+export { useInitializationState, useInitializationNotifications } from './useInitializationState';
+
 // Third-party hooks
 export { useNotifications } from './useNotifications';
 

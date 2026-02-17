@@ -12,6 +12,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  PhoneCall,
+  TrendingUp,
 } from 'lucide-react';
 import styles from './DashboardSidebar.module.css';
 
@@ -39,30 +41,108 @@ export default function DashboardSidebar({ activeTab = 'dialer', onTabChange, cl
   );
 
   const menuItems = [
-    { id: 'dialer', icon: Phone, label: 'Dialer' },
-    { id: 'history', icon: History, label: 'Call History' },
-    { id: 'analytics', icon: BarChart2, label: 'Analytics' },
-    { id: 'recordings', icon: FileText, label: 'Recordings' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
+    {
+      id: 'dialer',
+      icon: Phone,
+      label: 'Dialer',
+      description: 'Make calls',
+      gradient: 'from-secondary-400 to-secondary-500',
+    },
+    {
+      id: 'history',
+      icon: History,
+      label: 'Call History',
+      description: 'View past calls',
+      gradient: 'from-primary-400 to-accent-400',
+    },
+    {
+      id: 'analytics',
+      icon: BarChart2,
+      label: 'Analytics',
+      description: 'View statistics',
+      gradient: 'from-purple-400 to-accent-400',
+    },
+    {
+      id: 'recordings',
+      icon: FileText,
+      label: 'Recordings',
+      description: 'Manage recordings',
+      gradient: 'from-success-400 to-secondary-400',
+    },
+    {
+      id: 'settings',
+      icon: Settings,
+      label: 'Settings',
+      description: 'Configure app',
+      gradient: 'from-navy-400 to-navy-500',
+    },
   ];
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggle }}>
-      <aside className={`sidebar ${isCollapsed ? styles.sidebarCollapsed : ''} ${className}`}>
-        <nav className={styles.sidebarNav}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ''} ${className}`}
+      >
+        {/* Logo/Brand Section */}
+        {!isCollapsed && (
+          <div className={styles.brandSection}>
+            <div className={styles.brandContent}>
+              <div className={styles.brandLogo}>
+                <PhoneCall className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className={styles.brandName}>CareFlow</h2>
+                <p className={styles.brandSubtitle}>Communication Hub</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav className={styles.sidebarNav} role="navigation" aria-label="Main navigation">
           {menuItems.map((item) => (
             <button
               key={item.id}
               className={`${styles.sidebarItem} ${activeTab === item.id ? styles.sidebarItemActive : ''}`}
               onClick={() => handleTabClick(item.id)}
               title={isCollapsed ? item.label : undefined}
+              data-tooltip={isCollapsed ? item.label : undefined}
+              aria-current={activeTab === item.id ? 'page' : undefined}
+              aria-label={item.label}
             >
               <item.icon className={styles.sidebarIcon} size={20} />
-              {!isCollapsed && <span className={styles.sidebarLabel}>{item.label}</span>}
+              {!isCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <span className={styles.sidebarLabel}>{item.label}</span>
+                </div>
+              )}
             </button>
           ))}
         </nav>
 
+        {/* Quick Stats - Only show when expanded */}
+        {!isCollapsed && (
+          <div className={styles.quickStats}>
+            <div className={styles.quickStatsCard}>
+              <div className={styles.quickStatsHeader}>
+                <TrendingUp className={styles.quickStatsIcon} />
+                <span className={styles.quickStatsTitle}>Today's Stats</span>
+              </div>
+              <div className={styles.quickStatsGrid}>
+                <div className={styles.quickStatsItem}>
+                  <p className={styles.quickStatsValue}>12</p>
+                  <p className={styles.quickStatsLabel}>Calls</p>
+                </div>
+                <div className={styles.quickStatsItem}>
+                  <p className={styles.quickStatsValue}>45m</p>
+                  <p className={styles.quickStatsLabel}>Talk Time</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer with collapse toggle */}
         <div className={styles.sidebarFooter}>
           <button
             className={styles.sidebarToggleBtn}
@@ -70,11 +150,11 @@ export default function DashboardSidebar({ activeTab = 'dialer', onTabChange, cl
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? (
-              <ChevronRight size={20} />
+              <ChevronRight size={18} />
             ) : (
               <>
-                <ChevronLeft size={20} />
-                {!isCollapsed && <span className={styles.sidebarToggleLabel}>Collapse</span>}
+                <ChevronLeft size={18} />
+                <span className={styles.sidebarToggleLabel}>Collapse</span>
               </>
             )}
           </button>

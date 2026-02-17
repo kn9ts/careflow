@@ -67,8 +67,10 @@ async function waitForWebRTCState(page, expectedState, timeout = 10000) {
 // =====================================================
 
 test.describe('SDP Offer/Answer Exchange', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext();
@@ -93,9 +95,7 @@ test.describe('SDP Offer/Answer Exchange', () => {
     await callerPage.click("[data-testid='call-button']");
 
     // Wait for SDP offer creation
-    const sdpOffer = await callerPage.evaluate(() => {
-      return window.__lastSdpOffer || null;
-    });
+    const sdpOffer = await callerPage.evaluate(() => window.__lastSdpOffer || null);
 
     // Verify SDP offer exists and has valid structure
     expect(sdpOffer).not.toBeNull();
@@ -117,9 +117,7 @@ test.describe('SDP Offer/Answer Exchange', () => {
     await calleePage.click("[data-testid='accept-call-button']");
 
     // Wait for SDP answer creation
-    const sdpAnswer = await calleePage.evaluate(() => {
-      return window.__lastSdpAnswer || null;
-    });
+    const sdpAnswer = await calleePage.evaluate(() => window.__lastSdpAnswer || null);
 
     // Verify SDP answer exists and has valid structure
     expect(sdpAnswer).not.toBeNull();
@@ -238,8 +236,10 @@ test.describe('SDP Offer/Answer Exchange', () => {
 // =====================================================
 
 test.describe('ICE Candidate Gathering', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext();
@@ -425,8 +425,10 @@ test.describe('ICE Candidate Gathering', () => {
 // =====================================================
 
 test.describe('PeerConnection State Transitions', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext();
@@ -606,8 +608,10 @@ test.describe('PeerConnection State Transitions', () => {
 // =====================================================
 
 test.describe('Media Stream Transmission', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     // Grant media permissions
@@ -791,8 +795,10 @@ test.describe('Media Stream Transmission', () => {
 // =====================================================
 
 test.describe('Async Operations & Cleanup', () => {
-  let callerContext, calleeContext;
-  let callerPage, calleePage;
+  let callerContext;
+  let calleeContext;
+  let callerPage;
+  let calleePage;
 
   test.beforeEach(async ({ browser }) => {
     callerContext = await browser.newContext({

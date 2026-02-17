@@ -1,63 +1,214 @@
 /* ErrorBoundary.module.css */
+/* Error Boundary and Error Display Component Styles */
 
-/* Component-specific styles that extend Tailwind */
+/* Error Page Container */
+.errorPage {
+  @apply flex items-center justify-center min-h-screen
+         bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900;
+}
 
+/* Decorative background */
+.errorPageBackground {
+  @apply absolute inset-0 overflow-hidden pointer-events-none;
+}
+
+.errorPageOrb1 {
+  @apply absolute top-0 left-0 w-96 h-96
+         bg-error-500/10 rounded-full blur-3xl
+         -translate-x-1/2 -translate-y-1/2;
+}
+
+.errorPageOrb2 {
+  @apply absolute bottom-0 right-0 w-96 h-96
+         bg-primary-500/10 rounded-full blur-3xl
+         translate-x-1/2 translate-y-1/2;
+}
+
+/* Error Container */
 .errorContainer {
-  @apply flex flex-col items-center justify-center min-h-[400px] px-8;
+  @apply relative flex flex-col items-center justify-center
+         min-h-[400px] px-8 py-12;
 }
 
 .errorContent {
-  @apply text-center max-w-[400px];
+  @apply text-center max-w-md;
 }
 
+/* Error Icon */
 .errorIconWrapper {
-  @apply mb-4;
+  @apply mb-6;
 }
 
+.errorIcon {
+  @apply w-20 h-20 mx-auto
+         bg-error-500/10 border border-error-500/20
+         rounded-2xl
+         flex items-center justify-center
+         text-error-400;
+}
+
+.errorIconPulse {
+  @apply errorIcon animate-pulse;
+}
+
+/* Error Text */
 .errorTitle {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-2xl font-bold text-white mb-3;
 }
 
 .errorMessage {
-  @apply text-gray-400 mb-6;
+  @apply text-navy-300 mb-6 leading-relaxed;
 }
 
+/* Error Details (expandable) */
 .errorDetails {
-  @apply text-left p-4 bg-gray-800 rounded-lg mb-6 text-sm cursor-pointer;
+  @apply w-full text-left p-4 mb-6
+         bg-navy-800/50 border border-white/10
+         rounded-xl
+         cursor-pointer
+         transition-all duration-300
+         hover:bg-navy-800/70 hover:border-white/15;
 }
 
 .errorSummary {
-  @apply text-gray-400 font-medium;
+  @apply text-navy-300 font-medium text-sm
+         flex items-center justify-between;
+}
+
+.errorSummaryIcon {
+  @apply w-4 h-4 text-navy-500 transition-transform duration-300;
+}
+
+.errorDetailsOpen .errorSummaryIcon {
+  @apply rotate-180;
 }
 
 .errorStack {
-  @apply text-red-400 mt-2 text-xs overflow-x-auto whitespace-pre-wrap;
+  @apply mt-3 pt-3 border-t border-white/10
+         text-error-300 text-xs font-mono
+         overflow-x-auto whitespace-pre-wrap
+         max-h-48;
 }
 
+/* Error Actions */
 .errorActions {
-  @apply flex gap-4 justify-center;
+  @apply flex flex-col sm:flex-row gap-3 justify-center;
 }
 
 .errorRetryBtn {
-  @apply inline-flex items-center gap-2 px-6 py-3 bg-primary-blue text-white rounded-lg font-medium transition-colors hover:bg-blue-700;
+  @apply inline-flex items-center justify-center gap-2
+         px-6 py-3
+         bg-gradient-to-r from-secondary-500 to-secondary-600
+         text-white rounded-xl font-medium
+         transition-all duration-300
+         hover:opacity-90 hover:shadow-glow-secondary
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         active:scale-[0.98];
 }
 
 .errorHomeBtn {
-  @apply inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-white rounded-lg font-medium transition-colors hover:bg-gray-600 no-underline;
+  @apply inline-flex items-center justify-center gap-2
+         px-6 py-3
+         bg-navy-700/50 border border-white/10
+         text-white rounded-xl font-medium
+         transition-all duration-300
+         hover:bg-navy-700 hover:border-white/20
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         no-underline;
 }
 
+/* Simple Error Display (inline) */
 .errorDisplay {
-  @apply flex flex-col items-center justify-center p-8 text-center;
+  @apply flex flex-col items-center justify-center p-8 text-center
+         bg-error-500/5 border border-error-500/20
+         rounded-xl;
 }
 
 .errorDisplayIcon {
-  @apply text-red-500 mb-4;
+  @apply w-12 h-12 mb-4 text-error-400;
 }
 
 .errorDisplayMessage {
-  @apply text-gray-400 mb-4;
+  @apply text-navy-300 mb-4 text-sm;
 }
 
 .errorDisplayRetry {
-  @apply inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white rounded border-0 cursor-pointer transition-colors hover:bg-blue-700;
+  @apply inline-flex items-center gap-2 px-4 py-2
+         bg-secondary-500 text-white
+         rounded-lg text-sm font-medium
+         border-0 cursor-pointer
+         transition-all duration-300
+         hover:bg-secondary-600
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50;
+}
+
+/* Error Alert (for inline errors) */
+.errorAlert {
+  @apply flex items-start gap-3 p-4
+         bg-error-500/10 border border-error-500/30
+         rounded-xl text-error-300 text-sm
+         animate-slide-down;
+}
+
+.errorAlertIcon {
+  @apply w-5 h-5 text-error-400 flex-shrink-0 mt-0.5;
+}
+
+.errorAlertContent {
+  @apply flex-1;
+}
+
+.errorAlertTitle {
+  @apply font-medium text-white mb-1;
+}
+
+.errorAlertMessage {
+  @apply text-error-300/80 text-sm;
+}
+
+/* Warning variant */
+.warningAlert {
+  @apply errorAlert bg-warning-500/10 border-warning-500/30 text-warning-300;
+}
+
+.warningAlertIcon {
+  @apply w-5 h-5 text-warning-400 flex-shrink-0 mt-0.5;
+}
+
+/* Info variant */
+.infoAlert {
+  @apply errorAlert bg-secondary-500/10 border-secondary-500/30 text-secondary-300;
+}
+
+.infoAlertIcon {
+  @apply w-5 h-5 text-secondary-400 flex-shrink-0 mt-0.5;
+}
+
+/* Success variant */
+.successAlert {
+  @apply errorAlert bg-success-500/10 border-success-500/30 text-success-300;
+}
+
+.successAlertIcon {
+  @apply w-5 h-5 text-success-400 flex-shrink-0 mt-0.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .errorContainer {
+    @apply px-4 py-8;
+  }
+
+  .errorTitle {
+    @apply text-xl;
+  }
+
+  .errorActions {
+    @apply flex-col w-full;
+  }
+
+  .errorRetryBtn,
+  .errorHomeBtn {
+    @apply w-full;
+  }
 }

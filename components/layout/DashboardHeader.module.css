@@ -1,49 +1,101 @@
 /* DashboardHeader.module.css */
+/* Component-specific styles that extend Tailwind design system */
 
-/* Component-specific styles that extend Tailwind */
-
+/* Header action button with notification badge support */
 .headerActionBtn {
   @apply relative;
 }
 
+/* Notification badge - using design system colors */
 .notificationBadge {
-  @apply absolute -top-1 -right-1;
+  @apply absolute -top-1 -right-1
+         min-w-5 h-5 px-1
+         bg-gradient-to-r from-primary-500 to-accent-500
+         rounded-full text-xs font-semibold text-white
+         flex items-center justify-center
+         shadow-glow-primary;
 }
 
+/* User avatar with design system ring color */
 .userAvatar {
-  @apply w-8 h-8 rounded-full object-cover flex-shrink-0;
+  @apply w-9 h-9 rounded-full object-cover flex-shrink-0
+         ring-2 ring-secondary-400/30;
 }
 
+/* User name display */
 .userName {
-  @apply text-sm font-medium max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap;
+  @apply text-sm font-medium
+         max-w-40 overflow-hidden text-ellipsis whitespace-nowrap
+         text-navy-100;
 }
 
+/* Dropdown wrapper for positioning */
 .dropdownWrapper {
   @apply relative;
 }
 
+/* Dropdown backdrop for click-outside behavior */
 .dropdownBackdrop {
   @apply fixed inset-0 z-40;
 }
 
+/* Dropdown menu with design system styling */
 .dropdownMenu {
-  @apply absolute right-0 min-w-[240px] bg-background-card border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden;
+  @apply absolute right-0 mt-2
+         w-72 min-w-72
+         bg-navy-800/95 backdrop-blur-xl
+         border border-white/10
+         rounded-xl shadow-dropdown
+         z-50 overflow-hidden
+         animate-scale-in origin-top-right;
 }
 
+/* Dropdown header section */
 .dropdownHeader {
-  @apply p-4 border-b border-white/10;
+  @apply p-4 border-b border-white/10
+         bg-navy-800/50;
 }
 
+.dropdownHeader h3 {
+  @apply text-sm font-semibold text-white;
+}
+
+/* Dropdown body with scrollable content */
 .dropdownBody {
-  @apply p-2;
+  @apply p-2 max-h-80 overflow-y-auto;
 }
 
+.dropdownBody button {
+  @apply flex items-center gap-3 w-full px-4 py-3
+         bg-transparent border-0 rounded-lg
+         text-navy-200 text-sm
+         cursor-pointer transition-all duration-300
+         hover:bg-navy-700/50 hover:text-white
+         text-left
+         focus:outline-none focus:bg-navy-700/50;
+}
+
+/* Dropdown footer section */
 .dropdownFooter {
-  @apply p-2 border-t border-white/10;
+  @apply p-2 border-t border-white/10
+         bg-navy-800/50;
 }
 
+.dropdownFooter button {
+  @apply flex items-center justify-center w-full px-4 py-3
+         bg-transparent text-secondary-400 text-sm
+         cursor-pointer transition-all duration-300
+         hover:bg-navy-700/50 hover:text-secondary-300
+         rounded-lg
+         focus:outline-none focus:bg-navy-700/50;
+}
+
+/* Notification item styling */
 .notificationItem {
-  @apply flex flex-col gap-1 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-700;
+  @apply flex flex-col gap-1 px-3 py-3 rounded-lg
+         cursor-pointer transition-all duration-300
+         hover:bg-navy-700/50
+         border-l-2 border-transparent hover:border-secondary-400;
 }
 
 .notificationContent {
@@ -55,13 +107,63 @@
 }
 
 .notificationMessage {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-navy-300;
 }
 
 .notificationTime {
-  @apply text-[0.65rem] text-gray-500;
+  @apply text-xs text-navy-400 mt-1;
 }
 
+/* Logout button with error color */
 .logoutBtn {
-  @apply text-red-500 hover:text-red-400;
+  @apply text-error-400 hover:text-error-300 hover:bg-error-500/10 !important;
+}
+
+/* User menu button styling */
+.userMenuBtn {
+  @apply flex items-center gap-3 px-3 py-2
+         bg-navy-700/50 hover:bg-navy-700
+         border border-white/10 hover:border-white/20
+         rounded-xl text-white
+         cursor-pointer transition-all duration-300
+         focus:outline-none focus:ring-2 focus:ring-secondary-400/50;
+}
+
+/* User avatar placeholder with gradient */
+.userAvatarPlaceholder {
+  @apply w-9 h-9 rounded-full
+         bg-gradient-to-br from-secondary-500 to-purple-500
+         flex items-center justify-center
+         text-white text-sm font-medium;
+}
+
+/* Quick dial button with primary gradient */
+.quickDialBtn {
+  @apply flex items-center gap-2 px-4 py-2.5 h-11
+         bg-gradient-to-r from-primary-500 to-accent-500
+         hover:opacity-90
+         text-white text-sm font-medium
+         rounded-xl
+         transition-all duration-300
+         shadow-glow-primary hover:shadow-glow-accent
+         focus:outline-none focus:ring-2 focus:ring-secondary-400/50;
+}
+
+/* Notification icon container styles */
+.notificationIconCall {
+  @apply w-8 h-8 rounded-full
+         bg-primary-500/20
+         flex items-center justify-center flex-shrink-0;
+}
+
+.notificationIconVoicemail {
+  @apply w-8 h-8 rounded-full
+         bg-secondary-500/20
+         flex items-center justify-center flex-shrink-0;
+}
+
+.notificationIconSystem {
+  @apply w-8 h-8 rounded-full
+         bg-purple-500/20
+         flex items-center justify-center flex-shrink-0;
 }

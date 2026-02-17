@@ -1,6 +1,5 @@
 /* LoadingComponents.module.css */
-
-/* Component-specific styles that extend Tailwind */
+/* Loading and Skeleton Component Styles */
 
 /* Skeleton animation */
 @keyframes skeletonLoading {
@@ -12,20 +11,40 @@
   }
 }
 
-.skeletonLine {
-  @apply rounded;
-  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+/* Base skeleton */
+.skeleton {
+  @apply relative overflow-hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 58, 95, 0.3) 0%,
+    rgba(30, 58, 95, 0.5) 50%,
+    rgba(30, 58, 95, 0.3) 100%
+  );
   background-size: 200% 100%;
   animation: skeletonLoading 1.5s ease-in-out infinite;
 }
 
+.skeletonLine {
+  @apply skeleton rounded-lg h-4 w-full;
+}
+
 /* Card Skeleton */
 .cardSkeleton {
-  @apply bg-background-card border border-white/10 rounded-xl p-6;
+  @apply bg-navy-800/50 border border-white/10
+         rounded-xl p-6
+         shadow-card;
 }
 
 .cardSkeletonHeader {
-  @apply mb-4;
+  @apply mb-4 pb-4 border-b border-white/5;
+}
+
+.cardSkeletonTitle {
+  @apply skeleton rounded-lg h-6 w-1/3 mb-2;
+}
+
+.cardSkeletonSubtitle {
+  @apply skeleton rounded-lg h-4 w-1/2;
 }
 
 .cardSkeletonBody {
@@ -33,7 +52,11 @@
 }
 
 .cardSkeletonRow {
-  @apply flex justify-between;
+  @apply flex justify-between items-center;
+}
+
+.cardSkeletonItem {
+  @apply skeleton rounded-lg h-4;
 }
 
 /* Table Skeleton */
@@ -42,20 +65,67 @@
 }
 
 .tableSkeletonHeader {
-  @apply grid grid-cols-4 gap-4 p-4 bg-background-card rounded-lg;
+  @apply grid grid-cols-4 gap-4 p-4
+         bg-navy-800/50 border border-white/5
+         rounded-xl;
 }
 
 .tableSkeletonRow {
-  @apply grid grid-cols-4 gap-4 px-4 py-3 bg-background-dark rounded-lg;
+  @apply grid grid-cols-4 gap-4 px-4 py-3
+         bg-navy-800/30 border border-white/5
+         rounded-lg
+         transition-colors hover:bg-navy-800/50;
+}
+
+.tableSkeletonCell {
+  @apply skeleton rounded-lg h-4;
 }
 
 /* Loading Bar */
 .loadingBar {
-  @apply w-full h-1 bg-gray-200 rounded-full overflow-hidden;
+  @apply w-full h-1
+         bg-navy-700 rounded-full
+         overflow-hidden;
 }
 
 .loadingBarFill {
-  @apply h-full bg-primary-blue transition-all duration-300;
+  @apply h-full rounded-full
+         bg-gradient-to-r from-secondary-500 via-purple-500 to-secondary-500
+         transition-all duration-300;
+  background-size: 200% 100%;
+  animation: loadingBarMove 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingBarMove {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Spinner */
+.spinner {
+  @apply w-8 h-8 rounded-full
+         border-2 border-navy-600 border-t-secondary-400
+         animate-spin;
+}
+
+.spinnerSmall {
+  @apply spinner w-4 h-4;
+}
+
+.spinnerLarge {
+  @apply spinner w-12 h-12 border-4;
+}
+
+.spinnerPrimary {
+  @apply spinner border-t-primary-400;
+}
+
+.spinnerSuccess {
+  @apply spinner border-t-success-400;
 }
 
 /* Dots animation */
@@ -70,6 +140,112 @@
   }
 }
 
+.dotsLoader {
+  @apply flex gap-1 items-center justify-center;
+}
+
 .dotsLoader .dot {
+  @apply w-2 h-2 rounded-full
+         bg-secondary-400;
   animation: dotsBounce 1.4s ease-in-out infinite both;
+}
+
+.dotsLoader .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dotsLoader .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.dotsLoader .dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulseLoader {
+  @apply flex items-center justify-center;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Page loader */
+.pageLoader {
+  @apply flex flex-col items-center justify-center
+         min-h-screen
+         bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900;
+}
+
+.pageLoaderContent {
+  @apply text-center;
+}
+
+.pageLoaderLogo {
+  @apply w-16 h-16 mx-auto mb-6
+         bg-gradient-primary rounded-2xl
+         flex items-center justify-center
+         shadow-glow-primary
+         animate-pulse;
+}
+
+.pageLoaderText {
+  @apply text-navy-300 text-sm mt-4;
+}
+
+/* Inline loader */
+.inlineLoader {
+  @apply flex items-center gap-2 text-navy-400;
+}
+
+.inlineLoaderText {
+  @apply text-sm;
+}
+
+/* Skeleton variants */
+.skeletonDark {
+  @apply skeleton;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 39, 68, 0.5) 0%,
+    rgba(15, 39, 68, 0.7) 50%,
+    rgba(15, 39, 68, 0.5) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.skeletonLight {
+  @apply skeleton;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Circle skeleton */
+.skeletonCircle {
+  @apply skeleton rounded-full;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .cardSkeleton {
+    @apply p-4;
+  }
+
+  .tableSkeletonHeader,
+  .tableSkeletonRow {
+    @apply grid-cols-2 gap-2;
+  }
 }

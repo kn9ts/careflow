@@ -9,13 +9,20 @@
  * - Added care4Id display with copy-to-clipboard
  * - Added authentication status display
  * - Added WebRTC/Twilio service status indicators
+ * - Integrated InitializationStatus component for real-time progress
  */
 
 import { useCallback, useState } from 'react';
 import CallStatus, { ConnectionStatusBadge } from '@/components/dashboard/CallStatus';
 import CallControls from '@/components/dashboard/CallControls';
 import DialPad from '@/components/dashboard/DialPad';
+import InitializationStatus, {
+  InitializationStatusInline,
+} from '@/components/dashboard/InitializationStatus';
+import QuickStats from '@/components/dashboard/QuickStats';
 import { CardSkeleton } from '@/components/common/Loading/LoadingComponents';
+import { useInitializationState } from '@/hooks';
+import styles from './DialerTab.module.css';
 
 export default function DialerTab({
   callManager,
@@ -23,6 +30,7 @@ export default function DialerTab({
   analytics,
   analyticsError,
   analyticsLoading,
+  onRefreshAnalytics,
   // Auth state props
   user,
   authLoading,
@@ -37,6 +45,9 @@ export default function DialerTab({
     retryInitialization,
     care4wId,
   } = callManager;
+
+  // Get reactive initialization state from the state manager
+  const initState = useInitializationState();
 
   // Determine authentication status
   const isAuthenticated = !!user;
@@ -100,97 +111,157 @@ export default function DialerTab({
   const handleRetry = useCallback(() => {
     if (retryInitialization) {
       retryInitialization();
+    } else if (initState.canRetry) {
+      initState.retry();
     }
-  }, [retryInitialization]);
+  }, [retryInitialization, initState]);
 
-  const formatDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Show loading state during initialization with new InitializationStatus component
+  if (initState.isInitializing && !analyticsLoading) {
+    return (
+      <div className={styles.dialerTab}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingLeft}>
+            {/* New Initialization Status Component */}
+            <InitializationStatus
+              state={initState.state}
+              stage={initState.stage}
+              stageLabel={initState.stageLabel}
+              mode={initState.mode}
+              errorCode={initState.errorCode}
+              error={initState.error}
+              retryCount={initState.retryCount}
+              canRetry={initState.canRetry}
+              isRetrying={initState.isRetrying}
+              onRetry={handleRetry}
+              variant="full"
+            />
+            <CardSkeleton />
+          </div>
+          <CardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state with retry option
+  if (initState.hasError && !initState.isRetrying) {
+    return (
+      <div className={styles.dialerTab}>
+        <div className={styles.errorContainer}>
+          <div className={styles.loadingLeft}>
+            {/* Error State with InitializationStatus */}
+            <InitializationStatus
+              state={initState.state}
+              stage={initState.stage}
+              stageLabel={initState.stageLabel}
+              mode={initState.mode}
+              errorCode={initState.errorCode}
+              error={initState.error}
+              retryCount={initState.retryCount}
+              canRetry={initState.canRetry}
+              isRetrying={initState.isRetrying}
+              onRetry={handleRetry}
+              variant="full"
+            />
+          </div>
+          <CardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state during initialization
   if (connectionState?.isInitializing && !analyticsLoading) {
     return (
-      <div className="dialer-tab">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            {/* Initialization Status */}
-            <div className="bg-background-card rounded-xl border border-white/10 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary-red" />
-                <h2 className="text-xl font-semibold text-white">Initializing Call System</h2>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                {connectionState.message || 'Please wait while we set up the call system...'}
-              </p>
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-primary-red h-2 rounded-full animate-pulse"
-                  style={{ width: '60%' }}
-                />
-              </div>
-            </div>
-            <CardSkeleton />
-          </div>
-          <CardSkeleton />
-        </div>
-
-        <style jsx>{`
-          .dialer-tab {
-            padding: 1rem;
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  if (analyticsLoading) {
-    return (
-      <div className="dialer-tab">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
+      <div className={styles.dialerTab}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingLeft}>
             <CardSkeleton />
             <CardSkeleton />
             <CardSkeleton />
           </div>
           <CardSkeleton />
         </div>
-
-        <style jsx>{`
-          .dialer-tab {
-            padding: 1rem;
-          }
-        `}</style>
       </div>
     );
   }
+
+  // Get status dot class based on connection state
+  const getStatusDotClass = () => {
+    switch (connectionState?.state) {
+      case 'ready':
+        return styles.statusReady;
+      case 'failed':
+        return styles.statusFailed;
+      default:
+        return styles.statusConnecting;
+    }
+  };
 
   return (
-    <div className="dialer-tab">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className={styles.dialerTab}>
+      <div className={styles.dialerGrid}>
         {/* Left Column - Call Controls */}
-        <div className="space-y-6">
-          {/* Connection Status Badge (for failed/initializing states) */}
-          {connectionState && connectionState.state !== 'ready' && (
-            <div className="mb-2">
-              <ConnectionStatusBadge connectionState={connectionState} />
-            </div>
+        <div className={styles.leftColumn}>
+          {/* Initialization Status Label - Shows real-time progress above Call Mode */}
+          {!initState.isInitialized && (
+            <InitializationStatus
+              state={initState.state}
+              stage={initState.stage}
+              stageLabel={initState.stageLabel}
+              mode={initState.mode}
+              errorCode={initState.errorCode}
+              error={initState.error}
+              retryCount={initState.retryCount}
+              canRetry={initState.canRetry}
+              isRetrying={initState.isRetrying}
+              onRetry={handleRetry}
+              variant="compact"
+            />
           )}
 
-          {/* Call Status */}
-          <CallStatus
-            status={callStatus}
-            duration={callDuration}
-            phoneNumber={phoneNumber}
-            error={callError}
-            connectionState={connectionState}
-            onRetry={handleRetry}
-            care4Id={care4wId}
-            isAuthenticated={isAuthenticated}
-            authLoading={authLoadingState}
-            serviceStatus={serviceStatus}
-          />
+          {/* Call Mode Info - Moved to left column above dialer */}
+          <div className={styles.callModeCard}>
+            <div className={styles.callModeHeader}>
+              <div className={styles.callModeTitle}>
+                <div className={styles.callModeIcon}>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </div>
+                <span className={styles.callModeLabel}>Call Mode</span>
+              </div>
+              {/* Inline status badge */}
+              <InitializationStatusInline
+                state={initState.state}
+                mode={initState.mode}
+                error={initState.error}
+              />
+            </div>
+            <div className={styles.callModeStatus}>
+              <div className={styles.statusIndicator}>
+                <span className={`${styles.statusDot} ${getStatusDotClass()}`} />
+                <span className={styles.statusText}>
+                  {connectionState?.state === 'ready'
+                    ? 'Ready'
+                    : connectionState?.state || 'Unknown'}
+                </span>
+              </div>
+              <div className={styles.serviceBadge}>
+                {serviceStatus?.mode === 'twilio' ? 'Twilio Voice' : 'WebRTC'}
+              </div>
+            </div>
+          </div>
 
           {/* Dial Pad */}
           <DialPad
@@ -218,96 +289,38 @@ export default function DialerTab({
           />
         </div>
 
-        {/* Right Column - Quick Stats */}
-        <div className="quick-stats-card">
-          <h2 className="text-xl font-semibold text-white mb-4">Quick Stats</h2>
-
-          {analyticsError ? (
-            <div className="text-red-400 text-sm">{analyticsError}</div>
-          ) : analytics ? (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="stat-item">
-                  <p className="stat-label">Total Calls</p>
-                  <p className="stat-value">{analytics.totalCalls || 0}</p>
-                </div>
-                <div className="stat-item">
-                  <p className="stat-label">Total Duration</p>
-                  <p className="stat-value">
-                    {Math.round((analytics.totalDuration || 0) / 60)} min
-                  </p>
-                </div>
-                <div className="stat-item">
-                  <p className="stat-label">Success Rate</p>
-                  <p className="stat-value success">{analytics.successRate || 0}%</p>
-                </div>
-                <div className="stat-item">
-                  <p className="stat-label">Today's Calls</p>
-                  <p className="stat-value">{analytics.todayCalls || 0}</p>
-                </div>
-              </div>
-
-              {/* Call Mode Info */}
-              {connectionState && (
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <p className="text-gray-400 text-sm mb-2">Call Mode</p>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        connectionState.state === 'ready'
-                          ? 'bg-green-400'
-                          : connectionState.state === 'failed'
-                            ? 'bg-red-400'
-                            : 'bg-yellow-400'
-                      }`}
-                    />
-                    <span className="text-white text-sm capitalize">
-                      {connectionState.state === 'ready' ? 'Ready' : connectionState.state}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-gray-400">Loading stats...</div>
+        {/* Right Column - Call Status & Quick Stats */}
+        <div className={styles.rightColumn}>
+          {/* Connection Status Badge (for failed/initializing states) */}
+          {connectionState && connectionState.state !== 'ready' && (
+            <div className="mb-2">
+              <ConnectionStatusBadge connectionState={connectionState} />
+            </div>
           )}
+
+          {/* Call Status - Moved to right column */}
+          <CallStatus
+            status={callStatus}
+            duration={callDuration}
+            phoneNumber={phoneNumber}
+            error={callError}
+            connectionState={connectionState}
+            onRetry={handleRetry}
+            care4Id={care4wId}
+            isAuthenticated={isAuthenticated}
+            authLoading={authLoadingState}
+            serviceStatus={serviceStatus}
+          />
+
+          <QuickStats
+            analytics={analytics}
+            analyticsError={analyticsError}
+            analyticsLoading={analyticsLoading}
+            onRefresh={onRefreshAnalytics}
+            autoRefreshInterval={60000} // 1 minute
+          />
         </div>
       </div>
-
-      <style jsx>{`
-        .dialer-tab {
-          padding: 1rem;
-        }
-
-        .quick-stats-card {
-          background: #1e293b;
-          border: 1px solid #334155;
-          border-radius: 0.75rem;
-          padding: 1.5rem;
-        }
-
-        .stat-item {
-          background: #0f172a;
-          border-radius: 0.5rem;
-          padding: 1rem;
-        }
-
-        .stat-label {
-          color: #94a3b8;
-          font-size: 0.875rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .stat-value {
-          color: white;
-          font-size: 1.5rem;
-          font-weight: 700;
-        }
-
-        .stat-value.success {
-          color: #4ade80;
-        }
-      `}</style>
     </div>
   );
 }

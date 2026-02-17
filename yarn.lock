@@ -8535,6 +8535,11 @@ synckit@^0.11.12, synckit@^0.11.8:
   dependencies:
     "@pkgr/core" "^0.2.9"
 
+tailwind-scrollbar@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.npmjs.org/tailwind-scrollbar/-/tailwind-scrollbar-3.1.0.tgz"
+  integrity sha512-pmrtDIZeHyu2idTejfV59SbaJyvp1VRjYxAjZBH0jnyrPRo6HL1kD5Glz8VPagasqr6oAx6M05+Tuw429Z8jxg==
+
 tailwindcss@^3.4.17:
   version "3.4.19"
   resolved "https://registry.npmjs.org/tailwindcss/-/tailwindcss-3.4.19.tgz"

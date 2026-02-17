@@ -107,13 +107,11 @@ export function AuthProvider({ children }) {
                 }
                 return;
               }
-            } else {
-              if (isMounted) {
-                setCurrentUser(null);
-                setToken(null);
-                if (typeof window !== 'undefined') {
-                  sessionStorage.removeItem('careflow_token');
-                }
+            } else if (isMounted) {
+              setCurrentUser(null);
+              setToken(null);
+              if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('careflow_token');
               }
             }
 

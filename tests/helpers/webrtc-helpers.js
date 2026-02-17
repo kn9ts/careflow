@@ -630,13 +630,9 @@ function createMockWebRTCManager(options = {}) {
 
     getLocalStream: jest.fn(async () => createFakeMediaStream()),
 
-    createOffer: jest.fn(async (targetId) => {
-      return createTestOffer();
-    }),
+    createOffer: jest.fn(async (targetId) => createTestOffer()),
 
-    acceptCall: jest.fn(async (roomId, offer) => {
-      return createTestAnswer(offer);
-    }),
+    acceptCall: jest.fn(async (roomId, offer) => createTestAnswer(offer)),
 
     endCall: jest.fn(async () => {
       listeners.clear();

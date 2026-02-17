@@ -119,7 +119,12 @@ function DashboardContent() {
   const ActiveTabComponent = TABS.find((t) => t.id === activeTab)?.component;
 
   return (
-    <div className="dashboard-layout">
+    <div
+      className="dashboard-layout min-h-screen flex flex-col"
+      style={{
+        background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 30%, #134e4a 70%, #042f2e 100%)',
+      }}
+    >
       {/* Notifications Permission */}
       {notifications.isSupported && notifications.permission === 'default' && (
         <NotificationPermission onTokenRegistered={notifications.registerToken} />
@@ -129,12 +134,12 @@ function DashboardContent() {
       <DashboardHeader onOpenDialPad={handleOpenDialPad} />
 
       {/* Main Layout */}
-      <div className="dashboard-body">
+      <div className="dashboard-body flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <DashboardSidebar activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Tab Content */}
-        <main className="dashboard-main">
+        <main className="dashboard-main flex-1 flex flex-col overflow-hidden">
           <SidebarTabContent>
             {ActiveTabComponent && (
               <ActiveTabComponent

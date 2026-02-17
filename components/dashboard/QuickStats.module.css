@@ -1,0 +1,205 @@
+/* QuickStats.module.css */
+/* Quick Stats Component Styles - Aligned with Analytics.js Design */
+
+/* Main Card Container - Matches Analytics.js */
+.quickStatsCard {
+  @apply bg-navy-800/90 backdrop-blur-lg
+         rounded-xl border border-white/10
+         p-6 shadow-card;
+}
+
+/* Header */
+.quickStatsHeader {
+  @apply flex items-center justify-between gap-3 mb-6;
+}
+
+.quickStatsTitle {
+  @apply text-xl font-semibold text-white;
+}
+
+.quickStatsSubtitle {
+  @apply text-sm text-navy-400 mt-1;
+}
+
+.refreshButton {
+  @apply flex items-center justify-center
+         w-9 h-9 p-0
+         bg-secondary-500/20 hover:bg-secondary-500/30
+         text-secondary-400 hover:text-secondary-300
+         border border-secondary-500/30
+         rounded-lg cursor-pointer
+         transition-all duration-300
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Stats Grid - Matches Analytics.js grid layout */
+.statsGrid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+/* Stat Card - Matches Analytics.js bg-background-input pattern */
+.statCard {
+  @apply bg-navy-700/50 rounded-lg p-6
+         border border-white/5
+         transition-all duration-300
+         hover:border-white/10;
+}
+
+.statCardWide {
+  @apply md:col-span-2;
+}
+
+.statCardInner {
+  @apply flex items-center justify-between;
+}
+
+/* Stat Labels and Values - Matches Analytics.js typography */
+.statLabel {
+  @apply text-navy-400 text-sm mb-1;
+}
+
+.statValue {
+  @apply text-2xl font-bold text-white;
+}
+
+.statSubValue {
+  @apply text-navy-500 text-xs mt-1;
+}
+
+/* Icon Containers - Matches Analytics.js circular icons */
+.iconBgGreen {
+  @apply w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-success-500 text-white;
+}
+
+.iconBgRed {
+  @apply w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-error-500 text-white;
+}
+
+.iconBgOrange {
+  @apply w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-warning-500 text-white;
+}
+
+.iconBgBlue {
+  @apply w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-secondary-500 text-white;
+}
+
+.iconBgCyan {
+  @apply w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-accent-500 text-white;
+}
+
+.iconBgPurple {
+  @apply w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-purple-500 text-white;
+}
+
+/* Storage Progress */
+.storageProgressContainer {
+  @apply flex items-center gap-3 mt-3;
+}
+
+.storageProgressBar {
+  @apply flex-1 h-2
+         bg-navy-800 rounded-full
+         overflow-hidden;
+}
+
+.storageProgressFill {
+  @apply h-full rounded-full transition-all duration-300;
+}
+
+.storageProgressGreen {
+  @apply storageProgressFill bg-success-500;
+}
+
+.storageProgressYellow {
+  @apply storageProgressFill bg-warning-500;
+}
+
+.storageProgressRed {
+  @apply storageProgressFill bg-error-500;
+}
+
+.storagePercentage {
+  @apply text-navy-400 text-xs font-medium
+         min-w-[3rem] text-right;
+}
+
+/* Error State */
+.quickStatsError {
+  @apply flex flex-col items-center justify-center py-8;
+}
+
+.errorText {
+  @apply text-error-400 text-sm mb-3;
+}
+
+.retryButton {
+  @apply flex items-center gap-2 px-4 py-2 h-11
+         bg-secondary-500 hover:bg-secondary-600
+         text-white text-sm font-medium
+         rounded-lg cursor-pointer
+         transition-all duration-300
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400/50
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Loading State - Skeleton */
+.skeletonLabel {
+  @apply h-3 w-20 rounded bg-navy-600/50 animate-pulse mb-2;
+}
+
+.skeletonValue {
+  @apply h-7 w-16 rounded bg-navy-600/50 animate-pulse;
+}
+
+.skeletonIcon {
+  @apply w-12 h-12 rounded-full bg-navy-600/50 animate-pulse;
+}
+
+.skeletonProgress {
+  @apply h-2 w-full rounded bg-navy-600/50 animate-pulse mt-3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .quickStatsCard {
+    @apply p-4;
+  }
+
+  .statCard {
+    @apply p-4;
+  }
+
+  .statCardWide {
+    @apply col-span-1;
+  }
+
+  .statsGrid {
+    @apply grid-cols-1;
+  }
+
+  .statValue {
+    @apply text-xl;
+  }
+
+  .iconBgGreen,
+  .iconBgRed,
+  .iconBgOrange,
+  .iconBgBlue,
+  .iconBgCyan,
+  .iconBgPurple {
+    @apply w-10 h-10;
+  }
+}
