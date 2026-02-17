@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -9,7 +11,8 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  // Router available for future use
+  // const router = useRouter();
   const { resetPassword } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -51,10 +54,11 @@ export default function ForgotPasswordPage() {
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-accent-500/15 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
 
         {/* Scenery Background Image */}
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
           alt=""
-          className="w-full h-full object-cover opacity-30"
+          fill
+          className="object-cover opacity-30"
         />
 
         {/* Dark overlay for readability */}
@@ -289,7 +293,10 @@ export default function ForgotPasswordPage() {
         <div className="mt-6 text-center">
           <p className="text-navy-400 text-sm">
             Need help?{' '}
-            <a href="#" className="text-secondary-400 hover:text-secondary-300 transition-colors">
+            <a
+              href="/support"
+              className="text-secondary-400 hover:text-secondary-300 transition-colors"
+            >
               Contact Support
             </a>
           </p>

@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -130,10 +132,11 @@ export default function SignupPage() {
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-secondary-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
 
         {/* Scenery Background Image */}
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
           alt=""
-          className="w-full h-full object-cover opacity-30"
+          fill
+          className="object-cover opacity-30"
         />
 
         {/* Dark overlay for readability */}
@@ -439,14 +442,14 @@ export default function SignupPage() {
               <label htmlFor="terms" className="text-sm text-navy-300 cursor-pointer">
                 I agree to the{' '}
                 <a
-                  href="#"
+                  href="/terms"
                   className="text-secondary-400 hover:text-secondary-300 transition-colors"
                 >
                   Terms of Service
                 </a>{' '}
                 and{' '}
                 <a
-                  href="#"
+                  href="/privacy"
                   className="text-secondary-400 hover:text-secondary-300 transition-colors"
                 >
                   Privacy Policy
