@@ -1,6 +1,33 @@
 /* DashboardHeader.module.css */
 /* Component-specific styles that extend Tailwind design system */
 
+/* ============================================
+   HEADER CENTER SECTION
+   ============================================ */
+
+.headerCenter {
+  @apply flex items-center justify-center gap-4 flex-1;
+}
+
+/* Care ID Badge - refined styling */
+.careIdBadge {
+  @apply flex items-center gap-2 px-3 py-1.5
+         bg-gradient-to-r from-primary-500/10 to-accent-500/10
+         border border-primary-500/20
+         rounded-full
+         text-xs font-medium text-primary-300
+         transition-all duration-200
+         hover:border-primary-500/40 hover:from-primary-500/15 hover:to-accent-500/15;
+}
+
+.careIdBadge svg {
+  @apply text-primary-400;
+}
+
+/* ============================================
+   HEADER ACTION BUTTONS
+   ============================================ */
+
 /* Header action button with notification badge support */
 .headerActionBtn {
   @apply relative p-2 rounded-lg
@@ -19,18 +46,44 @@
          transform translate-x-1 -translate-y-1;
 }
 
+/* ============================================
+   USER MENU BUTTON
+   ============================================ */
+
 /* User avatar with design system ring color */
 .userAvatar {
-  @apply w-9 h-9 rounded-full object-cover flex-shrink-0
+  @apply w-8 h-8 rounded-full object-cover flex-shrink-0
          ring-2 ring-secondary-400/30;
 }
 
 /* User name display */
 .userName {
   @apply text-sm font-medium
-         max-w-40 overflow-hidden text-ellipsis whitespace-nowrap
+         max-w-32 overflow-hidden text-ellipsis whitespace-nowrap
          text-navy-100;
 }
+
+/* User menu button styling */
+.userMenuBtn {
+  @apply flex items-center gap-2.5 px-2.5 py-1.5
+         bg-navy-700/40 hover:bg-navy-700/60
+         border border-white/5 hover:border-white/10
+         rounded-full text-white
+         cursor-pointer transition-all duration-300
+         focus:outline-none focus:ring-2 focus:ring-secondary-400/50;
+}
+
+/* User avatar placeholder with gradient */
+.userAvatarPlaceholder {
+  @apply w-8 h-8 rounded-full
+         bg-gradient-to-br from-secondary-500 to-purple-500
+         flex items-center justify-center
+         text-white text-sm font-medium;
+}
+
+/* ============================================
+   DROPDOWN MENUS
+   ============================================ */
 
 /* Dropdown wrapper for positioning */
 .dropdownWrapper {
@@ -45,7 +98,7 @@
 /* Dropdown menu with design system styling */
 .dropdownMenu {
   @apply absolute right-0 mt-2
-         w-72 min-w-72
+         w-80 min-w-80
          bg-navy-800/95 backdrop-blur-xl
          border border-white/10
          rounded-xl shadow-xl
@@ -55,8 +108,8 @@
 
 /* Dropdown header section */
 .dropdownHeader {
-  @apply p-4 border-b border-white/10
-         bg-navy-800/50;
+  @apply p-4 border-b border-white/5
+         bg-navy-800/30;
 }
 
 .dropdownHeader h3 {
@@ -80,8 +133,8 @@
 
 /* Dropdown footer section */
 .dropdownFooter {
-  @apply p-2 border-t border-white/10
-         bg-navy-800/50;
+  @apply p-2 border-t border-white/5
+         bg-navy-800/30;
 }
 
 .dropdownFooter button {
@@ -92,6 +145,84 @@
          rounded-lg
          focus:outline-none focus:bg-navy-700/50;
 }
+
+/* Logout button with error color */
+.logoutBtn {
+  @apply text-error-400 hover:text-error-300 hover:bg-error-500/10 !important;
+}
+
+/* ============================================
+   USER INFO SECTION (Dropdown Header)
+   ============================================ */
+
+.userInfoHeader {
+  @apply flex items-center gap-3 mb-3;
+}
+
+.userAvatarLarge {
+  @apply w-12 h-12 rounded-full object-cover
+         ring-2 ring-secondary-400/30;
+}
+
+.userAvatarPlaceholderLarge {
+  @apply w-12 h-12 rounded-full
+         bg-gradient-to-br from-secondary-500 to-purple-500
+         flex items-center justify-center
+         text-white;
+}
+
+.userInfoText {
+  @apply flex flex-col gap-0.5 min-w-0 flex-1;
+}
+
+.userDisplayName {
+  @apply text-base font-semibold text-white truncate;
+}
+
+.userEmail {
+  @apply text-xs text-navy-400 truncate;
+}
+
+/* User Info Cards */
+.userInfoCards {
+  @apply flex flex-col gap-2;
+}
+
+.infoCard {
+  @apply flex items-center gap-2 px-3 py-2
+         bg-navy-700/30
+         border border-white/5
+         rounded-lg;
+}
+
+.infoCardLabel {
+  @apply text-xs text-navy-400 font-medium;
+}
+
+.infoCardValue {
+  @apply text-xs text-navy-200 font-mono ml-auto;
+}
+
+/* ============================================
+   QUICK DIAL BUTTON
+   ============================================ */
+
+/* Quick dial button with primary gradient */
+.quickDialBtn {
+  @apply relative flex items-center gap-2 px-4 py-2 h-10
+         bg-gradient-to-r from-primary-500 to-accent-500
+         hover:opacity-90 hover:scale-[1.02]
+         active:scale-100
+         text-white text-sm font-medium
+         rounded-full
+         transition-all duration-200
+         shadow-lg shadow-primary-500/25
+         focus:outline-none focus:ring-2 focus:ring-primary-400/50;
+}
+
+/* ============================================
+   NOTIFICATION ITEMS
+   ============================================ */
 
 /* Notification item styling */
 .notificationItem {
@@ -117,68 +248,6 @@
   @apply text-xs text-navy-400;
 }
 
-/* Logout button with error color */
-.logoutBtn {
-  @apply text-error-400 hover:text-error-300 hover:bg-error-500/10 !important;
-}
-
-/* User menu button styling */
-.userMenuBtn {
-  @apply flex items-center gap-3 px-3 py-2
-         bg-navy-700/50 hover:bg-navy-700
-         border border-white/10 hover:border-white/20
-         rounded-xl text-white
-         cursor-pointer transition-all duration-300
-         focus:outline-none focus:ring-2 focus:ring-secondary-400/50;
-}
-
-/* User avatar placeholder with gradient */
-.userAvatarPlaceholder {
-  @apply w-9 h-9 rounded-full
-         bg-gradient-to-br from-secondary-500 to-purple-500
-         flex items-center justify-center
-         text-white text-sm font-medium;
-}
-
-/* Quick dial button with primary gradient */
-.quickDialBtn {
-  @apply relative flex items-center gap-2 px-4 py-2.5 h-11
-         bg-gradient-to-r from-primary-500 to-accent-500
-         hover:opacity-90 hover:scale-105
-         active:scale-100
-         text-white text-sm font-medium
-         rounded-xl
-         transition-all duration-200
-         shadow-lg hover:shadow-xl
-         focus:outline-none focus:ring-2 focus:ring-secondary-400/50;
-}
-
-/* Tooltip for quick dial button */
-.quickDialTooltip {
-  @apply absolute -bottom-10 left-1/2 -translate-x-1/2
-         px-3 py-1.5
-         bg-navy-900 text-white text-xs font-medium
-         rounded-lg shadow-lg
-         opacity-0 invisible
-         transition-all duration-200
-         whitespace-nowrap
-         pointer-events-none;
-}
-
-.quickDialBtn:hover .quickDialTooltip {
-  @apply opacity-100 visible;
-}
-
-/* Label styling for Care ID display */
-.label {
-  @apply px-3 py-1.5
-         bg-navy-700/50
-         border border-white/10
-         rounded-lg
-         text-sm text-navy-200
-         font-medium;
-}
-
 /* Notification icon container styles */
 .notificationIconCall {
   @apply w-8 h-8 rounded-full
@@ -199,4 +268,18 @@
          bg-purple-500/20
          flex items-center justify-center flex-shrink-0
          border border-purple-500/30;
+}
+
+/* ============================================
+   LEGACY/COMPATIBILITY STYLES
+   ============================================ */
+
+/* Label styling - kept for backwards compatibility */
+.label {
+  @apply px-3 py-1.5
+         bg-navy-700/50
+         border border-white/10
+         rounded-lg
+         text-sm text-navy-200
+         font-medium;
 }

@@ -18,6 +18,8 @@ import {
   ChevronUp,
   LogOut,
   Menu,
+  Phone,
+  IdCard,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -86,9 +88,14 @@ export default function DashboardHeader({ className = '', onToggleSidebar }) {
         </div>
       </div>
 
-      <div className="header-center">
-        {/* Care ID Display */}
-        {user?.care4wId && <span className={styles.label}>Care ID: {user.care4wId}</span>}
+      <div className={styles.headerCenter}>
+        {/* Care ID Display - Desktop */}
+        {user?.care4wId && (
+          <div className={styles.careIdBadge}>
+            <IdCard className="w-3.5 h-3.5" />
+            <span>Care ID: {user.care4wId}</span>
+          </div>
+        )}
 
         {/* Quick Dial Button - Desktop */}
         <button
@@ -99,8 +106,6 @@ export default function DashboardHeader({ className = '', onToggleSidebar }) {
         >
           <PhoneIcon className="w-4 h-4" />
           <span>Quick Dial</span>
-          {/* Tooltip */}
-          <span className={styles.quickDialTooltip}>Open dial pad</span>
         </button>
       </div>
 
@@ -196,24 +201,41 @@ export default function DashboardHeader({ className = '', onToggleSidebar }) {
           {showUserMenu && (
             <div className={styles.dropdownMenu} role="menu">
               <div className={styles.dropdownHeader}>
-                <div className="flex items-center gap-3">
+                <div className={styles.userInfoHeader}>
                   {user?.photoURL ? (
                     <Image
                       src={user.photoURL}
                       alt=""
-                      width={40}
-                      height={40}
-                      className="rounded-full object-cover"
+                      width={48}
+                      height={48}
+                      className={styles.userAvatarLarge}
                     />
                   ) : (
-                    <div className={styles.userAvatarPlaceholder}>
-                      <User className="w-5 h-5" />
+                    <div className={styles.userAvatarPlaceholderLarge}>
+                      <User className="w-6 h-6" />
                     </div>
                   )}
-                  <div>
-                    <p className="text-sm font-medium text-white">{user?.displayName || 'User'}</p>
-                    <p className="text-xs text-navy-400">{user?.email}</p>
+                  <div className={styles.userInfoText}>
+                    <p className={styles.userDisplayName}>{user?.displayName || 'User'}</p>
+                    <p className={styles.userEmail}>{user?.email}</p>
                   </div>
+                </div>
+                {/* User Info Cards */}
+                <div className={styles.userInfoCards}>
+                  {user?.care4wId && (
+                    <div className={styles.infoCard}>
+                      <IdCard className="w-3.5 h-3.5 text-primary-400" />
+                      <span className={styles.infoCardLabel}>Care ID</span>
+                      <span className={styles.infoCardValue}>{user.care4wId}</span>
+                    </div>
+                  )}
+                  {user?.personalPhoneNumber && (
+                    <div className={styles.infoCard}>
+                      <Phone className="w-3.5 h-3.5 text-secondary-400" />
+                      <span className={styles.infoCardLabel}>Phone</span>
+                      <span className={styles.infoCardValue}>{user.personalPhoneNumber}</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className={styles.dropdownBody}>

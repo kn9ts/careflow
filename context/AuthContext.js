@@ -127,7 +127,7 @@ export function AuthProvider({ children }) {
                   sessionStorage.setItem('careflow_token', idToken);
                 }
 
-                // Fetch user's care4wId from database
+                // Fetch user's care4wId and phone from database
                 try {
                   const response = await fetch('/api/users/settings', {
                     headers: {
@@ -136,10 +136,11 @@ export function AuthProvider({ children }) {
                   });
                   if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.data?.settings?.care4wId) {
+                    if (data.success && data.data?.settings) {
                       setCurrentUser((prev) => ({
                         ...prev,
-                        care4wId: data.data.settings.care4wId,
+                        care4wId: data.data.settings.care4wId || null,
+                        personalPhoneNumber: data.data.settings.personalPhoneNumber || null,
                       }));
                     }
                   }
