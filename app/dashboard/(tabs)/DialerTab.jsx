@@ -72,7 +72,8 @@ export default function DialerTab({
   const initState = useInitializationState();
 
   // Determine authentication status
-  // Check both user object and token - token may exist in sessionStorage before user object is populated
+  // Check both user object and token - token may exist in
+  // sessionStorage before user object is populated
   const isAuthenticated = !!user || !!authToken;
   const authLoadingState = authLoading && !user && !authToken;
 
