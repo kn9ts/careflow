@@ -31,14 +31,36 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [token, setToken] = useState(null);
+  // Initialize state with sessionStorage values to prevent "Not authenticated" flash
+  // Using lazy initializers to read from sessionStorage synchronously on first render
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = sessionStorage.getItem('careflow_token');
+      if (storedToken) {
+        return {
+          uid: 'authenticated',
+          email: 'user@example.com',
+          displayName: 'User',
+        };
+      }
+    }
+    return null;
+  });
+  const [token, setToken] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('careflow_token') || null;
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Use ref to track if we already have a user (prevents "Not authenticated" flash)
-  const hasUserRef = useRef(false);
+  // Initialize based on whether we have a token in sessionStorage
+  const hasUserRef = useRef(
+    typeof window !== 'undefined' && !!sessionStorage.getItem('careflow_token')
+  );
 
   // Initialize authentication state
   useEffect(() => {
@@ -47,23 +69,10 @@ export function AuthProvider({ children }) {
 
     const initializeAuth = async () => {
       try {
-        // Check for existing token in sessionStorage as a fallback
-        const storedToken =
-          typeof window !== 'undefined' ? sessionStorage.getItem('careflow_token') : null;
-
         // Check if Firebase is configured
         if (!isFirebaseConfigured) {
           console.warn('Firebase not configured - skipping auth initialization');
           if (isMounted) {
-            // If we have a stored token, use it to indicate authenticated state
-            if (storedToken) {
-              setToken(storedToken);
-              setCurrentUser({
-                uid: 'authenticated',
-                email: 'user@example.com',
-                displayName: 'User',
-              });
-            }
             setLoading(false);
             setIsInitialized(true);
           }
@@ -76,15 +85,6 @@ export function AuthProvider({ children }) {
         if (!auth) {
           // SSR or auth not available
           if (isMounted) {
-            // If we have a stored token, use it to indicate authenticated state
-            if (storedToken) {
-              setToken(storedToken);
-              setCurrentUser({
-                uid: 'authenticated',
-                email: 'user@example.com',
-                displayName: 'User',
-              });
-            }
             setLoading(false);
             setIsInitialized(true);
           }
