@@ -69,6 +69,10 @@ export async function GET(request) {
         ...DEFAULT_SETTINGS.display,
         ...(user.display?.toObject?.() || user.display || {}),
       },
+      // Include personal phone number for dashboard phone check
+      personalPhoneNumber: user.personalPhoneNumber?.full || null,
+      // Include care4wId for display in header
+      care4wId: user.care4wId || null,
     };
 
     return successResponse({ settings });

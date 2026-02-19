@@ -126,6 +126,27 @@ export function AuthProvider({ children }) {
                 if (typeof window !== 'undefined') {
                   sessionStorage.setItem('careflow_token', idToken);
                 }
+
+                // Fetch user's care4wId from database
+                try {
+                  const response = await fetch('/api/users/settings', {
+                    headers: {
+                      Authorization: `Bearer ${idToken}`,
+                    },
+                  });
+                  if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data?.settings?.care4wId) {
+                      setCurrentUser((prev) => ({
+                        ...prev,
+                        care4wId: data.data.settings.care4wId,
+                      }));
+                    }
+                  }
+                } catch (settingsError) {
+                  console.warn('Could not fetch user settings:', settingsError);
+                  // Non-critical error, continue without care4wId
+                }
               } catch (tokenError) {
                 console.error('Error fetching user token:', tokenError);
                 if (isMounted) {
