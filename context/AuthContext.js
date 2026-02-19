@@ -18,6 +18,7 @@ import {
   getIdToken,
 } from 'firebase/auth';
 import { getAuthInstance, isConfigured as isFirebaseConfigured } from '@/lib/firebase';
+import { setAuthCookie, clearAuthCookie } from '@/app/actions/auth';
 
 const AuthContext = createContext(null);
 
@@ -43,10 +44,23 @@ export function AuthProvider({ children }) {
 
     const initializeAuth = async () => {
       try {
+        // Check for existing token in sessionStorage as a fallback
+        const storedToken =
+          typeof window !== 'undefined' ? sessionStorage.getItem('careflow_token') : null;
+
         // Check if Firebase is configured
         if (!isFirebaseConfigured) {
           console.warn('Firebase not configured - skipping auth initialization');
           if (isMounted) {
+            // If we have a stored token, use it to indicate authenticated state
+            if (storedToken) {
+              setToken(storedToken);
+              setCurrentUser({
+                uid: 'authenticated',
+                email: 'user@example.com',
+                displayName: 'User',
+              });
+            }
             setLoading(false);
             setIsInitialized(true);
           }
@@ -59,6 +73,15 @@ export function AuthProvider({ children }) {
         if (!auth) {
           // SSR or auth not available
           if (isMounted) {
+            // If we have a stored token, use it to indicate authenticated state
+            if (storedToken) {
+              setToken(storedToken);
+              setCurrentUser({
+                uid: 'authenticated',
+                email: 'user@example.com',
+                displayName: 'User',
+              });
+            }
             setLoading(false);
             setIsInitialized(true);
           }
@@ -199,15 +222,47 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     try {
       setError(null);
+      setLoading(true);
       const auth = getAuthInstance();
       if (!auth) {
         throw new Error('Authentication not available');
       }
       const result = await signInWithEmailAndPassword(auth, email, password);
-      return { success: true, user: result.user };
+      const user = result.user;
+
+      // Get the ID token
+      const idToken = await getIdToken(user);
+
+      // Update local state immediately for faster UI response
+      setCurrentUser({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+        phoneNumber: user.phoneNumber,
+      });
+      setToken(idToken);
+
+      // Store token in sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('careflow_token', idToken);
+      }
+
+      // Set the ID token as an HTTP-only cookie for server-side auth
+      try {
+        await setAuthCookie(idToken);
+      } catch (cookieError) {
+        console.error('Failed to set auth cookie:', cookieError);
+        // Continue anyway - client-side auth still works
+      }
+
+      setLoading(false);
+      return { success: true, user };
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message);
+      setLoading(false);
       return { success: false, error: err.message };
     }
   }, []);
@@ -215,6 +270,7 @@ export function AuthProvider({ children }) {
   const signup = useCallback(async (email, password, displayName) => {
     try {
       setError(null);
+      setLoading(true);
       const auth = getAuthInstance();
       if (!auth) {
         throw new Error('Authentication not available');
@@ -225,10 +281,39 @@ export function AuthProvider({ children }) {
         await updateProfile(result.user, { displayName });
       }
 
+      // Get the ID token
+      const idToken = await getIdToken(result.user);
+
+      // Update local state immediately for faster UI response
+      setCurrentUser({
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: displayName || result.user.displayName,
+        photoURL: result.user.photoURL,
+        emailVerified: result.user.emailVerified,
+        phoneNumber: result.user.phoneNumber,
+      });
+      setToken(idToken);
+
+      // Store token in sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('careflow_token', idToken);
+      }
+
+      // Set the ID token as an HTTP-only cookie for server-side auth
+      try {
+        await setAuthCookie(idToken);
+      } catch (cookieError) {
+        console.error('Failed to set auth cookie:', cookieError);
+        // Continue anyway - client-side auth still works
+      }
+
+      setLoading(false);
       return { success: true, user: result.user };
     } catch (err) {
       console.error('Signup error:', err);
       setError(err.message);
+      setLoading(false);
       return { success: false, error: err.message };
     }
   }, []);
@@ -245,6 +330,14 @@ export function AuthProvider({ children }) {
 
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('careflow_token');
+      }
+
+      // Clear the server-side cookie
+      try {
+        await clearAuthCookie();
+      } catch (cookieError) {
+        console.error('Failed to clear auth cookie:', cookieError);
+        // Continue anyway - client-side cleanup is done
       }
 
       return { success: true };
