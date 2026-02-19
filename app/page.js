@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/server-auth';
 
+// Force dynamic rendering since we use cookies for auth
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   // Server-side authentication check
   const user = await getServerUser();
