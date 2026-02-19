@@ -142,14 +142,41 @@
 
 /* Quick dial button with primary gradient */
 .quickDialBtn {
-  @apply flex items-center gap-2 px-4 py-2.5 h-11
+  @apply relative flex items-center gap-2 px-4 py-2.5 h-11
          bg-gradient-to-r from-primary-500 to-accent-500
-         hover:opacity-90
+         hover:opacity-90 hover:scale-105
+         active:scale-100
          text-white text-sm font-medium
          rounded-xl
          transition-all duration-200
          shadow-lg hover:shadow-xl
          focus:outline-none focus:ring-2 focus:ring-secondary-400/50;
+}
+
+/* Tooltip for quick dial button */
+.quickDialTooltip {
+  @apply absolute -bottom-10 left-1/2 -translate-x-1/2
+         px-3 py-1.5
+         bg-navy-900 text-white text-xs font-medium
+         rounded-lg shadow-lg
+         opacity-0 invisible
+         transition-all duration-200
+         whitespace-nowrap
+         pointer-events-none;
+}
+
+.quickDialBtn:hover .quickDialTooltip {
+  @apply opacity-100 visible;
+}
+
+/* Label styling for Care ID display */
+.label {
+  @apply px-3 py-1.5
+         bg-navy-700/50
+         border border-white/10
+         rounded-lg
+         text-sm text-navy-200
+         font-medium;
 }
 
 /* Notification icon container styles */

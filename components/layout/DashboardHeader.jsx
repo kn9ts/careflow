@@ -1,6 +1,7 @@
 /**
  * DashboardHeader Component
  * Self-contained header with user menu, notifications, and mode display
+ * Includes global dialer modal trigger button accessible from any dashboard page
  */
 
 'use client';
@@ -20,12 +21,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useDialerModal } from '@/context/DialerModalContext';
 import styles from './DashboardHeader.module.css';
 
-export default function DashboardHeader({ onOpenDialPad, className = '', onToggleSidebar }) {
+export default function DashboardHeader({ className = '', onToggleSidebar }) {
   const router = useRouter();
   const { user, logout, token } = useAuth();
   const { unregisterToken } = useNotifications({ token });
+  const { openModal } = useDialerModal();
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -84,30 +87,33 @@ export default function DashboardHeader({ onOpenDialPad, className = '', onToggl
       </div>
 
       <div className="header-center">
+        {/* Care ID Display */}
+        {user?.care4wId && <span className={styles.label}>Care ID: {user.care4wId}</span>}
+
         {/* Quick Dial Button - Desktop */}
-        {onOpenDialPad && (
-          <button
-            onClick={onOpenDialPad}
-            className={`hidden md:flex ${styles.quickDialBtn}`}
-            aria-label="Quick dial"
-          >
-            <PhoneIcon className="w-4 h-4" />
-            <span>Quick Dial</span>
-          </button>
-        )}
+        <button
+          onClick={openModal}
+          className={`hidden md:flex ${styles.quickDialBtn}`}
+          aria-label="Open dial pad"
+          title="Open dial pad (Quick access to make calls)"
+        >
+          <PhoneIcon className="w-4 h-4" />
+          <span>Quick Dial</span>
+          {/* Tooltip */}
+          <span className={styles.quickDialTooltip}>Open dial pad</span>
+        </button>
       </div>
 
       <div className="header-right">
         {/* Quick Dial Button - Mobile */}
-        {onOpenDialPad && (
-          <button
-            onClick={onOpenDialPad}
-            className={`btn-icon md:hidden ${styles.headerActionBtn}`}
-            aria-label="Open dial pad"
-          >
-            <PhoneIcon className="w-5 h-5" />
-          </button>
-        )}
+        <button
+          onClick={openModal}
+          className={`btn-icon md:hidden ${styles.headerActionBtn}`}
+          aria-label="Open dial pad"
+          title="Open dial pad"
+        >
+          <PhoneIcon className="w-5 h-5" />
+        </button>
 
         {/* Notifications */}
         <div className={styles.dropdownWrapper}>
