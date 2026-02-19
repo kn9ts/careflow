@@ -6,6 +6,8 @@
  * Now integrates with user audio settings for device selection and processing
  */
 
+'use client';
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AudioProcessor, RecordingUploader } from '@/lib/audioProcessor';
 import { logger } from '@/lib/logger';
@@ -44,6 +46,9 @@ export function useAudioRecorder(authToken, options = {}) {
   // This avoids circular dependency issues with direct context import
   const audioSettings = options.audioSettings || DEFAULT_AUDIO_SETTINGS;
 
+  // Define callback functions BEFORE the useEffect that uses them
+  // This avoids "Cannot access 'X' before initialization" errors
+
   // Enumerate audio devices
   const enumerateDevices = useCallback(async () => {
     try {
@@ -62,6 +67,72 @@ export function useAudioRecorder(authToken, options = {}) {
         'Could not enumerate devices:',
         error?.message || error || 'Unknown error'
       );
+    }
+  }, []);
+
+  // Check recording support
+  const checkRecordingSupport = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: audioSettings.inputDevice !== 'default' ? audioSettings.inputDevice : undefined,
+          echoCancellation: audioSettings.echoCancellation,
+          noiseSuppression: audioSettings.noiseSuppression,
+          autoGainControl: audioSettings.autoGainControl,
+        },
+      });
+      // Stop tracks immediately; we only needed permission / device info
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      logger.success('useAudioRecorder', 'Recording is supported');
+      setRecordingSupported(true);
+    } catch (error) {
+      logger.warn('useAudioRecorder', 'Recording not supported');
+      setRecordingSupported(false);
+    }
+  }, [audioSettings]);
+
+  // Start recording timer
+  const startRecordingTimer = useCallback(() => {
+    logger.debug('useAudioRecorder', 'Starting timer');
+    setRecordingDuration(0);
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingDuration((prev) => prev + 1);
+    }, 1000);
+  }, []);
+
+  // Stop recording timer
+  const stopRecordingTimer = useCallback(() => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    setRecordingDuration(0);
+  }, []);
+
+  // Upload recording
+  const uploadRecording = useCallback(async (recording) => {
+    if (!recordingUploaderRef.current) return false;
+
+    logger.loading('useAudioRecorder', 'Uploading recording...');
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      await recordingUploaderRef.current.uploadWithProgress(recording, (progress) => {
+        setUploadProgress(progress);
+      });
+      return true;
+    } catch (error) {
+      logger.error(
+        'useAudioRecorder',
+        `Upload failed: ${error?.message || error || 'Unknown error'}`
+      );
+      setRecordingError('Recording upload failed');
+      return false;
+    } finally {
+      setIsUploading(false);
     }
   }, []);
 
@@ -171,68 +242,6 @@ export function useAudioRecorder(authToken, options = {}) {
     stopRecordingTimer,
     uploadRecording,
   ]);
-
-  const checkRecordingSupport = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          deviceId: audioSettings.inputDevice !== 'default' ? audioSettings.inputDevice : undefined,
-          echoCancellation: audioSettings.echoCancellation,
-          noiseSuppression: audioSettings.noiseSuppression,
-          autoGainControl: audioSettings.autoGainControl,
-        },
-      });
-      // Stop tracks immediately; we only needed permission / device info
-      stream.getTracks().forEach((track) => {
-        track.stop();
-      });
-      logger.success('useAudioRecorder', 'Recording is supported');
-      setRecordingSupported(true);
-    } catch (error) {
-      logger.warn('useAudioRecorder', 'Recording not supported');
-      setRecordingSupported(false);
-    }
-  }, [audioSettings]);
-
-  const startRecordingTimer = useCallback(() => {
-    logger.debug('useAudioRecorder', 'Starting timer');
-    setRecordingDuration(0);
-    recordingTimerRef.current = setInterval(() => {
-      setRecordingDuration((prev) => prev + 1);
-    }, 1000);
-  }, []);
-
-  const stopRecordingTimer = useCallback(() => {
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
-    }
-    setRecordingDuration(0);
-  }, []);
-
-  const uploadRecording = useCallback(async (recording) => {
-    if (!recordingUploaderRef.current) return false;
-
-    logger.loading('useAudioRecorder', 'Uploading recording...');
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      await recordingUploaderRef.current.uploadWithProgress(recording, (progress) => {
-        setUploadProgress(progress);
-      });
-      return true;
-    } catch (error) {
-      logger.error(
-        'useAudioRecorder',
-        `Upload failed: ${error?.message || error || 'Unknown error'}`
-      );
-      setRecordingError('Recording upload failed');
-      return false;
-    } finally {
-      setIsUploading(false);
-    }
-  }, []);
 
   const startRecording = useCallback(async () => {
     if (!audioProcessorRef.current) {

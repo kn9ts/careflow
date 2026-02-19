@@ -3,6 +3,8 @@
  * Self-contained sidebar navigation with collapsible state
  */
 
+'use client';
+
 import { useState, useCallback, createContext, useContext } from 'react';
 import {
   Phone,
@@ -24,8 +26,21 @@ export function useSidebar() {
   return useContext(SidebarContext);
 }
 
-export default function DashboardSidebar({ activeTab = 'dialer', onTabChange, className = '' }) {
+export default function DashboardSidebar({
+  activeTab = 'dialer',
+  onTabChange,
+  className = '',
+  todayStats = null,
+}) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Default values when stats are not available
+  const totalCalls = todayStats?.totalCalls ?? 0;
+  const totalTalkTime = todayStats?.totalTalkTime ?? 0;
+  const talkTimeDisplay =
+    totalTalkTime >= 60
+      ? `${Math.floor(totalTalkTime / 60)}h ${totalTalkTime % 60}m`
+      : `${totalTalkTime}m`;
 
   const toggle = useCallback(() => {
     setIsCollapsed((prev) => !prev);
@@ -130,11 +145,11 @@ export default function DashboardSidebar({ activeTab = 'dialer', onTabChange, cl
               </div>
               <div className={styles.quickStatsGrid}>
                 <div className={styles.quickStatsItem}>
-                  <p className={styles.quickStatsValue}>12</p>
+                  <p className={styles.quickStatsValue}>{totalCalls}</p>
                   <p className={styles.quickStatsLabel}>Calls</p>
                 </div>
                 <div className={styles.quickStatsItem}>
-                  <p className={styles.quickStatsValue}>45m</p>
+                  <p className={styles.quickStatsValue}>{talkTimeDisplay}</p>
                   <p className={styles.quickStatsLabel}>Talk Time</p>
                 </div>
               </div>

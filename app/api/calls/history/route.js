@@ -21,10 +21,23 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 20;
     const type = searchParams.get('type'); // 'call' or 'voicemail'
+    const startDate = searchParams.get('startDate'); // Filter by start date (ISO string)
+    const endDate = searchParams.get('endDate'); // Filter by end date (ISO string)
 
     // Build query (only user's own recordings)
     const query = { firebaseUid: auth.user.firebaseUid };
     if (type) query.type = type;
+
+    // Date filtering
+    if (startDate || endDate) {
+      query.recordedAt = {};
+      if (startDate) {
+        query.recordedAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        query.recordedAt.$lte = new Date(endDate);
+      }
+    }
 
     // Fetch recordings with pagination
     const recordings = await Recording.find(query)

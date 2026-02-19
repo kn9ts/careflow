@@ -906,16 +906,16 @@
 @layer components {
   /* Dashboard Layout */
   .dashboard-layout {
-    @apply flex flex-col h-screen max-h-screen overflow-hidden
+    @apply flex flex-col h-[100dvh] overflow-hidden
            bg-background-light dark:bg-navy-900;
   }
 
   .dashboard-body {
-    @apply flex flex-1 h-full overflow-hidden;
+    @apply flex flex-1;
   }
 
   .dashboard-main {
-    @apply flex-1 flex flex-col h-full overflow-hidden;
+    @apply flex-1 flex flex-col overflow-y-auto;
   }
 
   .dashboard-content {
@@ -925,14 +925,15 @@
 
   /* Header */
   .header {
-    @apply flex items-center justify-between px-4 md:px-6 py-4
-           bg-white dark:bg-navy-800
-           border-b border-navy-100 dark:border-navy-700
-           flex-shrink-0;
+    @apply flex items-center justify-between px-4 md:px-6 py-3
+           bg-navy-800/90 backdrop-blur-md
+           border-b border-white/10
+           flex-shrink-0
+           relative z-50;
   }
 
   .header-left {
-    @apply flex items-center gap-4;
+    @apply flex items-center gap-3;
   }
 
   .header-center {
@@ -940,7 +941,7 @@
   }
 
   .header-right {
-    @apply flex items-center gap-3;
+    @apply flex items-center gap-2;
   }
 
   .brand {

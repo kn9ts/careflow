@@ -5,6 +5,8 @@
  * Provides settings state, loading/error states, and update functions.
  */
 
+'use client';
+
 import { useState, useEffect, useCallback, useContext, createContext } from 'react';
 import { useAuth } from '@/context/AuthContext';
 

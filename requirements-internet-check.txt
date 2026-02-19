@@ -1,0 +1,6 @@
+# Optional dependencies for Internet Restriction Checker
+# Install with: pip3 install -r requirements-internet-check.txt
+# Or: python3 -m pip install -r requirements-internet-check.txt
+
+requests>=2.25.0
+dnspython>=2.0.0

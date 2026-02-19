@@ -3,6 +3,8 @@
  * Catches and handles React component errors
  */
 
+'use client';
+
 import { Component } from 'react';
 import { RefreshCw, AlertCircle, Home } from 'lucide-react';
 import Link from 'next/link';

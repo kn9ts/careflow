@@ -12,6 +12,8 @@
  * - Integrated InitializationStatus component for real-time progress
  */
 
+'use client';
+
 import { useCallback, useState } from 'react';
 import CallStatus, { ConnectionStatusBadge } from '@/components/dashboard/CallStatus';
 import CallControls from '@/components/dashboard/CallControls';
@@ -21,32 +23,50 @@ import InitializationStatus, {
 } from '@/components/dashboard/InitializationStatus';
 import QuickStats from '@/components/dashboard/QuickStats';
 import { CardSkeleton } from '@/components/common/Loading/LoadingComponents';
-import { useInitializationState } from '@/hooks';
+import {
+  useInitializationState,
+  useCallManager,
+  useAudioRecorder,
+  useAuth,
+  useAnalytics,
+} from '@/hooks';
 import { InitErrorCode, ServiceState } from '@/lib/initializationStateManager';
 import styles from './DialerTab.module.css';
 
 export default function DialerTab({
-  callManager,
-  audioRecorder,
-  analytics,
-  analyticsError,
-  analyticsLoading,
-  onRefreshAnalytics,
-  // Auth state props
-  user,
-  authLoading,
-  authToken,
+  analytics: propAnalytics,
+  analyticsError: propAnalyticsError,
+  analyticsLoading: propAnalyticsLoading,
+  onRefreshAnalytics: propOnRefreshAnalytics,
 }) {
+  // Use hooks to get call manager, audio recorder, and auth state
+  const callManager = useCallManager();
+  const audioRecorder = useAudioRecorder();
+  const { user, loading: authLoading, token: authToken } = useAuth();
+
+  // Get analytics data - pass the auth token
   const {
-    callStatus,
-    callDuration,
-    phoneNumber,
-    callError,
-    isMuted,
-    connectionState,
-    retryInitialization,
-    care4wId,
-  } = callManager;
+    analytics: hookAnalytics,
+    error: analyticsError,
+    loading: analyticsLoading,
+    refresh: onRefreshAnalytics,
+  } = useAnalytics(authToken);
+
+  // Use props if provided, otherwise use hooks
+  const analytics = propAnalytics ?? hookAnalytics;
+  const analyticsLoadingFinal = propAnalyticsLoading ?? analyticsLoading;
+  const analyticsErrorFinal = propAnalyticsError ?? analyticsError;
+  const onRefreshAnalyticsFinal = propOnRefreshAnalytics ?? onRefreshAnalytics;
+
+  // Get call manager state (handle case where it might be null)
+  const callStatus = callManager?.callStatus || 'idle';
+  const callDuration = callManager?.callDuration || 0;
+  const phoneNumber = callManager?.phoneNumber || '';
+  const callError = callManager?.callError || null;
+  const isMuted = callManager?.isMuted || false;
+  const connectionState = callManager?.connectionState || null;
+  const retryInitialization = callManager?.retryInitialization || null;
+  const care4wId = callManager?.care4wId || null;
 
   // Get reactive initialization state from the state manager
   const initState = useInitializationState();
@@ -120,7 +140,7 @@ export default function DialerTab({
   }, [retryInitialization, initState]);
 
   // Show loading state during initialization with new InitializationStatus component
-  if (initState.isInitializing && !analyticsLoading) {
+  if (initState.isInitializing && !analyticsLoadingFinal) {
     return (
       <div className={styles.dialerTab}>
         <div className={styles.loadingContainer}>
@@ -182,7 +202,7 @@ export default function DialerTab({
   }
 
   // Show loading state during initialization
-  if (connectionState?.isInitializing && !analyticsLoading) {
+  if (connectionState?.isInitializing && !analyticsLoadingFinal) {
     return (
       <div className={styles.dialerTab}>
         <div className={styles.loadingContainer}>
@@ -345,9 +365,9 @@ export default function DialerTab({
 
           <QuickStats
             analytics={analytics}
-            analyticsError={analyticsError}
-            analyticsLoading={analyticsLoading}
-            onRefresh={onRefreshAnalytics}
+            analyticsError={analyticsErrorFinal}
+            analyticsLoading={analyticsLoadingFinal}
+            onRefresh={onRefreshAnalyticsFinal}
             autoRefreshInterval={60000} // 1 minute
           />
         </div>

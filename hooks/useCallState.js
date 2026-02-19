@@ -4,6 +4,8 @@
  * Following separation of concerns - state management only, no side effects
  */
 
+'use client';
+
 import {
   createContext,
   useContext,

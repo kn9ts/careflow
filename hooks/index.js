@@ -2,6 +2,9 @@
  * Hooks Barrel Export
  */
 
+// Authentication
+export { useAuth, AuthProvider } from '../context/AuthContext';
+
 // State Management
 export {
   useCallState,

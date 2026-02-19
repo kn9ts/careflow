@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState, useCallback } from 'react';
 import { requestNotificationPermission, getFCMToken, onMessageListener } from '@/lib/firebase';
 
@@ -60,6 +62,7 @@ function playNotificationSound(volume = 80) {
  * @param {Function} options.onNotification - Callback for notifications
  * @param {Object} options.notificationSettings - Notification settings from user preferences
  */
+
 export function useNotifications({ token, onIncomingCall, onNotification, notificationSettings }) {
   const [permission, setPermission] = useState('default');
   const [fcmToken, setFcmToken] = useState(null);

@@ -3,6 +3,8 @@
  * Self-contained header with user menu, notifications, and mode display
  */
 
+'use client';
+
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';

@@ -11,6 +11,8 @@
  * - Added browser notifications for initialization status
  */
 
+'use client';
+
 import { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useCallState } from './useCallState';
 import { useAuth } from '@/context/AuthContext';

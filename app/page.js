@@ -1,42 +1,22 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { getServerUser } from '@/lib/server-auth';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+export default async function HomePage() {
+  // Server-side authentication check
+  const user = await getServerUser();
 
-export default function HomePage() {
-  const { currentUser, loading } = useAuth();
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !loading && currentUser) {
-      router.push('/dashboard');
-    }
-  }, [mounted, loading, currentUser, router]);
-
-  if (loading || !mounted) {
-    return (
-      <div className="min-h-screen bg-gradient-diagonal flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-white" />
-      </div>
-    );
+  if (user) {
+    redirect('/dashboard');
   }
 
   return (
     <div className="min-h-screen bg-gradient-diagonal flex items-center justify-center px-4 relative overflow-hidden">
       {/* Scenery Background Image */}
       <div className="absolute inset-0 z-0">
-        <Image
+        <img
           src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
           alt="Beautiful mountain landscape"
-          fill
-          className="object-cover"
+          className="w-full h-full object-cover"
         />
         {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-navy-900/80" />
