@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -36,6 +36,9 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Use ref to track if we already have a user (prevents "Not authenticated" flash)
+  const hasUserRef = useRef(false);
 
   // Initialize authentication state
   useEffect(() => {
@@ -94,7 +97,11 @@ export function AuthProvider({ children }) {
           async (user) => {
             if (!isMounted) return;
 
-            setLoading(true);
+            // Don't reset loading if we already have a user - prevents "Not authenticated" flash
+            // Only set loading true if we're transitioning from no user to user (initial load)
+            if (!hasUserRef.current && user) {
+              setLoading(true);
+            }
             setError(null);
 
             if (user) {
@@ -113,6 +120,7 @@ export function AuthProvider({ children }) {
                   phoneNumber: user.phoneNumber,
                 });
                 setToken(idToken);
+                hasUserRef.current = true; // Mark that we have a user
 
                 // Store token in sessionStorage (more secure than localStorage)
                 if (typeof window !== 'undefined') {
@@ -124,6 +132,7 @@ export function AuthProvider({ children }) {
                   setError('Failed to load user session');
                   setCurrentUser(null);
                   setToken(null);
+                  hasUserRef.current = false;
                   // CRITICAL FIX: Ensure loading is set to false on error
                   setLoading(false);
                   setIsInitialized(true);
@@ -133,6 +142,7 @@ export function AuthProvider({ children }) {
             } else if (isMounted) {
               setCurrentUser(null);
               setToken(null);
+              hasUserRef.current = false;
               if (typeof window !== 'undefined') {
                 sessionStorage.removeItem('careflow_token');
               }
@@ -243,6 +253,7 @@ export function AuthProvider({ children }) {
         phoneNumber: user.phoneNumber,
       });
       setToken(idToken);
+      hasUserRef.current = true; // Mark that we have a user
 
       // Store token in sessionStorage
       if (typeof window !== 'undefined') {
@@ -294,6 +305,7 @@ export function AuthProvider({ children }) {
         phoneNumber: result.user.phoneNumber,
       });
       setToken(idToken);
+      hasUserRef.current = true; // Mark that we have a user
 
       // Store token in sessionStorage
       if (typeof window !== 'undefined') {
@@ -327,6 +339,7 @@ export function AuthProvider({ children }) {
       }
       setCurrentUser(null);
       setToken(null);
+      hasUserRef.current = false; // Reset user flag
 
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('careflow_token');
