@@ -20,6 +20,8 @@ import { useDialerModal } from '@/context/DialerModalContext';
 import { useCallState } from '@/hooks/useCallState';
 import { useCallManager } from '@/hooks/useCallManager';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { useInitializationState } from '@/hooks/useInitializationState';
+import { useAuth } from '@/hooks';
 
 export default function GlobalDialerModal() {
   const { isModalOpen, closeModal } = useDialerModal();
@@ -32,7 +34,14 @@ export default function GlobalDialerModal() {
     callDuration,
     callError,
     isMuted,
+    care4wId,
   } = useCallState();
+  
+  // Get initialization state for connection info
+  const initState = useInitializationState();
+  
+  // Get auth state
+  const { user, loading: authLoading } = useAuth();
 
   // Local state for the phone number input in the modal
   const [localPhoneNumber, setLocalPhoneNumber] = useState('');
@@ -67,6 +76,22 @@ export default function GlobalDialerModal() {
     }
   }, [closeModal, callStatus]);
 
+  // Handle retry initialization
+  const handleRetry = useCallback(() => {
+    if (initState.canRetry) {
+      initState.retry();
+    }
+  }, [initState]);
+
+  // Build connection state from callManager
+  const connectionState = callManager?.connectionState || null;
+
+  // Build service status
+  const serviceStatus = {
+    mode: callManager?.mode || 'unknown',
+    status: initState?.isInitialized ? 'ready' : initState?.state || 'unknown',
+  };
+
   return (
     <DialPadModal
       isOpen={isModalOpen}
@@ -85,6 +110,13 @@ export default function GlobalDialerModal() {
       onMute={callManager?.toggleMute}
       onDTMF={callManager?.sendDTMF}
       audioRecorder={audioRecorder}
+      // Enhanced CallStatus props
+      connectionState={connectionState}
+      onRetry={handleRetry}
+      care4Id={care4wId}
+      isAuthenticated={!!user}
+      authLoading={authLoading}
+      serviceStatus={serviceStatus}
     />
   );
 }

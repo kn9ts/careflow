@@ -23,6 +23,13 @@ export default function DialPadModal({
   onMute,
   onDTMF,
   audioRecorder,
+  // Additional props for enhanced CallStatus
+  connectionState,
+  onRetry,
+  care4Id,
+  isAuthenticated,
+  authLoading,
+  serviceStatus,
 }) {
   const closeButtonRef = useRef(null);
   const modalRef = useRef(null);
@@ -182,6 +189,12 @@ export default function DialPadModal({
               duration={callDuration}
               phoneNumber={phoneNumber}
               error={callError}
+              connectionState={connectionState}
+              onRetry={onRetry}
+              care4Id={care4Id}
+              isAuthenticated={isAuthenticated}
+              authLoading={authLoading}
+              serviceStatus={serviceStatus}
             />
 
             <CallControls

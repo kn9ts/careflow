@@ -2,6 +2,8 @@
 
 A modern web application for browser-based voice communications with Twilio Voice and WebRTC P2P calling, featuring call recording, analytics, and cloud storage.
 
+![CareFlow Dashboard](public/dashboard-screenshot.png)
+
 ## Features
 
 ### Calling Modes
