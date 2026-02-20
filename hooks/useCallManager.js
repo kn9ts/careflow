@@ -111,7 +111,9 @@ const showInitializationErrorNotification = (errorMessage) => {
  * @returns {Object} Call manager actions and state
  */
 export function useCallManager() {
-  const { token, user, updateUserCare4wId } = useAuth();
+  // FIX: CRITICAL-03 - Added isInitialized to prevent race condition
+  // Services should only initialize after auth state is fully determined
+  const { token, user, isInitialized, updateUserCare4wId } = useAuth();
   const {
     setCallStatus,
     setMode,
@@ -266,6 +268,13 @@ export function useCallManager() {
 
   // Initialize call manager
   useEffect(() => {
+    // FIX: CRITICAL-03 - Wait for auth to be fully initialized before proceeding
+    // This prevents race conditions where services initialize with unvalidated tokens
+    if (!isInitialized) {
+      logger.debug('useCallManager', 'Auth not yet initialized - waiting...');
+      return;
+    }
+
     if (!token || !user) {
       logger.warn('useCallManager', 'No token or user - skipping initialization');
       updateConnectionState({
@@ -408,6 +417,7 @@ export function useCallManager() {
   }, [
     token,
     user,
+    isInitialized, // FIX: CRITICAL-03 - Added to prevent race condition
     setMode,
     setCare4wId,
     setModeInfo,
@@ -422,7 +432,8 @@ export function useCallManager() {
 
   // Retry initialization
   const retryInitialization = useCallback(async () => {
-    if (!token || !user) {
+    // FIX: CRITICAL-03 - Also check isInitialized for retry
+    if (!isInitialized || !token || !user) {
       setCallError('Cannot retry: not authenticated');
       return;
     }
@@ -469,7 +480,16 @@ export function useCallManager() {
       // Show browser notification for retry failure
       showInitializationErrorNotification(errorMessage);
     }
-  }, [token, user, setMode, setCare4wId, setModeInfo, setCallError, updateConnectionState]);
+  }, [
+    isInitialized,
+    token,
+    user,
+    setMode,
+    setCare4wId,
+    setModeInfo,
+    setCallError,
+    updateConnectionState,
+  ]);
 
   // Call actions - memoized for stability
   const makeCall = useCallback(

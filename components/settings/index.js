@@ -6,3 +6,4 @@
 export { default as NotificationSettingsPanel } from './NotificationSettingsPanel';
 export { default as AudioSettingsPanel } from './AudioSettingsPanel';
 export { default as DisplaySettingsPanel } from './DisplaySettingsPanel';
+export { default as PhoneNumberModal } from './PhoneNumberModal';

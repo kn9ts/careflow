@@ -66,6 +66,38 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
 
+  // Personal Phone Number for identity/lookup (user's actual phone number)
+  // Used to map to care4wId for WebRTC calls when Twilio is not active
+  personalPhoneNumber: {
+    full: {
+      // Full phone number in E.164 format (e.g., +254712345678)
+      type: String,
+      sparse: true,
+      trim: true,
+      validate: {
+        validator(v) {
+          if (!v) return true; // Allow null/empty
+          return /^\+[1-9]\d{1,14}$/.test(v);
+        },
+        message: 'Invalid phone number format. Use E.164 format (e.g., +254712345678)',
+      },
+    },
+    national: {
+      // National number without country code (e.g., 712345678)
+      // Used for uniqueness check - must be unique across all users
+      type: String,
+      sparse: true,
+      unique: true,
+      trim: true,
+    },
+    countryCode: {
+      // Country calling code (e.g., 254 for Kenya)
+      type: String,
+      sparse: true,
+      trim: true,
+    },
+  },
+
   // CareFlow User ID for WebRTC calls (care4w-XXXXXXX)
   care4wId: {
     type: String,
