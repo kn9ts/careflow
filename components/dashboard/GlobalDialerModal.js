@@ -36,10 +36,10 @@ export default function GlobalDialerModal() {
     isMuted,
     care4wId,
   } = useCallState();
-  
+
   // Get initialization state for connection info
   const initState = useInitializationState();
-  
+
   // Get auth state
   const { user, loading: authLoading } = useAuth();
 
