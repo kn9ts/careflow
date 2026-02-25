@@ -173,7 +173,7 @@ describe('Signaling Workflow Integration', () => {
     global.window.navigator = global.navigator;
 
     // Import the module after mocks are set up
-    const module = await import('@/lib/webrtc.js');
+    const module = await import('@/lib/webrtcLegacyv1.js');
     WebRTCManager = module.default;
     createWebRTCManager = module.createWebRTCManager;
   });
