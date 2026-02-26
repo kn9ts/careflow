@@ -54,6 +54,7 @@ export async function GET(request) {
       exists: true,
       care4wId,
       displayName: userResult.displayName,
+      firebaseUid: userResult.uid, // Firebase UID for push notifications
       message: 'User found',
     });
   } catch (error) {

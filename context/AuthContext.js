@@ -343,6 +343,11 @@ export function AuthProvider({ children }) {
       }
 
       setLoading(false);
+
+      // Wait for auth state to fully propagate before returning
+      // This ensures the onAuthStateChanged callback has fired
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       return { success: true, user: result.user };
     } catch (err) {
       console.error('Signup error:', err);

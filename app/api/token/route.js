@@ -42,12 +42,12 @@ function checkTwilioCredentials() {
 }
 
 /**
- * Validate Twilio credentials format
+ * Validate Twilio credentials format and test them
  * @param {Object} credentials - Twilio credentials object
- * @returns {{valid: boolean, error?: string}}
+ * @returns {{valid: boolean, error?: string, details?: Object}}
  */
-function validateTwilioCredentials(credentials) {
-  const { accountSid, apiKey, _apiSecret, twimlAppSid } = credentials;
+async function validateTwilioCredentials(credentials) {
+  const { accountSid, apiKey, apiSecret, twimlAppSid } = credentials;
 
   // Validate Account SID format
   if (accountSid && !accountSid.startsWith('AC')) {
@@ -64,7 +64,49 @@ function validateTwilioCredentials(credentials) {
     return { valid: false, error: 'Invalid TWILIO_TWIML_APP_SID format' };
   }
 
-  return { valid: true };
+  // Try to validate credentials by creating a test token
+  try {
+    const testToken = new AccessToken(accountSid, apiKey, apiSecret, {
+      identity: 'test-validation',
+      ttl: 60, // Short TTL for validation
+    });
+
+    // Add a minimal grant to make it valid
+    const VoiceGrant = AccessToken.VoiceGrant;
+    const voiceGrant = new VoiceGrant({
+      outgoingApplicationSid: twimlAppSid,
+      incomingAllow: false,
+    });
+    testToken.addGrant(voiceGrant);
+
+    // Try to decode and validate the token
+    const tokenString = testToken.toJwt();
+
+    // Basic JWT structure validation
+    const parts = tokenString.split('.');
+    if (parts.length !== 3) {
+      return { valid: false, error: 'Generated token has invalid JWT structure' };
+    }
+
+    logger.debug('TokenAPI', 'Credential validation: JWT structure OK');
+
+    return {
+      valid: true,
+      details: {
+        tokenLength: tokenString.length,
+        accountSidPrefix: accountSid?.substring(0, 4),
+        apiKeyPrefix: apiKey?.substring(0, 4),
+        twimlAppSidPrefix: twimlAppSid?.substring(0, 4),
+      },
+    };
+  } catch (validationError) {
+    logger.error('TokenAPI', `Credential validation error: ${validationError.message}`);
+    return {
+      valid: false,
+      error: `Credential validation failed: ${validationError.message}`,
+      details: { validationError: validationError.message },
+    };
+  }
 }
 
 /**
@@ -114,7 +156,7 @@ export async function GET(request) {
       return authError;
     }
 
-    logger.success('TokenAPI', `[${requestId}] User authenticated: ${auth.user.uid}`);
+    logger.success('TokenAPI', `[${requestId}] User authenticated: ${auth.user.firebaseUid}`);
 
     // Step 2: Check Twilio credentials
     const { available: twilioAvailable, missing: missingCredentials } = checkTwilioCredentials();
@@ -130,7 +172,7 @@ export async function GET(request) {
     let care4wId = null;
     try {
       await connectDB();
-      const user = await User.findOne({ firebaseUid: auth.user.uid });
+      const user = await User.findOne({ firebaseUid: auth.user.firebaseUid });
       care4wId = user?.care4wId || null;
 
       if (care4wId) {
@@ -164,8 +206,8 @@ export async function GET(request) {
         twimlAppSid: process.env.TWILIO_TWIML_APP_SID,
       };
 
-      // Validate credentials format
-      const validation = validateTwilioCredentials(credentials);
+      // Validate credentials by testing token generation
+      const validation = await validateTwilioCredentials(credentials);
       if (!validation.valid) {
         logger.error(
           'TokenAPI',
@@ -177,13 +219,17 @@ export async function GET(request) {
           identity: null,
           mode: 'webrtc',
           care4wId,
+          firebaseUid: auth.user.firebaseUid,
           message: 'Twilio credentials invalid. Using WebRTC mode.',
           warning: validation.error,
+          debug: validation.details,
         });
       }
 
+      logger.debug('TokenAPI', `[${requestId}] Credential validation details:`, validation.details);
+
       try {
-        const identity = auth.user.twilioClientIdentity || auth.user.uid;
+        const identity = auth.user.twilioClientIdentity || auth.user.firebaseUid;
 
         const { token, identity: tokenIdentity } = generateTwilioToken({
           ...credentials,
@@ -197,6 +243,7 @@ export async function GET(request) {
           identity: tokenIdentity,
           mode: 'twilio',
           care4wId,
+          firebaseUid: auth.user.firebaseUid,
         });
       } catch (tokenError) {
         logger.error('TokenAPI', `[${requestId}] Token generation failed: ${tokenError.message}`);
@@ -207,6 +254,7 @@ export async function GET(request) {
           identity: null,
           mode: 'webrtc',
           care4wId,
+          firebaseUid: auth.user.firebaseUid,
           message: 'Twilio token generation failed. Using WebRTC mode.',
           warning: tokenError.message,
         });
@@ -221,6 +269,7 @@ export async function GET(request) {
       identity: null,
       mode: 'webrtc',
       care4wId,
+      firebaseUid: auth.user.firebaseUid,
       message: 'WebRTC mode active - use care4w- IDs for calls',
     });
   } catch (error) {

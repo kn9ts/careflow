@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { getAuthInstance } from '@/lib/firebase';
 import { connectDB } from '@/lib/db';
 import { getOrCreateUser } from '@/lib/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
@@ -19,6 +19,18 @@ export async function POST(request) {
         status: 400,
         code: 'VALIDATION_ERROR',
       });
+    }
+
+    // Get Firebase auth instance - use getAuthInstance() for proper lazy initialization
+    const auth = getAuthInstance();
+    if (!auth) {
+      return errorResponse(
+        'Authentication service not available. Please ensure Firebase is properly configured.',
+        {
+          status: 500,
+          code: 'AUTH_NOT_AVAILABLE',
+        }
+      );
     }
 
     // Authenticate with Firebase
@@ -55,6 +67,8 @@ export async function POST(request) {
       errorMessage = 'Invalid email address';
     } else if (error.code === 'auth/user-disabled') {
       errorMessage = 'This account has been disabled';
+    } else if (error.code === 'auth/email-already-in-use') {
+      errorMessage = 'An account with this email already exists. Please try logging in instead.';
     }
 
     return errorResponse(errorMessage, {

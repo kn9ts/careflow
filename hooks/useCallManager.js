@@ -200,9 +200,10 @@ export function useCallManager() {
         if (callData.mode === 'webrtc') {
           logger.debug('useCallManager', 'Pending WebRTC call setup');
           setPendingWebRTCCall({
-            roomId: callData.roomId,
+            callId: callData.callId,
             offer: callData.offer,
             from: callData.from,
+            hangupTimer: callData.hangupTimer,
           });
         }
 
@@ -542,6 +543,11 @@ export function useCallManager() {
   const acceptCall = useCallback(async () => {
     // Check if this is a WebRTC incoming call
     if (pendingWebRTCCall && pendingWebRTCCall.roomId) {
+      // Clear auto-hangup timer
+      if (pendingWebRTCCall.hangupTimer) {
+        clearTimeout(pendingWebRTCCall.hangupTimer);
+      }
+
       // Use WebRTC accept path
       try {
         logger.loading('useCallManager', 'Accepting WebRTC call...');
@@ -588,10 +594,16 @@ export function useCallManager() {
 
   const rejectCall = useCallback(async () => {
     logger.warn('useCallManager', 'Rejecting call');
+
+    // Clear auto-hangup timer
+    if (pendingWebRTCCall?.hangupTimer) {
+      clearTimeout(pendingWebRTCCall.hangupTimer);
+    }
+
     await callManager.rejectCall();
     setPendingWebRTCCall(null);
     resetCallState();
-  }, [resetCallState, setPendingWebRTCCall]);
+  }, [resetCallState, setPendingWebRTCCall, pendingWebRTCCall]);
 
   const toggleMute = useCallback(() => {
     const muted = callManager.toggleMute();

@@ -1,0 +1,81 @@
+{
+  "rules": {
+    // ==========================================================================
+    // WebRTC Signaling - Using Firebase UID as Primary Identifier
+    // Path: /calls/{firebaseUid}/{callId}
+    // TESTING RULES - More permissive for development
+    // ==========================================================================
+    "calls": {
+      "$firebaseUid": {
+        // Allow authenticated users to read/write calls
+        // For testing: allow any authenticated user to write to any path
+        ".read": "auth !== null",
+        ".write": "auth !== null",
+        
+        "$callId": {
+          ".read": "auth !== null",
+          ".write": "auth !== null"
+        }
+      }
+    },
+    
+    // ==========================================================================
+    // User Presence and Status - Using Firebase UID
+    // Path: /users/{firebaseUid}
+    // ==========================================================================
+    "users": {
+      "$firebaseUid": {
+        ".read": "auth !== null",
+        ".write": "auth !== null",
+        
+        "public": {
+          ".read": "auth !== null",
+          ".write": "auth !== null"
+        },
+        
+        "private": {
+          ".read": "auth.uid === $firebaseUid",
+          ".write": "auth.uid === $firebaseUid"
+        }
+      }
+    },
+    
+    // ==========================================================================
+    // Push Notification Tokens Storage
+    // Path: /notificationTokens/{firebaseUid}
+    // ==========================================================================
+    "notificationTokens": {
+      "$firebaseUid": {
+        ".read": "auth.uid === $firebaseUid",
+        ".write": "auth.uid === $firebaseUid"
+      }
+    },
+    
+    // ==========================================================================
+    // Call History - Using Firebase UID
+    // Path: /callHistory/{firebaseUid}
+    // ==========================================================================
+    "callHistory": {
+      "$firebaseUid": {
+        ".read": "auth.uid === $firebaseUid",
+        ".write": "auth.uid === $firebaseUid"
+      }
+    },
+    
+    // ==========================================================================
+    // Analytics - Aggregate Data (Admin Only)
+    // ==========================================================================
+    "analytics": {
+      ".read": "auth !== null && auth.token.admin === true",
+      ".write": "false"
+    },
+    
+    // ==========================================================================
+    // Configuration (Admin Only)
+    // ==========================================================================
+    "config": {
+      ".read": "auth !== null && auth.token.admin === true",
+      ".write": "auth !== null && auth.token.admin === true"
+    }
+  }
+}

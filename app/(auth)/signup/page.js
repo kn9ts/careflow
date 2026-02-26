@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -17,7 +17,15 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const router = useRouter();
-  const { signup } = useAuth();
+  const { signup, currentUser, isInitialized, loading: authLoading } = useAuth();
+
+  // Redirect already authenticated users to dashboard
+  useEffect(() => {
+    // Only redirect if auth has finished initializing and user is logged in
+    if (isInitialized && currentUser) {
+      router.replace('/dashboard');
+    }
+  }, [currentUser, isInitialized, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,8 +81,34 @@ export default function SignupPage() {
           throw new Error(registerData.error || 'Failed to register user');
         }
 
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Wait for auth state to be properly established before redirecting
+        // Poll for auth state with timeout to ensure reliable navigation
+        const maxWaitMs = 5000; // 5 second timeout
+        const pollIntervalMs = 100;
+        const startTime = Date.now();
+        let authEstablished = false;
+
+        while (!authEstablished && Date.now() - startTime < maxWaitMs) {
+          // Check both sessionStorage token and isInitialized flag
+          const tokenExists = !!sessionStorage.getItem('careflow_token');
+          // Note: We can't check currentUser here directly as it's a stale closure
+          // The signup function already set the token in sessionStorage
+          if (tokenExists) {
+            authEstablished = true;
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+        }
+
+        if (!authEstablished) {
+          console.warn('Auth state not established after signup within timeout');
+          setError('Account created but session could not be established. Please try logging in.');
+          setLoading(false);
+          return;
+        }
+
+        // Use replace to avoid back-button issues and ensure clean navigation
+        router.replace('/dashboard');
       } else {
         setError(result.error);
       }

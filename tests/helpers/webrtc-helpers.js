@@ -586,7 +586,7 @@ function createMockWebRTCManager(options = {}) {
   const listeners = new Map();
   let peerConnection = null;
 
-  return {
+  const mock = {
     localCare4wId,
     _initialized: initialized,
     _connectionState: connectionState,
@@ -594,6 +594,8 @@ function createMockWebRTCManager(options = {}) {
     localStream: null,
     remoteStream: null,
     currentRoomId: null,
+    isRecording: false,
+    recordedChunks: [],
 
     on: jest.fn((event, callback) => {
       listeners.set(event, callback);
@@ -635,6 +637,9 @@ function createMockWebRTCManager(options = {}) {
     acceptCall: jest.fn(async (roomId, offer) => createTestAnswer(offer)),
 
     endCall: jest.fn(async () => {
+      // Stop recording if in progress
+      mock.isRecording = false;
+      mock.recordedChunks = [];
       listeners.clear();
       peerConnection = null;
     }),
@@ -649,17 +654,26 @@ function createMockWebRTCManager(options = {}) {
 
     toggleMute: jest.fn(() => false),
 
-    startRecording: jest.fn(async () => {}),
+    startRecording: jest.fn(async () => {
+      mock.isRecording = true;
+    }),
 
-    stopRecording: jest.fn(async () => ({
-      blob: new Blob(),
-      duration: 0,
-    })),
-
-    static: {
-      isSupported: jest.fn(() => true),
-    },
+    stopRecording: jest.fn(async () => {
+      mock.isRecording = false;
+      mock.recordedChunks = [];
+      return {
+        blob: new Blob(),
+        duration: 0,
+      };
+    }),
   };
+
+  // Add static properties directly to the returned object
+  mock.static = {
+    isSupported: jest.fn(() => true),
+  };
+
+  return mock;
 }
 
 module.exports = {

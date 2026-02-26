@@ -11,6 +11,10 @@ const inter = Inter({
 export const metadata = {
   title: 'CareFlow',
   description: 'Make and receive phone calls in your browser',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 // Let Next.js decide when to use static generation

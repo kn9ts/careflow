@@ -1,0 +1,159 @@
+{
+  "rules": {
+    // WebRTC Signaling - using Firebase UID as the primary identifier
+    // Path: /calls/{firebaseUid}/{callId}
+    "calls": {
+      "$firebaseUid": {
+        // Users can only read/write calls under their own Firebase UID
+        ".read": "auth.uid === $firebaseUid",
+        ".write": "auth.uid === $firebaseUid",
+
+        "$callId": {
+          // Individual call data
+          ".read": "auth.uid === $firebaseUid",
+          ".write": "auth.uid === $firebaseUid || data.child('from').val() === auth.uid || data.child('to').val() === auth.uid",
+
+          // Validate data structure for WebRTC signaling
+          ".validate": "newData.hasChildren(['type', 'from', 'timestamp'])",
+
+          "type": {
+            ".validate": "newData.isString() && newData.val().matches(/^(offer|answer|candidate|hangup)$/)"
+          },
+          "from": {
+            // Must be the authenticated user's UID or the recipient
+            ".validate": "newData.isString() && (newData.val() === auth.uid || newData.val() === $firebaseUid)"
+          },
+          "to": {
+            // Optional - recipient Firebase UID
+            ".validate": "newData.isString()"
+          },
+          "sdp": {
+            // Session Description Protocol for WebRTC
+            ".validate": "newData.isString() || newData.val() === null"
+          },
+          "candidate": {
+            // ICE candidate for WebRTC
+            ".validate": "newData.isString() || newData.val() === null"
+          },
+          "timestamp": {
+            // Must be a valid timestamp
+            ".validate": "newData.isNumber() && newData.val() > 0"
+          },
+          "status": {
+            // Call status: calling, ringing, connected, ended
+            ".validate": "newData.isString() && newData.val().matches(/^(calling|ringing|connected|ended)$/) || newData.val() === null"
+          },
+          "reason": {
+            // Hangup reason
+            ".validate": "newData.isString() || newData.val() === null"
+          }
+        }
+      }
+    },
+
+    // User presence and status - using Firebase UID
+    // Path: /users/{firebaseUid}
+    "users": {
+      "$firebaseUid": {
+        // Users can read their own data and write their own status
+        ".read": "auth.uid === $firebaseUid",
+        ".write": "auth.uid === $firebaseUid",
+
+        // Public profile info (readable by authenticated users)
+        "public": {
+          ".read": "auth !== null",
+          ".write": "auth.uid === $firebaseUid",
+
+          "displayName": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "care4wId": {
+            ".validate": "newData.isString()"
+          },
+          "online": {
+            ".validate": "newData.isBoolean()"
+          },
+          "lastSeen": {
+            ".validate": "newData.isNumber()"
+          }
+        },
+
+        // Private user data (only readable/writable by owner)
+        "private": {
+          ".read": "auth.uid === $firebaseUid",
+          ".write": "auth.uid === $firebaseUid",
+
+          "email": {
+            ".validate": "newData.isString() && newData.val().matches(/^[^@]+@[^@]+$/)"
+          },
+          "phoneNumber": {
+            ".validate": "newData.isString() || newData.val() === null"
+          },
+          "notificationTokens": {
+            ".validate": "newData.isObject() || newData.val() === null"
+          }
+        }
+      }
+    },
+
+    // Push notification tokens storage
+    // Path: /notificationTokens/{firebaseUid}
+    "notificationTokens": {
+      "$firebaseUid": {
+        ".read": "auth.uid === $firebaseUid",
+        ".write": "auth.uid === $firebaseUid",
+
+        "$tokenId": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        }
+      }
+    },
+
+    // Call history - using Firebase UID
+    // Path: /callHistory/{firebaseUid}
+    "callHistory": {
+      "$firebaseUid": {
+        ".read": "auth.uid === $firebaseUid",
+        ".write": "auth.uid === $firebaseUid",
+
+        "$historyId": {
+          ".validate": "newData.hasChildren(['timestamp', 'direction'])",
+
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          },
+          "direction": {
+            ".validate": "newData.isString() && newData.val().matches(/^(inbound|outbound)$/)"
+          },
+          "remoteUid": {
+            // The Firebase UID of the other party
+            ".validate": "newData.isString()"
+          },
+          "duration": {
+            ".validate": "newData.isNumber() || newData.val() === null"
+          },
+          "status": {
+            ".validate": "newData.isString() && newData.val().matches(/^(completed|missed|rejected|failed)$/)"
+          }
+        }
+      }
+    },
+
+    // Analytics - aggregate data (readable by admin, writable by system)
+    // Path: /analytics/
+    "analytics": {
+      ".read": "auth !== null && auth.token.admin === true",
+      ".write": "false",
+
+      "$metric": {
+        ".validate": "newData.isObject()"
+      }
+    },
+
+    // Root-level configuration (admin only)
+    "config": {
+      ".read": "auth !== null && auth.token.admin === true",
+      ".write": "auth !== null && auth.token.admin === true"
+    }
+  }
+}

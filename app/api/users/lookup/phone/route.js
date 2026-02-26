@@ -55,7 +55,7 @@ export async function GET(request) {
     // Find user by national number (unique across all users)
     const user = await User.findOne({
       'personalPhoneNumber.national': parsed.national,
-    }).select('care4wId displayName personalPhoneNumber');
+    }).select('care4wId displayName personalPhoneNumber firebaseUid');
 
     if (!user) {
       return successResponse({
@@ -71,6 +71,7 @@ export async function GET(request) {
         exists: true,
         isSelf: true,
         care4wId: user.care4wId,
+        firebaseUid: user.firebaseUid,
         displayName: user.displayName,
         message: 'This is your own phone number',
       });
@@ -79,6 +80,7 @@ export async function GET(request) {
     return successResponse({
       exists: true,
       care4wId: user.care4wId,
+      firebaseUid: user.firebaseUid,
       displayName: user.displayName,
       message: 'User found',
     });
