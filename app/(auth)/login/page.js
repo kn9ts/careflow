@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { AuthError } from '@/components/common/AuthError';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -90,22 +91,8 @@ export default function LoginPage() {
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 shadow-elevated">
           {/* Error Alert */}
           {error && (
-            <div className="mb-6 p-4 bg-error-500/10 border border-error-500/30 rounded-xl text-error-300 text-sm flex items-start gap-3 animate-slide-down">
-              <svg
-                className="w-5 h-5 text-error-400 flex-shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span>{error}</span>
+            <div className="mb-6">
+              <AuthError error={error} />
             </div>
           )}
 

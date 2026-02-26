@@ -17,6 +17,7 @@ import { successResponse, errorResponse, handleAuthResult } from '@/lib/apiRespo
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { logger } from '@/lib/logger';
+import { rateLimitGeneral } from '@/lib/rateLimiter';
 
 // Force dynamic rendering - this route uses request.headers for auth
 export const dynamic = 'force-dynamic';
@@ -142,7 +143,7 @@ function generateTwilioToken(options) {
  * GET /api/token
  * Returns token info for call mode determination
  */
-export async function GET(request) {
+async function tokenHandler(request) {
   const requestId = `token-${Date.now()}`;
   logger.loading('TokenAPI', `[${requestId}] Processing token request...`);
 
@@ -298,3 +299,5 @@ export async function GET(request) {
     });
   }
 }
+
+export const GET = rateLimitGeneral(tokenHandler);

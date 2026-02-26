@@ -12,7 +12,7 @@ import { getServerUser } from '@/lib/server-auth';
 import { fetchCallHistory } from '@/lib/api/calls';
 import { getTokenFromCookies } from '@/lib/server-token';
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = 'force-dynamic'; // Force dynamic rendering
 
 export default async function HistoryPage() {
   // Check authentication

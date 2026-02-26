@@ -19,6 +19,7 @@ import {
 } from 'firebase/auth';
 import { getAuthInstance, isConfigured as isFirebaseConfigured } from '@/lib/firebase';
 import { setAuthCookie, clearAuthCookie } from '@/app/actions/auth';
+import { getAuthErrorMessageString } from '@/lib/authErrorMessages';
 
 const AuthContext = createContext(null);
 
@@ -294,9 +295,10 @@ export function AuthProvider({ children }) {
       return { success: true, user };
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message);
+      const userFriendlyError = getAuthErrorMessageString(err.code || 'unknown', err.message);
+      setError(userFriendlyError);
       setLoading(false);
-      return { success: false, error: err.message };
+      return { success: false, error: userFriendlyError };
     }
   }, []);
 
@@ -351,9 +353,10 @@ export function AuthProvider({ children }) {
       return { success: true, user: result.user };
     } catch (err) {
       console.error('Signup error:', err);
-      setError(err.message);
+      const userFriendlyError = getAuthErrorMessageString(err.code || 'unknown', err.message);
+      setError(userFriendlyError);
       setLoading(false);
-      return { success: false, error: err.message };
+      return { success: false, error: userFriendlyError };
     }
   }, []);
 
@@ -399,8 +402,9 @@ export function AuthProvider({ children }) {
       return { success: true };
     } catch (err) {
       console.error('Password reset error:', err);
-      setError(err.message);
-      return { success: false, error: err.message };
+      const userFriendlyError = getAuthErrorMessageString(err.code || 'unknown', err.message);
+      setError(userFriendlyError);
+      return { success: false, error: userFriendlyError };
     }
   }, []);
 

@@ -3,18 +3,27 @@ import { VoiceResponse } from 'twilio/lib/twiml/VoiceResponse';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { sendIncomingCallNotification } from '@/lib/notifications';
+import { verifyWebhookRequest } from '@/lib/webhookVerification';
+import { rateLimitWebhook } from '@/lib/rateLimiter';
 
-export async function POST(request) {
+async function voiceWebhookHandler(request) {
   try {
+    // Verify Twilio webhook signature
+    const verificationResult = await verifyWebhookRequest(request);
+    if (!verificationResult.valid) {
+      console.error('Invalid webhook signature:', verificationResult.error);
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 403 });
+    }
+
     // Connect to database
     await connectDB();
 
     // Parse form data from Twilio webhook
-    const formData = await request.formData();
-    const from = formData.get('From');
-    const to = formData.get('To');
-    const callSid = formData.get('CallSid');
-    const callStatus = formData.get('CallStatus');
+    const formData = verificationResult.formData;
+    const from = formData.From;
+    const to = formData.To;
+    const callSid = formData.CallSid;
+    const callStatus = formData.CallStatus;
 
     console.log(`Incoming call from ${from} to ${to} (SID: ${callSid}, Status: ${callStatus})`);
 
@@ -65,3 +74,5 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
+
+export const POST = rateLimitWebhook(voiceWebhookHandler);

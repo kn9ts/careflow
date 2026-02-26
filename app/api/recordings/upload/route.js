@@ -11,8 +11,9 @@ import Recording from '@/models/Recording';
 import backblazeStorage from '@/lib/backblaze';
 import { requireAuth } from '@/lib/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
+import { rateLimitUpload, rateLimitGeneral } from '@/lib/rateLimiter';
 
-export async function POST(request) {
+async function uploadHandler(request) {
   try {
     // Authenticate user
     const auth = await requireAuth(request);
@@ -127,10 +128,12 @@ export async function POST(request) {
   }
 }
 
+export const POST = rateLimitUpload(uploadHandler);
+
 /**
  * Get upload configuration and limits
  */
-export async function GET(request) {
+async function getUploadConfigHandler(request) {
   try {
     // Authenticate user
     const auth = await requireAuth(request);
@@ -175,3 +178,5 @@ export async function GET(request) {
     return errorResponse('Failed to get upload configuration', { status: 500 });
   }
 }
+
+export const GET = rateLimitGeneral(getUploadConfigHandler);

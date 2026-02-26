@@ -3,8 +3,10 @@ import { getAuthInstance } from '@/lib/firebase';
 import { connectDB } from '@/lib/db';
 import { getOrCreateUser } from '@/lib/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
+import { rateLimitAuth } from '@/lib/rateLimiter';
+import { getAuthErrorMessageString } from '@/lib/authErrorMessages';
 
-export async function POST(request) {
+async function loginHandler(request) {
   try {
     // Connect to database
     await connectDB();
@@ -55,25 +57,26 @@ export async function POST(request) {
   } catch (error) {
     console.error('Login error:', error);
 
-    // Handle specific Firebase auth errors
-    let errorMessage = 'Login failed';
-    const statusCode = 401;
+    // Use user-friendly error messages from authErrorMessages
+    const userFriendlyError = getAuthErrorMessageString(error.code || 'unknown', error.message);
 
-    if (error.code === 'auth/user-not-found') {
-      errorMessage = 'No account found with this email address';
-    } else if (error.code === 'auth/wrong-password') {
-      errorMessage = 'Incorrect password';
-    } else if (error.code === 'auth/invalid-email') {
-      errorMessage = 'Invalid email address';
-    } else if (error.code === 'auth/user-disabled') {
-      errorMessage = 'This account has been disabled';
-    } else if (error.code === 'auth/email-already-in-use') {
-      errorMessage = 'An account with this email already exists. Please try logging in instead.';
+    // Determine status code based on error type
+    let statusCode = 401;
+    if (error.code?.includes('invalid') || error.code?.includes('missing')) {
+      statusCode = 400; // Bad request for validation errors
+    } else if (error.code?.includes('disabled') || error.code?.includes('deactivated')) {
+      statusCode = 403; // Forbidden
+    } else if (error.code?.includes('too-many-requests')) {
+      statusCode = 429; // Too many requests
+    } else if (error.code?.includes('not-available') || error.code?.includes('internal')) {
+      statusCode = 500; // Internal server error
     }
 
-    return errorResponse(errorMessage, {
+    return errorResponse(userFriendlyError, {
       status: statusCode,
-      code: 'AUTH_LOGIN_FAILED',
+      code: error.code || 'AUTH_LOGIN_FAILED',
     });
   }
 }
+
+export const POST = rateLimitAuth(loginHandler);

@@ -11,10 +11,10 @@ import { getServerUser } from '@/lib/server-auth';
  * Data fetching strategy:
  * - Server-side fetching for initial load (better performance)
  * - Parallel fetching with Promise.all for efficiency
- * - Revalidation every 60 seconds for fresh data
+ * - Force dynamic rendering because we use cookies()
  */
 
-export const revalidate = 60; // Revalidate every 60 seconds (ISR)
+export const dynamic = 'force-dynamic'; // Force dynamic rendering
 
 export default async function DashboardPage() {
   // Check authentication on server

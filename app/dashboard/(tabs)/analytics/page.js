@@ -11,7 +11,7 @@ import { getServerUser } from '@/lib/server-auth';
 import { fetchAnalytics } from '@/lib/api/analytics';
 import { getTokenFromCookies } from '@/lib/server-token';
 
-export const revalidate = 60; // Revalidate every 60 seconds (ISR)
+export const dynamic = 'force-dynamic'; // Force dynamic rendering
 
 export default async function AnalyticsPage() {
   // Check authentication
