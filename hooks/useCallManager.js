@@ -401,12 +401,16 @@ export function useCallManager() {
 
       if (initializedRef.current && eventListenersRef.current) {
         logger.loading('useCallManager', 'Cleaning up...');
-        callManager.off('onCallStateChange');
-        callManager.off('onIncomingCall');
-        callManager.off('onError');
-        callManager.off('onCallEnded');
-        callManager.off('onConnectionStateChange');
-        callManager.off('onInitializationChange');
+        // Remove specific event listeners
+        callManager.off('onCallStateChange', eventListenersRef.current.onCallStateChange);
+        callManager.off('onIncomingCall', eventListenersRef.current.onIncomingCall);
+        callManager.off('onError', eventListenersRef.current.onError);
+        callManager.off('onCallEnded', eventListenersRef.current.onCallEnded);
+        callManager.off(
+          'onConnectionStateChange',
+          eventListenersRef.current.onConnectionStateChange
+        );
+        callManager.off('onInitializationChange', eventListenersRef.current.onInitializationChange);
         callManager.disconnect();
         initializedRef.current = false;
         eventListenersRef.current = null;
